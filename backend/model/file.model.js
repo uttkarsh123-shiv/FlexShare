@@ -21,10 +21,14 @@ const fileSchema = new mongoose.Schema({
             'word->pdf',
         ]
     },
-       expiryHours: {
-        type:Number,
+       expiry: {
+        type:Date,
         required:true,
-        default: 1
+        index: {expires:0}
+    },
+    description: {
+        type: String,
+        default: 'file description'
     },
 }, {timestamps: true});
 
