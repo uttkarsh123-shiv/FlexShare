@@ -15,7 +15,7 @@ export default function FilePage() {
 
   if (!file) return <p className="p-4">Loading or file not found...</p>;
 
-  const { fileUrl, expiry, description } = file;
+  const { fileUrl, description } = file;
   // const createdDate = new Date(expiry).toLocaleDateString("en-US", {
   //   month: "short",
   //   day: "numeric",

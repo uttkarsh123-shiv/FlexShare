@@ -4,6 +4,7 @@ import Hero from './pages/Hero';
 import UploadPage from './pages/UploadPage';
 import FilePage from './pages/FilePage';
 import './App.css'
+import Notfound from './pages/Notfound';
 
 const App = () => {
   return (
@@ -12,6 +13,7 @@ const App = () => {
         <Route path="/" element={<Hero />} />
         <Route path="/upload" element={<UploadPage />} />
         <Route path="/file/:code" element={<FilePage />} />
+        <Route path="*" element={<Notfound />} />
       </Routes>
     </Router>
   );
