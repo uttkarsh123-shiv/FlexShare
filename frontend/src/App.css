@@ -1,1 +1,26 @@
-@import 'tailwindcss'
+@import url('https://fonts.googleapis.com/css2?family=Amarante&family=Instrument+Serif:ital@0;1&display=swap');
+
+
+.instrument-serif-regular {
+  font-family: "Instrument Serif", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.instrument-serif-regular-italic {
+  font-family: "Instrument Serif", serif;
+  font-weight: 400;
+  font-style: italic;
+}
+.amarante-regular {
+  font-family: "Amarante", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+body{
+    overflow-x: hidden;
+}
+button{
+    cursor: pointer;
+}
