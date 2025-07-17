@@ -7,36 +7,46 @@ export default function UploadPage() {
   const [file, setFile] = useState(null);
   const [conversionType, setConversionType] = useState("");
   const [code, setCode] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const [hasPublished, setHasPublished] = useState(false);
 
   const onDrop = (acceptedFiles) => {
     setFile(acceptedFiles[0]);
+    setCode("");
+    setHasPublished(false);
   };
 
   const onRemove = () => {
     setFile(null);
+    setCode("");
+    setHasPublished(false);
   };
 
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
   const handlePublish = async () => {
+    if (isUploading || hasPublished) return;
+
     if (!file || !conversionType) {
       alert("Please select file and conversion type");
       return;
     }
+
+    setIsUploading(true);
 
     const formData = new FormData();
     formData.append("file", file);
     formData.append("conversionType", conversionType);
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/uploads",
-        formData
-      );
+      const res = await axios.post("http://localhost:5000/api/uploads", formData);
       setCode(res.data.code);
+      setHasPublished(true); // prevents repeat clicks
     } catch (err) {
       alert("Upload failed");
       console.error(err);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -47,7 +57,6 @@ export default function UploadPage() {
         className="w-[55vw] h-[45vh] mx-auto bg-transparent border border-dashed border-[#383838] rounded-lg p-8 flex flex-col items-center justify-center text-center cursor-pointer transition"
       >
         <input {...getInputProps()} />
-
         {!file ? (
           <>
             <p className="font-semibold text-[#e5e7eb] mb-2">Upload file</p>
@@ -73,11 +82,8 @@ export default function UploadPage() {
           </>
         ) : (
           <div className="flex items-center justify-between bg-[#1a1a1a] px-4 py-5 rounded w-full max-w-lg border border-[#383838]">
-            <div>
+            <div className="overflow-hidden">
               <p className="text-gray-100 font-medium truncate">{file.name}</p>
-              {/* <span className="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded">
-                {file.type}
-              </span> */}
             </div>
             <div className="flex items-center gap-2 ml-4">
               <span className="text-xs bg-gray-700 text-gray-100 px-2 py-0.5 rounded">
@@ -92,7 +98,7 @@ export default function UploadPage() {
       </div>
 
       {/* Conversion type + Publish */}
-      <div className="mx-auto mt-6 w-[55vw] flex justify-between">
+      <div className="mx-auto mt-6 w-[55vw] flex justify-between items-center">
         <select
           value={conversionType}
           onChange={(e) => setConversionType(e.target.value)}
@@ -105,22 +111,33 @@ export default function UploadPage() {
           <option value="image->jpg">Image → JPG</option>
         </select>
 
-       <div className="flex gap-5 items-center">
-         {code && (
-        <div className="mt-4 text-center text-green-500">
-          Your code: <span className="font-mono">{code}</span>
-        </div>
-      )}
-        <button
-          onClick={handlePublish}
-          className="cursor-pointer mt-4 bg-orange-800 text-white px-4 py-2 rounded hover:bg-orange-600 transition"
-        >
-          Publish
-        </button>
-       </div>
-      </div>
+        <div className="flex gap-5 items-center">
+          {code && (
+            <div className="mt-4 text-center text-green-500">
+              Your code: <span className="font-mono">{code}</span>
+            </div>
+          )}
 
-      
+          <button
+            onClick={handlePublish}
+            disabled={isUploading || hasPublished}
+            className={`mt-4 flex items-center justify-center px-4 py-2 rounded text-white ${
+              isUploading || hasPublished
+                ? "bg-orange-900 cursor-not-allowed"
+                : "bg-orange-800 hover:bg-orange-600 text-[#a8a29e]"
+            }`}
+          >
+            {isUploading ? (
+              <button className="px-5 rounded">
+                 <span className="loader"></span>
+              </button>
+             
+            ) : (
+              "Publish"
+            )}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
