@@ -39,7 +39,7 @@ export default function UploadPage() {
     formData.append("conversionType", conversionType);
 
     try {
-      const res = await axios.post("http://localhost:5000/api/uploads", formData);
+      const res = await axios.post("https://flexshare.onrender.com/api/uploads", formData);
       setCode(res.data.code);
       setHasPublished(true); // prevents repeat clicks
     } catch (err) {

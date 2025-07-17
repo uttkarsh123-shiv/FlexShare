@@ -8,7 +8,7 @@ export default function FilePage() {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:5000/api/file/${code}`)
+      .get(`https://flexshare.onrender.com/api/file/${code}`)
       .then((res) => setFile(res.data))
       .catch((err) => console.error(err));
   }, [code]);
