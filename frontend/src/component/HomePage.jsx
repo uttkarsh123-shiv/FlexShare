@@ -1,8 +1,13 @@
-// pages/HomePage.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// import Demo from '../../../frontend/src/Demo';
 import OtpInput from "react-otp-input";
+import Card from "./Card";
+import { RxLoop } from "react-icons/rx";
+import { MdOutlineSecurity } from "react-icons/md";
+import { FaFileAlt } from "react-icons/fa";
+import { TfiLoop } from "react-icons/tfi";
+
+
 
 export default function HomePage() {
   const [code, setCode] = useState("");
@@ -11,8 +16,7 @@ export default function HomePage() {
 
   return (
     <>
-      {/* <Demo /> */}
-      <div className="p-8 text-center h-screen w-screen bg-[#0c0a09] text-white pt-40">
+      <div className="p-8 text-center h-[65vh] w-screen bg-[#0c0a09] text-white pt-40">
         <h1 className="text-7xl font-bold mb-6 instrument-serif-regular leading-10">
           Share Smarter. Convert Faster.
         </h1>
@@ -71,6 +75,24 @@ export default function HomePage() {
             </div>
           </div>
         )}
+      </div>
+
+      <div className="flex justify-around px-25">
+           <Card
+        title="Instant File Conversion"
+        description="Upload any file and get it converted in seconds — no sign up needed"
+        icon={TfiLoop}
+      />
+           <Card
+        title="Privacy-Focused"
+        description="Your files are never stored. Everything runs on your device or temporary memory."
+        icon={MdOutlineSecurity }
+      />
+             <Card
+        title="Multiple Formats Supported"
+        description="Convert between Word, PDF, PNG, JPG — and more coming soon."
+        icon={FaFileAlt}
+      />
       </div>
     </>
   );
