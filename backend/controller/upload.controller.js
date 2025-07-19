@@ -33,6 +33,7 @@ const uploadAndConvertFile = async (req, res) => {
     if (conversionType.startsWith('image->')) {
       // Image conversion with sharp
       await sharp(file.path)
+        .resize({ fit: 'inside', width: 2000 })
         .toFormat(targetFormat)
         .toFile(convertedPath);
 
