@@ -68,13 +68,12 @@ const [description, setDescription] = useState("");
   {step === 1 && (
    <div>
   <div
-    {...getRootProps()}
-    className="w-[55vw] h-[45vh] mx-auto bg-transparent border border-dashed border-[#383838] rounded-lg p-8 flex flex-col items-center justify-center text-center cursor-pointer transition"
+    {...getRootProps()} 
+    className="w- [55vw] h-[45vh] mx-auto bg-transparent border border-dashed border-[#383838] rounded-lg p-8 flex flex-col items-center justify-center text-center cursor-pointer transition"
   >
     <input {...getInputProps()} />
     {!file ? (
       <>
-     
         <p className="font-semibold mb-2 text-[#e5e7eb]">Upload file</p>
         <p className="text-[#a8a29e] mb-4">Drag or drop your files here</p>
         <div className="w-30 h-30 flex justify-center items-center rounded-lg bg-[#171717]">
@@ -195,7 +194,7 @@ const [description, setDescription] = useState("");
         <button onClick={() => setStep(2)} className="text-gray-400 hover:text-orange-400">← Back</button>
 
         <button
-          onClick={handlePublish}
+          onClick={handlePublish}  
           disabled={isUploading || hasPublished}
           className={`flex items-center justify-center px-4 py-2 rounded text-white ${
             isUploading || hasPublished

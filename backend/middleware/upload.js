@@ -1,13 +1,13 @@
-const multer = require('multer');
-const path = require('path');
+import multer, { diskStorage } from 'multer';
+import { extname } from 'path';
 
-const storage = multer.diskStorage({
+const storage = diskStorage({
     destination: 'uploads/',
     filename: (req,file,cb) => {
-        const ext = path.extname(file.originalname);
+        const ext = extname(file.originalname);
         cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + ext);
     }
 })
 
 const upload = multer({ storage });
-module.exports = upload;
+export default upload;

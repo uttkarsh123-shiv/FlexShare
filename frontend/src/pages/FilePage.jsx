@@ -43,7 +43,7 @@ export default function FilePage() {
             {description || "No description provided"}
             </p>
           <div className="flex items-center justify-between border-[#2e2e2e] text-xs border-t pt-2">
-            <p className="text-[#a8a29e]">Expiry: <span className="text-red-900">1 hour</span></p>
+            <p className="text-[#a8a29e]">Expiry: <span className="text-orange-600">1 hour</span></p>
             <a
               href={fileUrl}
               download

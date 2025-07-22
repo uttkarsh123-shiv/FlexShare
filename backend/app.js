@@ -6,8 +6,8 @@ const cors = require('cors');
 
 app.use(cors({
   origin: 'https://flex-share.vercel.app', // only allow this domain
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
+  // methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  // credentials: true
 }));
 
 
