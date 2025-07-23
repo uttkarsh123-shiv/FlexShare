@@ -44,7 +44,12 @@ const [description, setDescription] = useState("");
     formData.append("conversionType", conversionType);
 
     try {
-      const res = await axios.post("https://flexshare.onrender.com/api/uploads", formData);
+      const res = await axios.post("https://flexshare.onrender.com/api/uploads", formData, {
+        headers:{
+        'Content-Type':'multipart/form-data'
+        },
+        timeout:60000
+      });
       setCode(res.data.code);
       setHasPublished(true); // prevents repeat clicks
     } catch (err) {

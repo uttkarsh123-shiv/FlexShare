@@ -32,10 +32,11 @@ const uploadAndConvertFile = async (req, res) => {
 
     if (conversionType.startsWith('image->')) {
       // Image conversion with sharp
-      await sharp(file.path)
-        .resize({ fit: 'inside', width: 2000 })
-        .toFormat(targetFormat)
-        .toFile(convertedPath);
+await sharp(file.path)
+  .resize({ fit: 'inside', width: 2000 }) // Optional resize
+  .toFormat(targetFormat, { quality: 70 }) // ⬅️ Add quality here
+  .toFile(convertedPath);
+
 
     } 
      else {
@@ -44,14 +45,37 @@ const uploadAndConvertFile = async (req, res) => {
     }
 
     // Upload to Cloudinary
-    const uploadResult = await cloudinary.uploader.upload(convertedPath, {
-      folder: 'converted_files',
-      resource_type: 'auto'
-    });
+    // const uploadResult = await cloudinary.uploader.upload(convertedPath, {
+    //   folder: 'converted_files',
+    //   resource_type: 'auto'
+    // });
+
+    const stats = fs.statSync(convertedPath);
+console.log('Converted file size (MB):', stats.size / (1024 * 1024));
+
+    let uploadResult;
+try {
+  uploadResult = await cloudinary.uploader.upload(convertedPath, {
+    folder: 'converted_files',
+    resource_type: "auto", 
+  });
+  console.log("Cloudinary upload success:", uploadResult.secure_url);
+} catch (err) {
+  console.error("Cloudinary upload failed:", err);
+  return res.status(500).json({ error: "Cloudinary upload failed" });
+}
+
 
     // Remove temp files
-    fs.unlinkSync(file.path);
-    fs.unlinkSync(convertedPath);
+  try {
+  fs.unlinkSync(file.path);
+  console.log("Original file deleted:", file.path);
+  fs.unlinkSync(convertedPath);
+  console.log("Converted file deleted:", convertedPath);
+} catch (err) {
+  console.error("File deletion failed:", err);
+}
+
 
     // Create DB entry
     const code = nanoid(6).toUpperCase();
