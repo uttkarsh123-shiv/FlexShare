@@ -51,3 +51,11 @@ You can integrate this API with:
 5. API responds with a JSON containing the **Cloudinary URL**.  
 
 ---
+
+## ⚠️ Current Limitations & Notes
+
+> ✅ **Currently supports only image files (JPG, PNG)**  
+> ⚠️ **Upload size limit: 10MB**  
+> 🔧 **PDF support is currently in development**
+
+---
