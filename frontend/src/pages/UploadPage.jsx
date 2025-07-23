@@ -48,7 +48,6 @@ const [description, setDescription] = useState("");
         headers:{
         'Content-Type':'multipart/form-data'
         },
-        timeout:60000
       });
       setCode(res.data.code);
       setHasPublished(true); // prevents repeat clicks
