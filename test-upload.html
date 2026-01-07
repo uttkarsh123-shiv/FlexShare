@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Upload</title>
+</head>
+<body>
+    <h1>Test File Upload</h1>
+    <form id="uploadForm">
+        <input type="file" id="fileInput" accept="image/*" required>
+        <select id="conversionType" required>
+            <option value="">Select conversion</option>
+            <option value="image->png">Image to PNG</option>
+            <option value="image->jpg">Image to JPG</option>
+        </select>
+        <textarea id="description" placeholder="Description (optional)"></textarea>
+        <button type="submit">Upload</button>
+    </form>
+    
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('fileInput');
+            const conversionType = document.getElementById('conversionType').value;
+            const description = document.getElementById('description').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!fileInput.files[0] || !conversionType) {
+                resultDiv.innerHTML = '<p style="color: red;">Please select a file and conversion type</p>';
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('conversionType', conversionType);
+            formData.append('description', description);
+            
+            resultDiv.innerHTML = '<p>Uploading...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/uploads', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <p style="color: green;">Upload successful!</p>
+                        <p>Code: ${data.code}</p>
+                        <p>URL: <a href="${data.url}" target="_blank">${data.url}</a></p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p style="color: red;">Error: ${data.message}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">Network error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

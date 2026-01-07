@@ -19,3 +19,5 @@ backend/build/
 # IDE / system files
 .DS_Store
 *.log
+
+.qodo

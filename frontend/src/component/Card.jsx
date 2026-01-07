@@ -1,12 +1,15 @@
 import React from 'react';
-const Card = ({ title, description, icon: Icon, bgColor = "bg-[#3333]" }) => {
+
+const Card = ({ title, description, icon: Icon }) => {
   return (
-    <div className={`w-80 h-60 ${bgColor} rounded-xl p-8 pr-9 shadow-[0_4px_30px_rgba(0,0,0,0.1)] border border-white/10 bg-white/5 backdrop-blur-lg backdrop-saturate-150`}>
-      {Icon && <Icon className="text-orange-600 text-4xl" />}
-      <h1 className="mb-2 mt-5 text-[22px] font-semibold font-serif text-white instrument-serif-regular">
+    <div className="group relative bg-[#171717] border border-[#383838] rounded-xl p-8 shadow-xl hover:shadow-2xl hover:shadow-orange-600/10 transition-all duration-300 hover:scale-105 hover:border-orange-600/50">
+      <div className="mb-4 inline-flex p-3 bg-orange-900/20 rounded-lg group-hover:bg-orange-900/30 transition">
+        {Icon && <Icon className="text-orange-500 text-3xl" />}
+      </div>
+      <h3 className="mb-3 text-xl font-bold text-white">
         {title}
-      </h1>
-      <p className="text-[16px] text-gray-200">
+      </h3>
+      <p className="text-[#a8a29e] leading-relaxed">
         {description}
       </p>
     </div>
