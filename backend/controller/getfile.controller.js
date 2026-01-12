@@ -80,20 +80,14 @@ const getFileInfo = async (req, res) => {
   try {
     const { code } = req.params;
     
-    console.log(`Getting file info for code: ${code}`);
-    
     const fileDoc = await filemodel.findOne({ code: code.toUpperCase() });
 
     if (!fileDoc) {
-      console.log(`File not found for code: ${code}`);
       return res.status(404).json({ message: 'File not found' });
     }
 
-    console.log(`File found: ${fileDoc.originalFileName}, expires: ${fileDoc.expiry}`);
-
     // Check expiry
     if (new Date() > fileDoc.expiry) {
-      console.log(`File expired for code: ${code}`);
       return res.status(410).json({ message: 'File expired' });
     }
 
@@ -110,31 +104,13 @@ const getFileInfo = async (req, res) => {
       allowDetailedView = true;
     }
 
-    // If file has password protection, don't return sensitive information
-    if (fileDoc.hasPassword) {
-      console.log(`Password protected file for code: ${code}`);
-      return res.json({
-        originalFileName: fileDoc.originalFileName,
-        fileSize: fileDoc.fileSize,
-        conversionType: fileDoc.conversionType,
-        expiry: fileDoc.expiry,
-        description: fileDoc.description,
-        hasPassword: true,
-        requiresPassword: true, // Indicate that password is needed
-        createdAt: fileDoc.createdAt,
-        allowDetailedView: allowDetailedView
-      });
-    }
-
-    console.log(`Returning file info for code: ${code}`);
     res.json({
-      fileUrl: fileDoc.fileUrl, // Only include fileUrl for non-password protected files
       originalFileName: fileDoc.originalFileName,
       fileSize: fileDoc.fileSize,
       conversionType: fileDoc.conversionType,
       expiry: fileDoc.expiry,
       description: fileDoc.description,
-      hasPassword: false,
+      hasPassword: fileDoc.hasPassword,
       downloadCount: fileDoc.downloadCount,
       maxDownloads: fileDoc.maxDownloads,
       createdAt: fileDoc.createdAt,
@@ -142,8 +118,8 @@ const getFileInfo = async (req, res) => {
       allowDetailedView: allowDetailedView
     });
   } catch (err) {
-    console.error('Error in getFileInfo:', err);
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 

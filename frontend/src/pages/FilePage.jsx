@@ -43,15 +43,6 @@ export default function FilePage() {
       setLoading(true);
       const url = `${API_URL}/api/file/${code}/info${markFirstView ? '?markFirstView=true' : ''}`;
       const res = await axios.get(url);
-      
-      // Check if password is required
-      if (res.data.requiresPassword) {
-        setRequiresPassword(true);
-        setFile(res.data); // Set basic file info for display
-        setLoading(false);
-        return;
-      }
-      
       setFile(res.data);
       setAllowDetailedView(!!res.data.allowDetailedView);
       setError(null);
@@ -103,8 +94,13 @@ export default function FilePage() {
 
   useEffect(() => {
     if (code) {
-      // Always fetch file info without marking first view to prevent auto-redirect
-      fetchFileInfo(false);
+      // If this visit is immediately after an upload (sender), ask server to
+      // mark and allow the one-time detailed view. For all other visitors, do
+      // not request marking and they will see the compact/card view.
+      const uploadSuccess = sessionStorage.getItem('uploadSuccess');
+      const uploadCode = sessionStorage.getItem('uploadCode');
+      const mark = uploadSuccess && uploadCode === code;
+      fetchFileInfo(mark);
     }
   }, [code]);
 
@@ -254,90 +250,49 @@ export default function FilePage() {
   if (requiresPassword) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#0c0a09] via-[#171717] to-[#0c0a09] flex items-center justify-center px-4">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-orange-500/10 rounded-full filter blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-600/5 rounded-full filter blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
-        </div>
-        
-        <div className="relative z-10 bg-[#171717]/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/20 shadow-2xl w-full max-w-md">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="relative inline-block mb-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-orange-500/25">
-                <Shield className="w-10 h-10 text-white" />
-              </div>
-              <div className="absolute -top-1 -right-1 w-6 h-6 bg-orange-400 rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-white rounded-full"></div>
-              </div>
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Secure Access Required</h2>
-            <p className="text-gray-400">This file is password protected for your security</p>
+        <div className="bg-[#171717] rounded-xl p-8 border border-[#383838] shadow-xl w-full max-w-md">
+          <div className="text-center mb-6">
+            <Shield className="w-16 h-16 text-orange-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-white mb-2">Password Protected</h2>
+            <p className="text-gray-400">This file requires a password to access</p>
           </div>
           
-          {/* Password Form */}
-          <form onSubmit={handlePasswordSubmit} className="space-y-6">
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Shield className="w-5 h-5 text-gray-400" />
-              </div>
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                className="w-full pl-12 pr-12 py-4 rounded-xl bg-[#1a1a1a]/50 border border-gray-600/30 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all text-white placeholder-gray-500 backdrop-blur-sm"
+                placeholder="Enter password"
+                className="w-full p-4 pr-12 rounded-lg bg-[#1a1a1a] border border-[#383838] focus:outline-none focus:border-orange-600 transition text-white placeholder-gray-500"
                 autoFocus
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-orange-400 transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
             
-            {/* Action Buttons */}
-            <div className="space-y-3">
+            <div className="flex gap-3">
               <button
                 type="submit"
                 disabled={!password.trim() || loading}
-                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-6 py-4 rounded-xl font-semibold transition-all transform hover:scale-105 disabled:hover:scale-100 shadow-lg shadow-orange-500/25 disabled:shadow-none"
+                className="flex-1 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition"
               >
-                {loading ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Verifying Access...
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center gap-2">
-                    <Shield className="w-5 h-5" />
-                    Unlock File
-                  </div>
-                )}
+                {loading ? "Verifying..." : "Access File"}
               </button>
-              
               <button
                 type="button"
                 onClick={() => navigate("/")}
-                className="w-full px-6 py-4 rounded-xl border border-gray-600/30 hover:border-orange-500/50 text-gray-400 hover:text-orange-400 transition-all backdrop-blur-sm bg-white/5 hover:bg-orange-500/10"
+                className="px-6 py-3 rounded-lg border border-[#383838] hover:border-orange-600 text-gray-400 hover:text-orange-400 transition"
               >
-                ← Back to Home
+                Cancel
               </button>
             </div>
           </form>
-          
-          {/* Security Notice */}
-          <div className="mt-6 p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl">
-            <div className="flex items-start gap-3">
-              <Shield className="w-5 h-5 text-orange-400 mt-0.5 flex-shrink-0" />
-              <div className="text-sm">
-                <p className="text-orange-400 font-medium mb-1">Secure File Sharing</p>
-                <p className="text-gray-400">Your file is encrypted and will be automatically deleted after expiry.</p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     );
