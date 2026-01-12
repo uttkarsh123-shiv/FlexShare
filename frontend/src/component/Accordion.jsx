@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
+import "../styles/accordion.css";
 
-export default function FAQAccordion({id}) {
+export default function FAQAccordion() {
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -36,54 +37,53 @@ export default function FAQAccordion({id}) {
   }, []);
 
   return (
-    <section ref={containerRef} id="about" className="max-w-4xl mx-auto mt-60 px-4">
-      <h2 className="text-3xl font-semibold text-white mb-6">About & FAQs</h2>
+    <section ref={containerRef} id="about" className="accordion-section">
+      <h2 className="accordion-title">About & FAQs</h2>
 
-      <div className="space-y-4">
-        <details className="bg-[#111] p-4 rounded-lg border border-white/10">
-          <summary className="cursor-pointer text-lg text-orange-400 font-medium">
+      <div className="accordion-container">
+        <details className="accordion-item">
+          <summary className="accordion-summary">
             What is Flexshare?
           </summary>
-          <p className="text-[#a8a29e] mt-2">
+          <p className="accordion-content">
             Flexshare lets you convert and share files instantly via a secure
             code — no sign-up required.
           </p>
         </details>
 
-        <details className="bg-[#111] p-4 rounded-lg border border-white/10">
-          <summary className="cursor-pointer text-lg text-orange-400 font-medium">
+        <details className="accordion-item">
+          <summary className="accordion-summary">
             Are my files stored?
           </summary>
-          <p className="text-[#a8a29e] mt-2">
-            No. Everything runs on your device or temporary memory. We don’t
+          <p className="accordion-content">
+            No. Everything runs on your device or temporary memory. We don't
             store files.
           </p>
         </details>
 
-        <details className="bg-[#111] p-4 rounded-lg border border-white/10">
-          <summary className="cursor-pointer text-lg text-orange-400 font-medium">
+        <details className="accordion-item">
+          <summary className="accordion-summary">
             What file types are supported?
           </summary>
-          <p className="text-[#a8a29e] mt-2">
+          <p className="accordion-content">
             Currently: Word, PDF, PNG, JPG. More formats will be added soon.
           </p>
         </details>
 
-        <details className="bg-[#111] p-4 rounded-lg border border-white/10">
-          <summary className="cursor-pointer text-lg text-orange-400 font-medium">
+        <details className="accordion-item">
+          <summary className="accordion-summary">
             How long is the code valid?
           </summary>
-          <p className="text-[#a8a29e] mt-2">
-            Each share code is valid for 10 minutes. After that, the file is
-            deleted automatically.
+          <p className="accordion-content">
+            Each share code is valid for 1 hour by default. You can customize the expiry time from 1 hour to 1 week when uploading.
           </p>
         </details>
 
-        <details className="bg-[#111] p-4 rounded-lg border border-white/10">
-          <summary className="cursor-pointer text-lg text-orange-400 font-medium">
+        <details className="accordion-item">
+          <summary className="accordion-summary">
             Do I need to install anything?
           </summary>
-          <p className="text-[#a8a29e] mt-2">
+          <p className="accordion-content">
             No installation required. Flexshare runs fully in your browser —
             fast and secure.
           </p>

@@ -1,0 +1,955 @@
+/* FlexShare Upload Page - Modern Design (Matching Hero) - Updated v2.0 */
+
+/* IMPORTANT: Clear browser cache (Ctrl+F5) if changes don't appear */
+/* Last updated: 2026-01-12 - Modern glassmorphism design */
+
+/* Reset and Base Styles */
+* {
+  box-sizing: border-box;
+}
+
+/* Main Container - UPDATED DESIGN */
+.upload-page {
+  min-height: 100vh;
+  /* Background handled by global theme */
+  color: #e5e7eb !important;
+  padding: 40px 20px !important;
+  display: flex !important;
+  justify-content: center !important;
+  position: relative !important;
+  /* Force modern design */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  overflow: hidden;
+}
+
+/* Animated Background Elements handled by global theme */
+
+.upload-container {
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+}
+
+/* Header Section */
+.upload-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.upload-title {
+  font-size: 3.5rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+  font-family: 'Instrument Serif', serif;
+  color: white;
+  line-height: 1.1;
+}
+
+.upload-title-accent {
+  color: #ea580c;
+}
+
+.upload-subtitle {
+  color: #9ca3af;
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Step Indicators - Modern Pills */
+.step-indicators {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 50px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.step-indicator-item {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 25px;
+  padding: 8px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.step-indicator-item.active {
+  background: rgba(234, 88, 12, 0.2);
+  border-color: #ea580c;
+  transform: scale(1.05);
+}
+
+.step-indicator-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.step-indicator-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.1);
+  color: #9ca3af;
+}
+
+.step-indicator-active .step-indicator-circle {
+  background: #ea580c;
+  color: white;
+}
+
+.step-indicator-check {
+  width: 14px;
+  height: 14px;
+}
+
+.step-indicator-label {
+  font-size: 14px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.step-indicator-active .step-indicator-label {
+  color: #ea580c;
+}
+
+/* Remove old connector styles */
+.step-indicator-connector,
+.step-connector-active,
+.step-connector-inactive {
+  display: none;
+}
+
+/* Step 1: Upload - Modern Card Design */
+.upload-step-1 {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  min-height: 500px;
+}
+
+.file-dropzone {
+  position: relative;
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  height: 350px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  flex-shrink: 0;
+}
+
+.file-dropzone:hover {
+  border-color: rgba(234, 88, 12, 0.5);
+  background: rgba(234, 88, 12, 0.05);
+  transform: translateY(-2px);
+}
+
+.file-dropzone-active {
+  border-color: #ea580c;
+  background: rgba(234, 88, 12, 0.1);
+  transform: scale(1.02);
+  box-shadow: 0 20px 40px rgba(234, 88, 12, 0.2);
+}
+
+.file-dropzone-content {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 0 30px;
+}
+
+.file-preview-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 25px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 90px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.file-preview-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.file-icon {
+  flex-shrink: 0;
+}
+
+.file-info {
+  flex: 1;
+  text-align: left;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.file-info p:first-child {
+  color: white;
+  font-weight: 600;
+  margin: 0 0 6px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  font-size: 15px;
+}
+
+.file-info p:nth-child(2) {
+  color: #9ca3af;
+  font-size: 13px;
+  margin: 0 0 4px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-info p:last-child {
+  color: #ea580c;
+  font-size: 12px;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.file-remove-btn {
+  color: #9ca3af;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.file-remove-btn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  transform: scale(1.1);
+}
+
+/* Empty State */
+.file-dropzone .text-center {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 250px;
+}
+
+.file-dropzone .text-center > div:first-child {
+  display: flex;
+  justify-content: center;
+  opacity: 0.7;
+}
+
+.file-dropzone .text-center p:first-of-type {
+  font-weight: 600;
+  font-size: 1.4rem;
+  margin: 0 0 10px 0;
+  color: white;
+}
+
+.file-dropzone .text-center p:nth-of-type(2) {
+  color: #9ca3af;
+  margin: 0 0 10px 0;
+  font-size: 1rem;
+}
+
+.file-dropzone .text-center p:last-of-type {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+  opacity: 0.8;
+}
+
+/* Next Button - Modern Style */
+.upload-step-1-navigation {
+  display: flex;
+  justify-content: center;
+  margin-top: auto;
+  min-height: 80px;
+  align-items: center;
+}
+
+.upload-step-1-next-btn {
+  padding: 16px 40px;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  min-width: 160px;
+}
+
+.upload-step-1-next-btn:not(:disabled) {
+  background: linear-gradient(135deg, #ea580c, #dc2626);
+  box-shadow: 0 8px 25px rgba(234, 88, 12, 0.3);
+}
+
+.upload-step-1-next-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(234, 88, 12, 0.4);
+}
+
+.upload-step-1-next-btn:disabled {
+  background: rgba(75, 85, 99, 0.5);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Step 2 & 3: Modern Card Design */
+.upload-step-2,
+.upload-step-3 {
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.description-section,
+.advanced-settings,
+.conversion-section,
+.upload-progress {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 25px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.description-section:hover,
+.advanced-settings:hover,
+.conversion-section:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+.description-label,
+.conversion-label,
+.password-label,
+.expiry-label,
+.download-limit-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+}
+
+.description-input,
+.password-input,
+.expiry-select,
+.download-limit-input,
+.conversion-dropdown-btn {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.description-input:focus,
+.password-input:focus,
+.expiry-select:focus,
+.download-limit-input:focus,
+.conversion-dropdown-btn:focus {
+  outline: none;
+  border-color: #ea580c;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+}
+
+.description-input::placeholder,
+.password-input::placeholder,
+.download-limit-input::placeholder {
+  color: #9ca3af;
+}
+
+.description-counter {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Advanced Settings */
+.advanced-settings-header {
+  width: 100%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 10px;
+  padding: 15px;
+  margin: -15px;
+}
+
+.advanced-settings-header:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.advanced-settings-header > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.advanced-settings-header span {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.advanced-settings-header svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s ease;
+}
+
+.advanced-settings-header svg.rotate-180 {
+  transform: rotate(180deg);
+}
+
+.advanced-settings-content {
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 15px;
+}
+
+.password-section,
+.expiry-section,
+.download-limit-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.password-section p,
+.download-limit-section p {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+/* Navigation Buttons */
+.step-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.step-back-btn,
+.step-next-btn {
+  padding: 14px 30px;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.step-back-btn {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: #9ca3af;
+}
+
+.step-back-btn:hover {
+  border-color: #ea580c;
+  color: #ea580c;
+  background: rgba(234, 88, 12, 0.1);
+}
+
+.step-next-btn {
+  background: linear-gradient(135deg, #ea580c, #dc2626);
+  color: white;
+  border: none;
+  box-shadow: 0 8px 25px rgba(234, 88, 12, 0.3);
+}
+
+.step-next-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(234, 88, 12, 0.4);
+}
+
+/* Conversion Dropdown */
+.conversion-dropdown {
+  position: relative;
+}
+
+.conversion-dropdown-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.conversion-dropdown-btn:hover {
+  border-color: #ea580c;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.conversion-dropdown-btn svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s ease;
+}
+
+.conversion-dropdown-btn svg.rotate-180 {
+  transform: rotate(180deg);
+}
+
+.conversion-dropdown-menu {
+  position: absolute;
+  z-index: 20;
+  margin-top: 8px;
+  width: 100%;
+  border-radius: 12px;
+  background: rgba(26, 26, 26, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.conversion-category {
+  padding: 12px 16px;
+  background: rgba(234, 88, 12, 0.1);
+  color: #ea580c;
+  font-size: 13px;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.conversion-option {
+  cursor: pointer;
+  padding: 14px 16px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #e5e7eb;
+}
+
+.conversion-option:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.conversion-option-active {
+  background: rgba(234, 88, 12, 0.2);
+  color: #ea580c;
+}
+
+/* Upload Progress */
+.upload-progress {
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.upload-progress > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.upload-progress > div:first-child > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.upload-progress > div:first-child > span:last-child {
+  font-family: monospace;
+  color: #ea580c;
+  font-weight: 600;
+}
+
+.upload-progress-bar {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  height: 10px;
+  overflow: hidden;
+}
+
+.upload-progress-fill {
+  background: linear-gradient(90deg, #ea580c, #dc2626);
+  height: 100%;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+}
+
+.upload-progress p {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+/* Success Message */
+.upload-success {
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 16px;
+  padding: 25px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.upload-success-icon {
+  width: 28px;
+  height: 28px;
+  color: #22c55e;
+  flex-shrink: 0;
+}
+
+.upload-success-content {
+  flex: 1;
+}
+
+.upload-success-content p:first-child {
+  color: #4ade80;
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin: 0 0 6px 0;
+}
+
+.upload-success-content p:nth-child(2) {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 0 0 6px 0;
+}
+
+.upload-success-content p:nth-child(2) span {
+  font-family: monospace;
+  color: #4ade80;
+  font-weight: bold;
+  background: rgba(34, 197, 94, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.upload-success-content p:nth-child(3) {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0 0 15px 0;
+}
+
+.upload-success-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.upload-success-view-btn {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.upload-success-view-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.3);
+}
+
+.upload-success-copy-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: #9ca3af;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.upload-success-copy-btn:hover {
+  background: rgba(34, 197, 94, 0.1);
+  color: #4ade80;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+/* Submit Button */
+.upload-step-3 > div:last-child {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.upload-step-3 > div:last-child > button:first-child {
+  padding: 14px 30px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.upload-step-3 > div:last-child > button:first-child:hover {
+  border-color: #ea580c;
+  color: #ea580c;
+  background: rgba(234, 88, 12, 0.1);
+}
+
+.upload-submit-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #ea580c, #dc2626);
+  padding: 16px 32px;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(234, 88, 12, 0.3);
+  border: none;
+  cursor: pointer;
+}
+
+.upload-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(234, 88, 12, 0.4);
+}
+
+.upload-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  background: rgba(75, 85, 99, 0.5);
+  box-shadow: none;
+}
+
+.upload-submit-btn:disabled:hover {
+  transform: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .upload-title {
+    font-size: 2.5rem;
+  }
+  
+  .upload-container {
+    padding: 0 15px;
+  }
+  
+  .step-indicators {
+    gap: 8px;
+  }
+  
+  .step-indicator-item {
+    padding: 6px 15px;
+  }
+  
+  .file-dropzone {
+    height: 280px;
+  }
+  
+  .file-dropzone-content {
+    padding: 0 20px;
+  }
+  
+  .step-navigation {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .step-back-btn,
+  .step-next-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .upload-step-3 > div:last-child {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .upload-step-3 > div:last-child > button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Light Theme */
+.theme-light .upload-page {
+  /* Background handled by global theme */
+  color: #1e293b;
+}
+
+/* Light theme animated backgrounds handled by global theme */
+
+.theme-light .upload-title {
+  color: #1e293b;
+}
+
+.theme-light .upload-subtitle {
+  color: #64748b;
+}
+
+.theme-light .step-indicator-item {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.theme-light .step-indicator-item.active {
+  background: rgba(234, 88, 12, 0.1);
+  border-color: #ea580c;
+}
+
+.theme-light .step-indicator-circle {
+  background: rgba(0, 0, 0, 0.1);
+  color: #64748b;
+}
+
+.theme-light .step-indicator-label {
+  color: #64748b;
+}
+
+.theme-light .file-dropzone {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.theme-light .file-dropzone:hover {
+  border-color: #ea580c;
+  background: rgba(234, 88, 12, 0.05);
+}
+
+.theme-light .file-preview-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #1e293b;
+}
+
+.theme-light .description-section,
+.theme-light .advanced-settings,
+.theme-light .conversion-section,
+.theme-light .upload-progress {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #1e293b;
+}
+
+.theme-light .description-input,
+.theme-light .password-input,
+.theme-light .expiry-select,
+.theme-light .download-limit-input,
+.theme-light .conversion-dropdown-btn {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #1e293b;
+}
+
+.theme-light .description-label,
+.theme-light .conversion-label,
+.theme-light .password-label,
+.theme-light .expiry-label,
+.theme-light .download-limit-label,
+.theme-light .advanced-settings-header {
+  color: #1e293b;
+}
+
+.theme-light .conversion-dropdown-menu {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.theme-light .conversion-option {
+  color: #1e293b;
+}
+
+.theme-light .file-dropzone .text-center p:first-of-type {
+  color: #1e293b;
+}
+
+/* Animations */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

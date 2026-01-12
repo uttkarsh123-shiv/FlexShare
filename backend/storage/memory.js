@@ -9,7 +9,8 @@ const memoryStorage = {
       createdAt: new Date(), 
       updatedAt: new Date(),
       _id: id,
-      accessLogs: data.accessLogs || []
+      accessLogs: data.accessLogs || [],
+      firstViewShown: data.firstViewShown || false
     };
     files.set(id, fileData);
     return Promise.resolve(fileData);

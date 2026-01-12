@@ -22,8 +22,26 @@ const uploadSchema = Joi.object({
   ).optional(),
   description: Joi.string().max(500).allow('').optional(),
   password: Joi.string().min(4).max(50).allow('').optional(),
-  expiryHours: Joi.number().integer().min(1).max(168).optional(), // 1 hour to 7 days
-  maxDownloads: Joi.number().integer().min(1).max(100).optional()
+  expiryHours: Joi.alternatives().try(
+    Joi.number().integer().min(1).max(168),
+    Joi.string().pattern(/^\d+$/).custom((value) => {
+      const num = parseInt(value, 10);
+      if (num < 1 || num > 168) {
+        throw new Error('expiryHours must be between 1 and 168');
+      }
+      return num;
+    })
+  ).optional(),
+  maxDownloads: Joi.alternatives().try(
+    Joi.number().integer().min(1).max(100),
+    Joi.string().pattern(/^\d+$/).custom((value) => {
+      const num = parseInt(value, 10);
+      if (num < 1 || num > 100) {
+        throw new Error('maxDownloads must be between 1 and 100');
+      }
+      return num;
+    })
+  ).optional()
 });
 
 const validateUpload = (req, res, next) => {

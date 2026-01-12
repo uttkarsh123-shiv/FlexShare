@@ -4,6 +4,8 @@ import { useDropzone } from "react-dropzone";
 import { X, Upload, FileText, Image as ImageIcon, File, CheckCircle2, Loader2, Clock, Shield, Download, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../context/ToastContext";
+import ThemeToggle from "../component/ThemeToggle";
+import "../styles/upload-page.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -15,7 +17,6 @@ export default function UploadPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [step, setStep] = useState(1);
   const [description, setDescription] = useState("");
-  const [filePreview, setFilePreview] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [password, setPassword] = useState("");
@@ -41,14 +42,7 @@ export default function UploadPage() {
     setUploadProgress(0);
     setConversionType(""); // Reset conversion type when new file is selected
 
-    // Generate preview for images
-    if (selectedFile.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = (e) => setFilePreview(e.target.result);
-      reader.readAsDataURL(selectedFile);
-    } else {
-      setFilePreview(null);
-    }
+    // Always use card-style UI, no image preview
   }, [showToast]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -68,7 +62,6 @@ export default function UploadPage() {
 
   const onRemove = () => {
     setFile(null);
-    setFilePreview(null);
     setCode("");
     setUploadProgress(0);
     setConversionType("");
@@ -80,13 +73,13 @@ export default function UploadPage() {
   };
 
   const getFileIcon = () => {
-    if (!file) return <Upload className="w-12 h-12 text-gray-400" />;
-    if (file.type.startsWith("image/")) return <ImageIcon className="w-12 h-12 text-orange-500" />;
-    if (file.type === "application/pdf") return <FileText className="w-12 h-12 text-red-500" />;
-    if (file.type.includes("word") || file.type.includes("document")) return <FileText className="w-12 h-12 text-blue-500" />;
-    if (file.type.includes("sheet") || file.type.includes("excel")) return <File className="w-12 h-12 text-green-500" />;
-    if (file.type.includes("presentation") || file.type.includes("powerpoint")) return <File className="w-12 h-12 text-purple-500" />;
-    return <File className="w-12 h-12 text-blue-500" />;
+    if (!file) return <Upload style={{ width: '48px', height: '48px', color: '#9ca3af' }} />;
+    if (file.type.startsWith("image/")) return <ImageIcon style={{ width: '48px', height: '48px', color: '#f97316' }} />;
+    if (file.type === "application/pdf") return <FileText style={{ width: '48px', height: '48px', color: '#ef4444' }} />;
+    if (file.type.includes("word") || file.type.includes("document")) return <FileText style={{ width: '48px', height: '48px', color: '#3b82f6' }} />;
+    if (file.type.includes("sheet") || file.type.includes("excel")) return <File style={{ width: '48px', height: '48px', color: '#22c55e' }} />;
+    if (file.type.includes("presentation") || file.type.includes("powerpoint")) return <File style={{ width: '48px', height: '48px', color: '#a855f7' }} />;
+    return <File style={{ width: '48px', height: '48px', color: '#3b82f6' }} />;
   };
 
   const formatFileSize = (bytes) => {
@@ -95,6 +88,18 @@ export default function UploadPage() {
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
+  };
+
+  const truncateFileName = (fileName, maxLength = 40) => {
+    if (fileName.length <= maxLength) return fileName;
+    
+    const extension = fileName.split('.').pop();
+    const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
+    const maxNameLength = maxLength - extension.length - 4; // 4 for "..." and "."
+    
+    if (maxNameLength <= 0) return fileName.substring(0, maxLength - 3) + "...";
+    
+    return nameWithoutExt.substring(0, maxNameLength) + "..." + "." + extension;
   };
 
   const handlePublish = async () => {
@@ -111,6 +116,21 @@ export default function UploadPage() {
       return;
     }
 
+    // Validate password if provided
+    if (password.trim() && password.trim().length < 4) {
+      showToast("Password must be at least 4 characters long", "error");
+      return;
+    }
+
+    // Validate maxDownloads if provided
+    if (maxDownloads && maxDownloads.trim()) {
+      const downloadLimit = parseInt(maxDownloads.trim(), 10);
+      if (isNaN(downloadLimit) || downloadLimit < 1 || downloadLimit > 100) {
+        showToast("Download limit must be between 1 and 100", "error");
+        return;
+      }
+    }
+
     setIsUploading(true);
     setUploadProgress(0);
 
@@ -119,27 +139,21 @@ export default function UploadPage() {
     formData.append("conversionType", conversionType || "none");
     formData.append("description", description || "");
     
-    if (password.trim()) {
-      formData.append("password", password);
+    // Always send expiryHours
+    formData.append("expiryHours", expiryHours.toString());
+    
+    // Only send password if it's provided and valid
+    if (password.trim() && password.trim().length >= 4) {
+      formData.append("password", password.trim());
     }
     
-    if (expiryHours !== 1) {
-      formData.append("expiryHours", expiryHours);
+    // Only send maxDownloads if it's provided and valid
+    if (maxDownloads && maxDownloads.trim()) {
+      const downloadLimit = parseInt(maxDownloads.trim(), 10);
+      if (!isNaN(downloadLimit) && downloadLimit >= 1 && downloadLimit <= 100) {
+        formData.append("maxDownloads", downloadLimit.toString());
+      }
     }
-    
-    if (maxDownloads) {
-      formData.append("maxDownloads", maxDownloads);
-    }
-
-    console.log('Uploading to:', `${API_URL}/api/uploads`);
-    console.log('Form data:', {
-      fileName: file.name,
-      conversionType: conversionType || "none",
-      description: description || "",
-      hasPassword: !!password.trim(),
-      expiryHours,
-      maxDownloads
-    });
 
     try {
       const res = await axios.post(`${API_URL}/api/uploads`, formData, {
@@ -155,7 +169,6 @@ export default function UploadPage() {
         timeout: 300000 // 5 minutes timeout for large files
       });
 
-      console.log('Upload response:', res.data);
       setCode(res.data.code);
       showToast(res.data.message || "File uploaded successfully!", "success");
       
@@ -163,13 +176,10 @@ export default function UploadPage() {
       sessionStorage.setItem('uploadSuccess', 'true');
       sessionStorage.setItem('uploadCode', res.data.code);
       
-      // Auto-navigate after 2 seconds
-      setTimeout(() => {
-        navigate(`/file/${res.data.code}`);
-      }, 2000);
+      // File work completed - no auto-redirect
     } catch (err) {
       console.error('Upload error:', err);
-      const errorMessage = err.response?.data?.message || err.message || "Upload failed";
+      const errorMessage = err.response?.data?.message || err.response?.data?.errors || err.message || "Upload failed";
       showToast(errorMessage, "error");
     } finally {
       setIsUploading(false);
@@ -199,8 +209,8 @@ export default function UploadPage() {
     // PDF conversions
     if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
       return [
-        { label: "PDF → Word", value: "pdf->word", icon: "📄", category: "Document" },
-        { label: "PDF → Text", value: "pdf->txt", icon: "📄", category: "Document" },
+        { label: "PDF → Word", value: "pdf->word", icon: "�", category: "Document" },
+        { label: "PDF → Text", value: "pdf->txt", icon: "�", category: "Document" },
         { label: "PDF → Images", value: "pdf->images", icon: "🖼️", category: "Image" }
       ];
     }
@@ -218,7 +228,7 @@ export default function UploadPage() {
     if (fileType.includes('sheet') || fileType.includes('excel') || 
         fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
       return [
-        { label: "Excel → PDF", value: "excel->pdf", icon: "📊", category: "Spreadsheet" },
+        { label: "Excel → PDF", value: "excel->pdf", icon: "�", category: "Spreadsheet" },
         { label: "Excel → CSV", value: "excel->csv", icon: "📊", category: "Spreadsheet" }
       ];
     }
@@ -245,136 +255,113 @@ export default function UploadPage() {
   }, {});
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0c0a09] via-[#171717] to-[#0c0a09] text-[#e5e7eb] py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="upload-page">
+      {/* Theme Toggle */}
+      <ThemeToggle />
+      
+      <div className="upload-container">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4 instrument-serif-regular">
-            Upload & <span className="text-orange-500">Convert</span>
+        <div className="upload-header">
+          <h1 className="upload-title">
+            Upload & <span className="upload-title-accent">Convert</span>
           </h1>
-          <p className="text-gray-400 max-w-2xl mx-auto">
-            Upload your file, choose conversion format, and share instantly. Files are automatically deleted after expiry.
+          <p className="upload-subtitle">
+            Upload your file, choose conversion format, and share instantly. <br/> Files are automatically deleted after expiry.
           </p>
         </div>
 
         {/* Step Indicators */}
-        <div className="flex justify-center mb-12 gap-4 md:gap-8">
+        <div className="step-indicators">
           {[
             { num: 1, label: "Upload" },
             { num: 2, label: "Configure" },
             { num: 3, label: "Convert" }
-          ].map((s, index) => (
-            <div key={s.num} className="flex items-center">
-              <div className="flex flex-col items-center">
+          ].map((s) => (
+            <div key={s.num} className={`step-indicator-item ${step >= s.num ? 'active' : ''}`}>
+              <div className="step-indicator-content">
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all ${
+                  className={`step-indicator-circle ${
                     step >= s.num
-                      ? "bg-orange-600 text-white scale-110 shadow-lg shadow-orange-600/30"
-                      : "bg-[#383838] text-gray-500"
+                      ? "step-indicator-active"
+                      : "step-indicator-inactive"
                   }`}
                 >
-                  {step > s.num ? <CheckCircle2 className="w-6 h-6" /> : s.num}
+                  {step > s.num ? <CheckCircle2 className="step-indicator-check" /> : s.num}
                 </div>
-                <span className="text-xs text-gray-400 mt-2">{s.label}</span>
+                <span className="step-indicator-label">{s.label}</span>
               </div>
-              {index < 2 && (
-                <div
-                  className={`h-1 w-8 md:w-16 transition-all mx-4 ${
-                    step > s.num ? "bg-orange-600" : "bg-[#383838]"
-                  }`}
-                />
-              )}
             </div>
           ))}
         </div>
 
         {/* Step 1: Upload */}
         {step === 1 && (
-          <div className="space-y-6">
+          <div className="upload-step-1">
             <div
               {...getRootProps()}
-              className={`relative border-2 border-dashed rounded-xl p-12 transition-all cursor-pointer ${
-                isDragActive
-                  ? "border-orange-500 bg-orange-900/10 scale-105 shadow-lg shadow-orange-600/20"
-                  : "border-[#383838] bg-[#171717]/50 hover:border-orange-600/50 hover:bg-[#171717]/70"
+              className={`file-dropzone ${
+                isDragActive ? "file-dropzone-active" : ""
               }`}
             >
               <input {...getInputProps()} />
-              <div className="flex flex-col items-center justify-center text-center space-y-4">
-                {filePreview ? (
-                  <div className="relative w-full max-w-md">
-                    <img
-                      src={filePreview}
-                      alt="Preview"
-                      className="w-full h-64 object-contain rounded-lg border border-[#383838] shadow-lg"
-                    />
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRemove();
-                      }}
-                      className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-2 transition shadow-lg"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : file ? (
-                  <div className="flex items-center gap-4 bg-[#1a1a1a] px-6 py-4 rounded-lg border border-[#383838] w-full max-w-md shadow-lg">
-                    {getFileIcon()}
-                    <div className="flex-1 text-left">
-                      <p className="text-white font-medium truncate">{file.name}</p>
-                      <p className="text-gray-400 text-sm">{formatFileSize(file.size)}</p>
-                      <p className="text-orange-400 text-xs">{file.type}</p>
+              <div className="file-dropzone-content">
+                {file ? (
+                  <div className="file-preview-card">
+                    <div className="file-icon">{getFileIcon()}</div>
+                    <div className="file-info">
+                      <p title={file.name}>{truncateFileName(file.name)}</p>
+                      <p>{formatFileSize(file.size)}</p>
+                      <p>{file.type}</p>
                     </div>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         onRemove();
                       }}
-                      className="text-gray-400 hover:text-red-500 transition"
+                      className="file-remove-btn"
                     >
-                      <X className="w-5 h-5" />
+                      <X style={{ width: '20px', height: '20px' }} />
                     </button>
                   </div>
                 ) : (
-                  <>
-                    {getFileIcon()}
+                  <div className="text-center">
+                    <div>{getFileIcon()}</div>
                     <div>
-                      <p className="font-semibold text-xl mb-2">
+                      <p>
                         {isDragActive ? "Drop your file here" : "Upload file"}
                       </p>
-                      <p className="text-[#a8a29e] mb-2">
+                      <p>
                         Drag & drop or click to browse
                       </p>
-                      <p className="text-xs text-gray-600">
+                      <p>
                         Supports: Images, PDF, Word, Excel, PowerPoint (Max 50MB)
                       </p>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
 
-            {file && (
-              <div className="flex justify-end">
-                <button
-                  onClick={() => setStep(2)}
-                  className="bg-orange-600 hover:bg-orange-700 px-8 py-3 rounded-lg text-white font-medium transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-orange-600/20"
-                >
-                  Next →
-                </button>
-              </div>
-            )}
+            {/* Next Button - Always visible */}
+            <div className="upload-step-1-navigation">
+              <button
+                onClick={() => setStep(2)}
+                disabled={!file}
+                className="upload-step-1-next-btn"
+              >
+                Next →
+              </button>
+            </div>
           </div>
         )}
 
         {/* Step 2: Configure */}
         {step === 2 && (
-          <div className="max-w-2xl mx-auto space-y-6">
+          <div className="upload-step-2">
             {/* Description */}
-            <div className="bg-[#171717] rounded-xl p-6 border border-[#383838] shadow-lg">
-              <label className="block mb-3 text-sm font-medium flex items-center gap-2">
-                <FileText className="w-4 h-4" />
+            <div className="description-section">
+              <label className="description-label">
+                <FileText style={{ width: '16px', height: '16px' }} />
                 Description (Optional)
               </label>
               <textarea
@@ -383,26 +370,26 @@ export default function UploadPage() {
                 rows={4}
                 maxLength={500}
                 placeholder="Describe your file or add notes..."
-                className="w-full p-4 rounded-lg bg-[#1a1a1a] border border-[#383838] focus:outline-none focus:border-orange-600 transition text-white placeholder-gray-500 resize-none"
+                className="description-input"
               />
-              <p className="text-xs text-gray-500 mt-2 flex justify-between">
+              <p className="description-counter">
                 <span>Help others understand what this file contains</span>
                 <span>{description.length}/500</span>
               </p>
             </div>
 
             {/* Advanced Settings */}
-            <div className="bg-[#171717] rounded-xl border border-[#383838] shadow-lg">
+            <div className="advanced-settings">
               <button
                 onClick={() => setShowAdvanced(!showAdvanced)}
-                className="w-full p-6 flex items-center justify-between text-left hover:bg-[#1a1a1a] transition rounded-xl"
+                className="advanced-settings-header"
               >
-                <div className="flex items-center gap-2">
-                  <Settings className="w-5 h-5" />
-                  <span className="font-medium">Advanced Settings</span>
+                <div>
+                  <Settings style={{ width: '20px', height: '20px' }} />
+                  <span>Advanced Settings</span>
                 </div>
                 <svg
-                  className={`w-5 h-5 transition-transform ${showAdvanced ? "rotate-180" : ""}`}
+                  className={showAdvanced ? "rotate-180" : ""}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -412,33 +399,33 @@ export default function UploadPage() {
               </button>
 
               {showAdvanced && (
-                <div className="px-6 pb-6 space-y-4 border-t border-[#383838]">
+                <div className="advanced-settings-content">
                   {/* Password Protection */}
-                  <div>
-                    <label className="block mb-2 text-sm font-medium flex items-center gap-2">
-                      <Shield className="w-4 h-4" />
+                  <div className="password-section">
+                    <label className="password-label">
+                      <Shield style={{ width: '16px', height: '16px' }} />
                       Password Protection
                     </label>
                     <input
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter password (optional)"
-                      className="w-full p-3 rounded-lg bg-[#1a1a1a] border border-[#383838] focus:outline-none focus:border-orange-600 transition text-white placeholder-gray-500"
+                      placeholder="Enter password (min 4 characters)"
+                      className="password-input"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Leave empty for no password protection</p>
+                    <p>Leave empty for no password protection. Minimum 4 characters required.</p>
                   </div>
 
                   {/* Expiry Time */}
-                  <div>
-                    <label className="block mb-2 text-sm font-medium flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
+                  <div className="expiry-section">
+                    <label className="expiry-label">
+                      <Clock style={{ width: '16px', height: '16px' }} />
                       Expiry Time
                     </label>
                     <select
                       value={expiryHours}
                       onChange={(e) => setExpiryHours(Number(e.target.value))}
-                      className="w-full p-3 rounded-lg bg-[#1a1a1a] border border-[#383838] focus:outline-none focus:border-orange-600 transition text-white"
+                      className="expiry-select"
                     >
                       <option value={1}>1 Hour</option>
                       <option value={6}>6 Hours</option>
@@ -450,9 +437,9 @@ export default function UploadPage() {
                   </div>
 
                   {/* Download Limit */}
-                  <div>
-                    <label className="block mb-2 text-sm font-medium flex items-center gap-2">
-                      <Download className="w-4 h-4" />
+                  <div className="download-limit-section">
+                    <label className="download-limit-label">
+                      <Download style={{ width: '16px', height: '16px' }} />
                       Download Limit
                     </label>
                     <input
@@ -462,24 +449,24 @@ export default function UploadPage() {
                       placeholder="Unlimited"
                       min="1"
                       max="100"
-                      className="w-full p-3 rounded-lg bg-[#1a1a1a] border border-[#383838] focus:outline-none focus:border-orange-600 transition text-white placeholder-gray-500"
+                      className="download-limit-input"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Leave empty for unlimited downloads</p>
+                    <p>Leave empty for unlimited downloads (1-100 allowed)</p>
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="flex justify-between">
+            <div className="step-navigation">
               <button
                 onClick={() => setStep(1)}
-                className="px-6 py-3 rounded-lg border border-[#383838] hover:border-orange-600 text-gray-400 hover:text-orange-400 transition"
+                className="step-back-btn"
               >
                 ← Back
               </button>
               <button
                 onClick={() => setStep(3)}
-                className="bg-orange-600 hover:bg-orange-700 px-8 py-3 rounded-lg text-white font-medium transition-all hover:scale-105 shadow-lg shadow-orange-600/20"
+                className="step-next-btn"
               >
                 Next →
               </button>
@@ -489,15 +476,15 @@ export default function UploadPage() {
 
         {/* Step 3: Conversion & Submit */}
         {step === 3 && (
-          <div className="max-w-2xl mx-auto space-y-6">
-            <div className="bg-[#171717] rounded-xl p-6 border border-[#383838] shadow-lg">
-              <label className="block mb-4 text-sm font-medium">
+          <div className="upload-step-3">
+            <div className="conversion-section">
+              <label className="conversion-label">
                 Select Conversion Type
               </label>
-              <div className="relative">
+              <div className="conversion-dropdown">
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className="w-full bg-[#1a1a1a] border border-[#383838] text-white px-4 py-3 rounded-lg flex justify-between items-center hover:border-orange-600 transition"
+                  className="conversion-dropdown-btn"
                 >
                   <span>
                     {conversionType
@@ -508,7 +495,7 @@ export default function UploadPage() {
                   </span>
                   {availableConversions.length > 0 && (
                     <svg
-                      className={`w-5 h-5 transition-transform ${showDropdown ? "rotate-180" : ""}`}
+                      className={showDropdown ? "rotate-180" : ""}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -526,13 +513,13 @@ export default function UploadPage() {
                 {showDropdown && availableConversions.length > 0 && (
                   <>
                     <div
-                      className="fixed inset-0 z-10"
+                      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10 }}
                       onClick={() => setShowDropdown(false)}
                     />
-                    <div className="absolute z-20 mt-2 w-full rounded-lg bg-[#1a1a1a] border border-[#383838] shadow-xl overflow-hidden max-h-80 overflow-y-auto">
+                    <div className="conversion-dropdown-menu">
                       {Object.entries(groupedOptions).map(([category, options]) => (
                         <div key={category}>
-                          <div className="px-4 py-2 bg-[#0c0a09] text-orange-400 text-sm font-medium border-b border-[#383838]">
+                          <div className="conversion-category">
                             {category}
                           </div>
                           {options.map((option) => (
@@ -542,10 +529,10 @@ export default function UploadPage() {
                                 setConversionType(option.value);
                                 setShowDropdown(false);
                               }}
-                              className={`cursor-pointer px-4 py-3 text-sm hover:bg-[#2a2a2a] transition flex items-center gap-3 ${
+                              className={`conversion-option ${
                                 conversionType === option.value
-                                  ? "bg-orange-900/30 text-orange-400"
-                                  : "text-[#e5e7eb]"
+                                  ? "conversion-option-active"
+                                  : ""
                               }`}
                             >
                               <span>{option.icon}</span>
@@ -562,21 +549,21 @@ export default function UploadPage() {
 
             {/* Upload Progress */}
             {isUploading && (
-              <div className="bg-[#171717] rounded-xl p-6 border border-[#383838] shadow-lg space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
+              <div className="upload-progress">
+                <div>
+                  <span>
+                    <Loader2 style={{ animation: 'spin 1s linear infinite', width: '16px', height: '16px' }} />
                     Processing your file...
                   </span>
-                  <span className="font-mono">{uploadProgress}%</span>
+                  <span>{uploadProgress}%</span>
                 </div>
-                <div className="w-full bg-[#383838] rounded-full h-3 overflow-hidden">
+                <div className="upload-progress-bar">
                   <div
-                    className="bg-gradient-to-r from-orange-500 to-orange-600 h-full transition-all duration-300 rounded-full"
+                    className="upload-progress-fill"
                     style={{ width: `${uploadProgress}%` }}
                   />
                 </div>
-                <p className="text-xs text-gray-400">
+                <p>
                   Converting {conversionType?.replace("->", " to ")} format...
                 </p>
               </div>
@@ -584,24 +571,40 @@ export default function UploadPage() {
 
             {/* Success Message */}
             {code && (
-              <div className="bg-green-900/20 border border-green-500/50 rounded-xl p-6 flex items-center gap-3 shadow-lg">
-                <CheckCircle2 className="w-6 h-6 text-green-500" />
-                <div className="flex-1">
-                  <p className="text-green-400 font-medium text-lg">Upload successful!</p>
-                  <p className="text-sm text-gray-400">
-                    Your file code is: <span className="font-mono text-green-400 font-bold">{code}</span>
+              <div className="upload-success">
+                <CheckCircle2 className="upload-success-icon" />
+                <div className="upload-success-content">
+                  <p>🎉 File Upload Complete!</p>
+                  <p>
+                    Your file code is: <span>{code}</span>
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Redirecting to file page...
+                  <p>
+                    Share this code or use the link below to access your file.
                   </p>
+                  <div className="upload-success-actions">
+                    <button
+                      onClick={() => navigate(`/file/${code}`)}
+                      className="upload-success-view-btn"
+                    >
+                      View File
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/file/${code}`);
+                        showToast("Link copied to clipboard!", "success");
+                      }}
+                      className="upload-success-copy-btn"
+                    >
+                      Copy Link
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
 
-            <div className="flex justify-between items-center">
+            <div>
               <button
                 onClick={() => setStep(2)}
-                className="px-6 py-3 rounded-lg border border-[#383838] hover:border-orange-600 text-gray-400 hover:text-orange-400 transition"
               >
                 ← Back
               </button>
@@ -609,16 +612,18 @@ export default function UploadPage() {
               <button
                 onClick={handlePublish}
                 disabled={isUploading || (availableConversions.length > 0 && !conversionType) || code}
-                className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 px-8 py-3 rounded-lg text-white font-medium transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg shadow-orange-600/20"
+                className={`upload-submit-btn ${
+                  isUploading ? "upload-submit-btn-loading" : ""
+                }`}
               >
                 {isUploading ? (
                   <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Loader2 style={{ animation: 'spin 1s linear infinite', width: '20px', height: '20px' }} />
                     <span>Processing...</span>
                   </>
                 ) : (
                   <>
-                    <Upload className="w-5 h-5" />
+                    <Upload style={{ width: '20px', height: '20px' }} />
                     <span>{availableConversions.length > 0 ? "Convert & Share" : "Upload & Share"}</span>
                   </>
                 )}

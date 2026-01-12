@@ -25,12 +25,16 @@ const allowedConversions = [
 const uploadAndConvertFile = async (req, res) => {
   try {
     const file = req.file;
-    const { conversionType, description } = req.body;
+    const { conversionType, description, password: reqPassword, expiryHours: reqExpiryHours, maxDownloads: reqMaxDownloads } = req.body;
 
     console.log('Upload request received:', { 
       fileName: file?.originalname, 
       conversionType, 
-      fileSize: file?.size 
+      fileSize: file?.size,
+      hasPassword: !!reqPassword,
+      passwordLength: reqPassword ? reqPassword.length : 0,
+      expiryHours: reqExpiryHours,
+      maxDownloads: reqMaxDownloads
     });
 
     if (!file) {
@@ -65,15 +69,30 @@ const uploadAndConvertFile = async (req, res) => {
       
       // Create DB entry
       const code = nanoid(6).toUpperCase();
-      const { password, expiryHours, maxDownloads } = req.body;
       
-      const hours = expiryHours || 1;
+      const hours = parseInt(reqExpiryHours, 10) || 1;
       const expiry = new Date(Date.now() + hours * 60 * 60 * 1000);
       
       let hashedPassword = null;
-      if (password && password.trim()) {
-        hashedPassword = await bcrypt.hash(password, 10);
+      if (reqPassword && reqPassword.trim()) {
+        hashedPassword = await bcrypt.hash(reqPassword.trim(), 10);
       }
+
+      // Parse maxDownloads to number if provided
+      let downloadLimit = null;
+      if (reqMaxDownloads) {
+        const parsed = parseInt(reqMaxDownloads, 10);
+        if (!isNaN(parsed) && parsed >= 1 && parsed <= 100) {
+          downloadLimit = parsed;
+        }
+      }
+
+      console.log('Creating database entry (no conversion) with settings:', {
+        code,
+        hasPassword: !!hashedPassword,
+        expiryHours: hours,
+        maxDownloads: downloadLimit
+      });
 
       const fileDoc = await filemodel.create({
         code,
@@ -85,7 +104,7 @@ const uploadAndConvertFile = async (req, res) => {
         description: description || 'No description provided',
         password: hashedPassword,
         hasPassword: !!hashedPassword,
-        maxDownloads: maxDownloads || null,
+        maxDownloads: downloadLimit,
         downloadCount: 0
       });
 
@@ -456,19 +475,32 @@ except Exception as e:
 
     // Create DB entry
     const code = nanoid(6).toUpperCase();
-    const { password, expiryHours, maxDownloads } = req.body;
     
     // Calculate expiry (default 1 hour, max 7 days)
-    const hours = expiryHours || 1;
+    const hours = parseInt(reqExpiryHours, 10) || 1;
     const expiry = new Date(Date.now() + hours * 60 * 60 * 1000);
     
     // Hash password if provided
     let hashedPassword = null;
-    if (password && password.trim()) {
-      hashedPassword = await bcrypt.hash(password, 10);
+    if (reqPassword && reqPassword.trim()) {
+      hashedPassword = await bcrypt.hash(reqPassword.trim(), 10);
     }
 
-    console.log('Creating database entry...');
+    // Parse maxDownloads to number if provided
+    let downloadLimit = null;
+    if (reqMaxDownloads) {
+      const parsed = parseInt(reqMaxDownloads, 10);
+      if (!isNaN(parsed) && parsed >= 1 && parsed <= 100) {
+        downloadLimit = parsed;
+      }
+    }
+
+    console.log('Creating database entry with settings:', {
+      code,
+      hasPassword: !!hashedPassword,
+      expiryHours: hours,
+      maxDownloads: downloadLimit
+    });
 
     const fileDoc = await filemodel.create({
       code,
@@ -480,7 +512,7 @@ except Exception as e:
       description: description || 'No description provided',
       password: hashedPassword,
       hasPassword: !!hashedPassword,
-      maxDownloads: maxDownloads || null,
+      maxDownloads: downloadLimit,
       downloadCount: 0
     });
 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import OtpInput from "react-otp-input";
-import Accordian from "./Accordion"
+import Accordion from "./Accordion"
 import Card from "./Card";
 import { RxLoop } from "react-icons/rx";
 import { MdOutlineSecurity } from "react-icons/md";
@@ -95,7 +95,7 @@ export default function HomePage() {
         />
       </div>
 
-     <Accordian />
+     <Accordion />
      <Footer />
     </>
   );

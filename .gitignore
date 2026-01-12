@@ -21,3 +21,7 @@ backend/build/
 *.log
 
 .qodo
+
+.test-advanced-settings.html
+.test-upload-design.html
+.test-upload.html

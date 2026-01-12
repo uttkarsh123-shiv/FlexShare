@@ -46,6 +46,27 @@ router.post('/test-upload',
   }
 );
 
+// Test endpoint to list recent files (for debugging)
+router.get('/test-files', async (req, res) => {
+  try {
+    const filemodel = require('../model/file.model');
+    const files = await filemodel.findOne({}).sort({ createdAt: -1 }).limit(5);
+    
+    if (!files) {
+      return res.json({ message: 'No files found', count: 0 });
+    }
+    
+    res.json({ 
+      message: 'Recent files found',
+      files: files ? [files] : [],
+      count: files ? 1 : 0
+    });
+  } catch (error) {
+    console.error('Test files error:', error);
+    res.status(500).json({ message: 'Failed to fetch files', error: error.message });
+  }
+});
+
 // Batch file upload
 router.post('/uploads/batch', 
   uploadLimiter,

@@ -1,0 +1,232 @@
+/* Navbar Component - Modern Design (Pure CSS) */
+
+.navbar {
+  width: 100%;
+  height: 70px;
+  padding: 50px 50px;
+  /* Background handled by global theme */
+  background: rgba(12, 10, 9, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.navbar-logo-title{
+  display: flex;
+  justify-content: center;
+  gap:1rem;
+  align-items: center;
+}
+
+.theme-light .navbar {
+  background: rgba(248, 250, 252, 0.95);
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Logo Section */
+.navbar-logo {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  user-select: none;
+}
+
+.navbar-logo:hover {
+  transform: translateY(-1px);
+}
+
+.navbar-brand {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: white;
+  /* font-family: 'Instrument Serif', serif; */
+  /* background: linear-gradient(135deg, #ea580c, #f97316); */
+  /* -webkit-background-clip: text; */
+  /* background-clip: text; */
+  /* -webkit-text-fill-color: transparent; */
+  margin: 0;
+  line-height: 1;
+}
+
+.navbar-tagline {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin: 0;
+  margin-top: 2px;
+  margin-left: 50px;
+  font-weight: 400;
+}
+
+.theme-light .navbar-tagline {
+  color: #64748b;
+}
+
+/* Navigation Menu */
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-menu-item {
+  position: relative;
+}
+
+.navbar-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #e5e7eb;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.navbar-button:hover {
+  background: rgba(234, 88, 12, 0.1);
+  border-color: rgba(234, 88, 12, 0.3);
+  color: #ea580c;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(234, 88, 12, 0.2);
+}
+
+.navbar-button:active {
+  transform: translateY(0);
+}
+
+.theme-light .navbar-button {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #1e293b;
+}
+
+.theme-light .navbar-button:hover {
+  background: rgba(234, 88, 12, 0.1);
+  border-color: rgba(234, 88, 12, 0.3);
+  color: #ea580c;
+}
+
+.navbar-icon {
+  width: 20px;
+  height: 20px;
+  transition: all 0.3s ease;
+}
+
+.navbar-button:hover .navbar-icon {
+  transform: scale(1.1);
+}
+
+/* Tooltip */
+.navbar-tooltip {
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  pointer-events: none;
+  z-index: 1001;
+}
+
+.navbar-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 4px solid rgba(0, 0, 0, 0.9);
+}
+
+.navbar-button:hover .navbar-tooltip {
+  opacity: 1;
+  visibility: visible;
+  bottom: -45px;
+}
+
+.theme-light .navbar-tooltip {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.theme-light .navbar-tooltip::before {
+  border-bottom-color: rgba(0, 0, 0, 0.8);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 16px;
+    height: 60px;
+  }
+  
+  .navbar-brand {
+    font-size: 1.5rem;
+  }
+  
+  .navbar-tagline {
+    font-size: 0.7rem;
+  }
+  
+  .navbar-menu {
+    gap: 6px;
+  }
+  
+  .navbar-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+  
+  .navbar-icon {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar {
+    padding: 0 12px;
+  }
+  
+  .navbar-tagline {
+    display: none;
+  }
+  
+  .navbar-menu {
+    gap: 4px;
+  }
+  
+  .navbar-button {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .navbar-icon {
+    width: 16px;
+    height: 16px;
+  }
+}

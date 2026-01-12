@@ -66,7 +66,8 @@ const getFileByCode = async (req, res) => {
       description: fileDoc.description,
       downloadCount: fileDoc.downloadCount,
       maxDownloads: fileDoc.maxDownloads,
-      createdAt: fileDoc.createdAt
+      createdAt: fileDoc.createdAt,
+      firstViewShown: fileDoc.firstViewShown
     });
   } catch (err) {
     console.error(err);
@@ -79,31 +80,70 @@ const getFileInfo = async (req, res) => {
   try {
     const { code } = req.params;
     
+    console.log(`Getting file info for code: ${code}`);
+    
     const fileDoc = await filemodel.findOne({ code: code.toUpperCase() });
 
     if (!fileDoc) {
+      console.log(`File not found for code: ${code}`);
       return res.status(404).json({ message: 'File not found' });
     }
 
+    console.log(`File found: ${fileDoc.originalFileName}, expires: ${fileDoc.expiry}`);
+
     // Check expiry
     if (new Date() > fileDoc.expiry) {
+      console.log(`File expired for code: ${code}`);
       return res.status(410).json({ message: 'File expired' });
     }
 
+    // If caller requests to mark the first (detailed) view (typically the uploader
+    // immediately after conversion), set `firstViewShown` to true so future visits
+    // render the compact/card UI. We return `allowDetailedView` to indicate whether
+    // this request should show the full detailed UI.
+    const mark = req.query.markFirstView === 'true';
+    let allowDetailedView = false;
+
+    if (mark && !fileDoc.firstViewShown) {
+      fileDoc.firstViewShown = true;
+      await fileDoc.save();
+      allowDetailedView = true;
+    }
+
+    // If file has password protection, don't return sensitive information
+    if (fileDoc.hasPassword) {
+      console.log(`Password protected file for code: ${code}`);
+      return res.json({
+        originalFileName: fileDoc.originalFileName,
+        fileSize: fileDoc.fileSize,
+        conversionType: fileDoc.conversionType,
+        expiry: fileDoc.expiry,
+        description: fileDoc.description,
+        hasPassword: true,
+        requiresPassword: true, // Indicate that password is needed
+        createdAt: fileDoc.createdAt,
+        allowDetailedView: allowDetailedView
+      });
+    }
+
+    console.log(`Returning file info for code: ${code}`);
     res.json({
+      fileUrl: fileDoc.fileUrl, // Only include fileUrl for non-password protected files
       originalFileName: fileDoc.originalFileName,
       fileSize: fileDoc.fileSize,
       conversionType: fileDoc.conversionType,
       expiry: fileDoc.expiry,
       description: fileDoc.description,
-      hasPassword: fileDoc.hasPassword,
+      hasPassword: false,
       downloadCount: fileDoc.downloadCount,
       maxDownloads: fileDoc.maxDownloads,
-      createdAt: fileDoc.createdAt
+      createdAt: fileDoc.createdAt,
+      firstViewShown: fileDoc.firstViewShown,
+      allowDetailedView: allowDetailedView
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error in getFileInfo:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
 

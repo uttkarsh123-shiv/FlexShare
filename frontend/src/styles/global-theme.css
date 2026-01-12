@@ -1,0 +1,272 @@
+/* Global Theme System - Unified Backgrounds */
+
+/* Base Theme Variables */
+:root {
+  /* Dark Theme Colors */
+  --bg-primary-dark: #0c0a09;
+  --bg-secondary-dark: #171717;
+  --bg-tertiary-dark: #1a1a1a;
+  --bg-card-dark: rgba(23, 23, 23, 0.8);
+  --bg-glass-dark: rgba(255, 255, 255, 0.05);
+  --text-primary-dark: #e5e7eb;
+  --text-secondary-dark: #9ca3af;
+  --text-accent-dark: #a8a29e;
+  
+  /* Light Theme Colors */
+  --bg-primary-light: #f8fafc;
+  --bg-secondary-light: #e2e8f0;
+  --bg-tertiary-light: #f1f5f9;
+  --bg-card-light: rgba(255, 255, 255, 0.9);
+  --bg-glass-light: rgba(0, 0, 0, 0.05);
+  --text-primary-light: #1e293b;
+  --text-secondary-light: #64748b;
+  --text-accent-light: #475569;
+  
+  /* Accent Colors (same for both themes) */
+  --accent-primary: #ea580c;
+  --accent-secondary: #f97316;
+  --accent-hover: #dc2626;
+}
+
+/* Global Background System */
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+  transition: all 0.3s ease;
+  background: #000;
+}
+
+/* Dark Theme (Default) */
+body,
+body.theme-dark {
+  background: linear-gradient(135deg, var(--bg-primary-dark) 0%, var(--bg-secondary-dark) 50%, var(--bg-primary-dark) 100%);
+  color: var(--text-primary-dark);
+}
+
+/* Light Theme */
+body.theme-light {
+  background: linear-gradient(135deg, var(--bg-primary-light) 0%, var(--bg-secondary-light) 50%, var(--bg-tertiary-light) 100%);
+  color: var(--text-primary-light);
+}
+
+/* Root Container */
+#root {
+  min-height: 100vh;
+  width: 100%;
+  display: block;
+}
+
+/* Page Containers - Unified Backgrounds */
+.page-container {
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  /* Remove individual background declarations - inherit from body */
+}
+
+/* Hero Page */
+.hero-page {
+  background: transparent !important; /* Override existing background */
+}
+
+/* Upload Page */
+.upload-page {
+  background: transparent !important; /* Override existing background */
+}
+
+/* File Page */
+.file-page {
+  background: transparent !important; /* Override existing background */
+}
+
+/* Features Section */
+.features-section {
+  background: transparent !important; /* Override existing background */
+}
+
+/* Accordion Section */
+.accordion-section {
+  background: transparent !important; /* Override existing background */
+}
+
+/* Card Components - Unified Styling */
+.feature-card {
+  background: var(--bg-card-dark);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary-dark);
+}
+
+.theme-light .feature-card {
+  background: var(--bg-card-light);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: var(--text-primary-light);
+}
+
+/* Accordion Items */
+.accordion-item {
+  background: var(--bg-card-dark);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.theme-light .accordion-item {
+  background: var(--bg-card-light);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Upload Components */
+.upload-step-1,
+.upload-step-2,
+.upload-step-3 {
+  background: transparent;
+}
+
+.file-dropzone {
+  background: var(--bg-glass-dark);
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+}
+
+.theme-light .file-dropzone {
+  background: var(--bg-glass-light);
+  border: 2px dashed rgba(0, 0, 0, 0.2);
+}
+
+.description-section,
+.advanced-settings,
+.conversion-section,
+.upload-progress {
+  background: var(--bg-glass-dark);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.theme-light .description-section,
+.theme-light .advanced-settings,
+.theme-light .conversion-section,
+.theme-light .upload-progress {
+  background: var(--bg-glass-light);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Text Colors - Unified */
+.upload-title,
+.hero-title,
+.accordion-title,
+.features-title {
+  color: var(--text-primary-dark);
+}
+
+.theme-light .upload-title,
+.theme-light .hero-title,
+.theme-light .accordion-title,
+.theme-light .features-title {
+  color: var(--text-primary-light);
+}
+
+.upload-subtitle,
+.hero-subtitle,
+.accordion-content,
+.feature-card-description {
+  color: var(--text-secondary-dark);
+}
+
+.theme-light .upload-subtitle,
+.theme-light .hero-subtitle,
+.theme-light .accordion-content,
+.theme-light .feature-card-description {
+  color: var(--text-secondary-light);
+}
+
+/* Animated Background Elements - Unified */
+.hero-page::before,
+.upload-page::before {
+  content: '';
+  position: absolute;
+  top: 80px;
+  left: 40px;
+  width: 288px;
+  height: 288px;
+  background: rgba(234, 88, 12, 0.1);
+  border-radius: 50%;
+  filter: blur(48px);
+  animation: pulse-slow 4s ease-in-out infinite;
+  z-index: 1;
+}
+
+.hero-page::after,
+.upload-page::after {
+  content: '';
+  position: absolute;
+  bottom: 80px;
+  right: 40px;
+  width: 384px;
+  height: 384px;
+  background: rgba(249, 115, 22, 0.05);
+  border-radius: 50%;
+  filter: blur(48px);
+  animation: pulse-slow 4s ease-in-out infinite;
+  animation-delay: 1s;
+  z-index: 1;
+}
+
+.theme-light .hero-page::before,
+.theme-light .upload-page::before {
+  background: rgba(234, 88, 12, 0.08);
+}
+
+.theme-light .hero-page::after,
+.theme-light .upload-page::after {
+  background: rgba(249, 115, 22, 0.04);
+}
+
+/* Scrollbar - Theme Aware */
+::-webkit-scrollbar-track {
+  background: var(--bg-primary-dark);
+}
+
+.theme-light ::-webkit-scrollbar-track {
+  background: var(--bg-primary-light);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.theme-light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.theme-light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Animation Keyframes */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+/* Ensure all sections inherit the unified background */
+.hero-content,
+.upload-container,
+.features-container {
+  position: relative;
+  z-index: 10;
+}
+
+/* Remove any conflicting background styles */
+.hero-animated-bg,
+.upload-animated-bg {
+  display: none; /* We're using pseudo-elements instead */
+}
