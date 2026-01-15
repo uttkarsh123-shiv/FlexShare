@@ -1,7 +1,7 @@
 # =========================
 # Base Image (STABLE)
 # =========================
-FROM node:18-bullseye-slim
+FROM node:20-bullseye-slim
 
 # =========================
 # System dependencies

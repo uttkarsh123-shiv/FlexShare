@@ -5,7 +5,7 @@ import { Download, Copy, Check, Share2, ArrowLeft, FileText, Image as ImageIcon,
 import { QRCodeSVG } from "qrcode.react";
 import { useToast } from "../context/ToastContext";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL || "https://flexshare-backend.onrender.com";
 
 export default function FilePage() {
   const { code } = useParams();
