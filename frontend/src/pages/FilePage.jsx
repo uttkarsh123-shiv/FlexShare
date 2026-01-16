@@ -342,23 +342,147 @@ export default function FilePage() {
   // If not allowed detailed view, render a compact card UI instead
   if (!renderDetailed) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0c0a09] via-[#171717] to-[#0c0a09] text-[#e5e7eb] py-8 px-4">
+      <div className="min-h-screen bg-gradient-to-br from-[#0c0a09] via-[#171717] to-[#0c0a09] text-[#e5e7eb] py-12 px-4">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-[#171717] rounded-xl p-6 border border-[#383838] shadow-xl flex items-center gap-4">
-            <div className="flex-shrink-0">
-              {getFileIcon(file.fileUrl, conversionType)}
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-bold text-white truncate">{filename}</h3>
-              <p className="text-gray-400 text-sm mt-1">{conversionType?.replace('->', ' → ') || 'Original format'}</p>
-              <div className="flex items-center gap-4 mt-3 text-sm text-gray-400">
-                <span className="text-orange-400">{getTimeRemaining(expiry)}</span>
-                <span>{downloadCount || 0}{maxDownloads ? `/${maxDownloads}` : ''} downloads</span>
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">
+              File: <span className="text-orange-500 font-mono">{code}</span>
+            </h1>
+            <p className="text-gray-400">Shared via FlexShare</p>
+          </div>
+
+          {/* Main File Card */}
+          <div className="bg-[#171717]/80 backdrop-blur-xl rounded-2xl border border-[#383838]/50 shadow-2xl overflow-hidden">
+            {/* File Preview/Icon Section */}
+            <div className="relative bg-gradient-to-br from-[#0c0a09] to-[#1a1a1a] p-12 flex items-center justify-center min-h-[300px]">
+              {isImage ? (
+                <img
+                  src={file.fileUrl}
+                  alt={filename}
+                  className="max-w-full max-h-[400px] object-contain rounded-lg shadow-2xl"
+                />
+              ) : (
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/10 border border-orange-500/30 mb-6">
+                    {getFileIcon(file.fileUrl, conversionType)}
+                  </div>
+                  <div className="max-w-2xl">
+                    <h2 className="text-2xl font-bold text-white mb-2 break-words px-4">
+                      {filename}
+                    </h2>
+                    <p className="text-gray-400 text-sm">
+                      {conversionType?.replace('->', ' → ') || 'Original format'}
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {/* File type badge */}
+              <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium text-white border border-white/10">
+                {conversionType?.split("->")[1]?.toUpperCase() || "FILE"}
               </div>
             </div>
-            <div className="flex flex-col gap-2">
-              <button onClick={handleDownload} className="bg-orange-600 px-4 py-2 rounded-lg text-white">Download</button>
-              <button onClick={() => navigate('/')} className="px-4 py-2 rounded-lg border border-[#383838] text-gray-300">Back</button>
+
+            {/* File Info Section */}
+            <div className="p-8 space-y-6">
+              {/* Filename - Always visible, wrapped properly */}
+              {isImage && (
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-2 break-words">
+                    {filename}
+                  </h2>
+                  <p className="text-gray-400">
+                    {conversionType?.replace('->', ' → ') || 'Original format'}
+                  </p>
+                </div>
+              )}
+
+              {/* Description if available */}
+              {description && (
+                <div className="pt-4 border-t border-[#383838]">
+                  <p className="text-gray-300 leading-relaxed">{description}</p>
+                </div>
+              )}
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
+                <div className="bg-[#0c0a09]/50 rounded-xl p-4 text-center border border-[#383838]/30">
+                  <div className="text-orange-400 font-bold text-lg mb-1">
+                    {conversionType?.replace("->", " → ") || "None"}
+                  </div>
+                  <div className="text-gray-400 text-xs">Conversion</div>
+                </div>
+                <div className="bg-[#0c0a09]/50 rounded-xl p-4 text-center border border-[#383838]/30">
+                  <div className="text-red-400 font-bold text-lg mb-1">
+                    {getTimeRemaining(expiry)}
+                  </div>
+                  <div className="text-gray-400 text-xs">Time Left</div>
+                </div>
+                <div className="bg-[#0c0a09]/50 rounded-xl p-4 text-center border border-[#383838]/30">
+                  <div className="text-blue-400 font-bold text-lg mb-1">
+                    {downloadCount || 0}
+                    {maxDownloads ? `/${maxDownloads}` : ""}
+                  </div>
+                  <div className="text-gray-400 text-xs">Downloads</div>
+                </div>
+                <div className="bg-[#0c0a09]/50 rounded-xl p-4 text-center border border-[#383838]/30">
+                  <div className="text-green-400 font-bold text-lg mb-1">
+                    {hasPassword ? "Yes" : "No"}
+                  </div>
+                  <div className="text-gray-400 text-xs">Protected</div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <button
+                  onClick={handleDownload}
+                  disabled={isDownloading}
+                  className="flex-1 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 disabled:from-gray-700 disabled:to-gray-800 flex items-center justify-center gap-3 px-8 py-4 rounded-xl text-white font-semibold transition-all hover:scale-105 disabled:hover:scale-100 shadow-lg shadow-orange-600/30 disabled:shadow-none"
+                >
+                  <Download className="w-5 h-5" />
+                  {isDownloading ? "Downloading..." : "Download File"}
+                </button>
+                <button
+                  onClick={() => navigate('/')}
+                  className="px-8 py-4 rounded-xl border-2 border-[#383838] hover:border-orange-600 text-gray-300 hover:text-orange-400 font-semibold transition-all hover:scale-105 bg-[#0c0a09]/30"
+                >
+                  Back to Home
+                </button>
+              </div>
+
+              {/* Info Footer */}
+              <div className="pt-6 border-t border-[#383838] space-y-2 text-sm text-gray-400">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  <span>Created: {formatDate(createdAt)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Expires: {formatDate(expiry)}</span>
+                </div>
+                {hasPassword && (
+                  <div className="flex items-center gap-2 text-green-400">
+                    <Shield className="w-4 h-4" />
+                    <span>This file is password protected</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Info Card */}
+          <div className="mt-6 bg-[#171717]/60 backdrop-blur-xl rounded-2xl border border-[#383838]/50 p-6">
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+              <Shield className="w-5 h-5 text-orange-500" />
+              About FlexShare
+            </h3>
+            <div className="space-y-2 text-sm text-gray-400">
+              <p>• Files are automatically deleted after expiry</p>
+              <p>• Your download is secure and private</p>
+              <p>• No registration required</p>
+              <p>• Free file conversion and sharing</p>
             </div>
           </div>
         </div>

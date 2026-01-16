@@ -107,20 +107,24 @@ export default function Hero() {
                   onChange={setCode}
                   numInputs={6}
                   inputStyle={{
-                    width: "50px",
-                    height: "60px",
-                    border: "2px solid #383838",
-                    borderRadius: "8px",
-                    fontSize: "24px",
-                    fontWeight: "bold",
+                    width: "56px",
+                    height: "68px",
+                    border: "2px solid rgba(255, 255, 255, 0.1)",
+                    borderRadius: "12px",
+                    fontSize: "28px",
+                    fontWeight: "700",
                     textAlign: "center",
-                    backgroundColor: "#0c0a09",
+                    backgroundColor: "rgba(12, 10, 9, 0.6)",
                     color: "#e5e7eb",
-                    margin: "4px",
+                    margin: "0 6px",
+                    transition: "all 0.3s ease",
+                    backdropFilter: "blur(8px)",
                   }}
                   focusStyle={{
                     border: "2px solid #ea580c",
                     outline: "none",
+                    boxShadow: "0 0 0 4px rgba(234, 88, 12, 0.1)",
+                    transform: "scale(1.05)",
                   }}
                   renderInput={(props) => <input {...props} />}
                 />
