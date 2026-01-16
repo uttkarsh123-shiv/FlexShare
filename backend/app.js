@@ -8,15 +8,14 @@ const cors = require('cors');
 const { apiLimiter } = require('./middleware/rateLimiter');
 const logger = require('./utils/logger');
 
-
-// Allow both production and local development
 const allowedOrigins = [
-  'https://flex-share.vercel.app',
-  'http://localhost:5173',
+  process.env.FRONTEND_URL,
+   'https://flex-share.vercel.app',
   'http://localhost:3000',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:3000'
-];
+].filter(Boolean);
+
 
 app.use(cors({
   origin: function (origin, callback) {
