@@ -4,6 +4,7 @@
 const multer = require('multer');
 const { diskStorage } = require('multer');
 const { extname } = require('path');
+const logger = require('../utils/logger');
 
 const storage = diskStorage({
     destination: 'uploads/',
@@ -35,17 +36,17 @@ const upload = multer({
       'text/csv'
     ];
     
-    console.log('File upload attempt:', {
+    logger.log('File upload attempt:', {
       originalname: file.originalname,
       mimetype: file.mimetype,
       size: file.size
     });
     
     if (allowedMimes.includes(file.mimetype)) {
-      console.log('File type accepted');
+      logger.log('File type accepted');
       cb(null, true);
     } else {
-      console.log('File type rejected:', file.mimetype);
+      logger.log('File type rejected:', file.mimetype);
       cb(new Error(`Invalid file type: ${file.mimetype}. Only images, PDF, Word, Excel, and PowerPoint documents are allowed.`), false);
     }
   }

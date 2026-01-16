@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const logger = require('../utils/logger');
 
 const fileSchema = new mongoose.Schema({
     code: {
@@ -99,7 +100,7 @@ function getFileModel() {
     }
     
     // If MongoDB connection is in progress or failed, use memory storage as fallback
-    console.log('MongoDB not ready, using memory storage as fallback');
+    logger.log('MongoDB not ready, using memory storage as fallback');
     const memoryStorage = require('../storage/memory');
     return memoryStorage;
 }

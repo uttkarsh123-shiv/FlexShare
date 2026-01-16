@@ -1,5 +1,6 @@
 const filemodel = require('../model/file.model');
 const bcrypt = require('bcryptjs');
+const logger = require('../utils/logger');
 
 const getFileByCode = async (req, res) => {
   try {
@@ -70,7 +71,7 @@ const getFileByCode = async (req, res) => {
       firstViewShown: fileDoc.firstViewShown
     });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -118,7 +119,7 @@ const getFileInfo = async (req, res) => {
       allowDetailedView: allowDetailedView
     });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 };

@@ -1,4 +1,5 @@
 const fs = require('fs');
+const logger = require('./logger');
 
 /**
  * Safely delete a file with retry logic and proper error handling
@@ -17,13 +18,13 @@ async function safeDeleteFile(filePath, maxRetries = 3, delay = 200) {
       await new Promise(resolve => setTimeout(resolve, delay));
       
       fs.unlinkSync(filePath);
-      console.log(`✅ File deleted successfully: ${filePath}`);
+      logger.log(`✅ File deleted successfully: ${filePath}`);
       return;
     } catch (error) {
-      console.warn(`⚠️  Attempt ${attempt}/${maxRetries} failed to delete ${filePath}:`, error.message);
+      logger.warn(`⚠️  Attempt ${attempt}/${maxRetries} failed to delete ${filePath}:`, error.message);
       
       if (attempt === maxRetries) {
-        console.error(`❌ Failed to delete file after ${maxRetries} attempts: ${filePath}`);
+        logger.error(`❌ Failed to delete file after ${maxRetries} attempts: ${filePath}`);
         // Don't throw error, just log it - file will be cleaned up by OS eventually
       } else {
         // Wait longer before next attempt

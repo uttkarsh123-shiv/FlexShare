@@ -6,6 +6,8 @@ const helmet = require('helmet');
 const app = express();
 const cors = require('cors');
 const { apiLimiter } = require('./middleware/rateLimiter');
+const logger = require('./utils/logger');
+
 
 // Allow both production and local development
 const allowedOrigins = [
@@ -30,6 +32,9 @@ app.use(cors({
   credentials: true
 }));
 
+app.get('/api/health', (req, res) => {
+  res.status(200).send('OK');
+});
 
 // Security middleware
 app.use(helmet({
@@ -40,14 +45,18 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Apply rate limiting to all API routes
-app.use('/api', apiLimiter);
+
+app.use('/api', (req, res, next) => {
+  if (req.path === '/health') return next();
+  apiLimiter(req, res, next);
+});
 
 // Add request logging middleware
 app.use('/api', (req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-  console.log('Headers:', req.headers);
+  logger.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  logger.log('Headers:', req.headers);
   if (req.body && Object.keys(req.body).length > 0) {
-    console.log('Body:', req.body);
+    logger.log('Body:', req.body);
   }
   next();
 });
@@ -56,14 +65,14 @@ app.use('/api', useRoutes);
 app.use('/api', getFileRoutes);
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development'
-  });
-});
+// app.get('/health', (req, res) => {
+//   res.status(200).json({ 
+//     status: 'OK', 
+//     timestamp: new Date().toISOString(),
+//     uptime: process.uptime(),
+//     environment: process.env.NODE_ENV || 'development'
+//   });
+// });
 
 // Error handling middleware (must be after routes)
 app.use((err, req, res, next) => {
@@ -82,7 +91,7 @@ app.use((err, req, res, next) => {
     return res.status(403).json({ message: 'CORS policy violation' });
   }
   
-  console.error('Error:', err);
+  logger.error('Error:', err);
   res.status(500).json({ message: err.message || 'Internal server error' });
 });
 

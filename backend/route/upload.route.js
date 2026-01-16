@@ -4,6 +4,7 @@ const upload = require("../middleware/upload");
 const { uploadAndConvertFile, uploadBatchFiles } = require('../controller/upload.controller');
 const { validateUpload } = require('../middleware/validation');
 const { uploadLimiter } = require('../middleware/rateLimiter');
+const logger = require('../utils/logger');
 
 // Single file upload with validation and rate limiting
 router.post('/uploads', 
@@ -19,13 +20,13 @@ router.post('/test-upload',
   upload.single('file'),
   async (req, res) => {
     try {
-      console.log('Test upload request received');
+      logger.log('Test upload request received');
       
       if (!req.file) {
         return res.status(400).json({ message: 'File is required' });
       }
       
-      console.log('File received:', {
+      logger.log('File received:', {
         originalname: req.file.originalname,
         size: req.file.size,
         mimetype: req.file.mimetype
@@ -40,7 +41,7 @@ router.post('/test-upload',
         }
       });
     } catch (error) {
-      console.error('Test upload error:', error);
+      logger.error('Test upload error:', error);
       res.status(500).json({ message: 'Test upload failed', error: error.message });
     }
   }
@@ -62,7 +63,7 @@ router.get('/test-files', async (req, res) => {
       count: files ? 1 : 0
     });
   } catch (error) {
-    console.error('Test files error:', error);
+    logger.error('Test files error:', error);
     res.status(500).json({ message: 'Failed to fetch files', error: error.message });
   }
 });

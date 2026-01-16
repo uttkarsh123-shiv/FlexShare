@@ -14,6 +14,7 @@ const mammoth = require('mammoth');
 const xlsx = require('xlsx');
 const pdf2pic = require('pdf2pic');
 const { safeDeleteFile, cleanupFiles } = require('../utils/fileCleanup');
+const logger = require('../utils/logger');
 
 const allowedConversions = [
   'image->png', 'image->jpg', 'image->jpeg', 'image->webp', 'image->gif', 'image->bmp', 'image->avif', 'image->pdf',
@@ -27,7 +28,7 @@ const uploadAndConvertFile = async (req, res) => {
     const file = req.file;
     const { conversionType, description, password: reqPassword, expiryHours: reqExpiryHours, maxDownloads: reqMaxDownloads } = req.body;
 
-    console.log('Upload request received:', { 
+    logger.log('Upload request received:', { 
       fileName: file?.originalname, 
       conversionType, 
       fileSize: file?.size,
@@ -43,7 +44,7 @@ const uploadAndConvertFile = async (req, res) => {
 
     // Handle case where no conversion is needed
     if (!conversionType || conversionType === 'none') {
-      console.log('No conversion requested - uploading original file');
+      logger.log('No conversion requested - uploading original file');
       
       // Upload original file directly to Cloudinary
       const streamUpload = (buffer) => {
@@ -87,7 +88,7 @@ const uploadAndConvertFile = async (req, res) => {
         }
       }
 
-      console.log('Creating database entry (no conversion) with settings:', {
+      logger.log('Creating database entry (no conversion) with settings:', {
         code,
         hasPassword: !!hashedPassword,
         expiryHours: hours,
@@ -149,13 +150,13 @@ const uploadAndConvertFile = async (req, res) => {
       fs.writeFileSync(tempFilePath, file.buffer);
     }
 
-    console.log('Starting conversion:', conversionType);
+    logger.log('Starting conversion:', conversionType);
 
     try {
       if (conversionType.startsWith('image->')) {
         if (conversionType === 'image->pdf') {
           // Convert image to PDF using Sharp and PDF-lib
-          console.log('Converting image to PDF...');
+          logger.log('Converting image to PDF...');
           
           try {
             // First, process the image with Sharp to get consistent format
@@ -190,31 +191,31 @@ const uploadAndConvertFile = async (req, res) => {
             
             const pdfBytes = await pdfDoc.save();
             fs.writeFileSync(convertedPath, pdfBytes);
-            console.log('Image to PDF conversion completed');
+            logger.log('Image to PDF conversion completed');
           } catch (pdfError) {
-            console.error('Image to PDF conversion failed:', pdfError);
+            logger.error('Image to PDF conversion failed:', pdfError);
             throw new Error('Image to PDF conversion failed');
           }
           
         } else {
           // Regular image conversion with sharp
-          console.log(`Converting image to ${targetFormat}...`);
+          logger.log(`Converting image to ${targetFormat}...`);
           try {
             const sharpFormat = targetFormat === 'jpg' ? 'jpeg' : targetFormat;
             await sharp(tempFilePath)
               .resize({ fit: 'inside', width: 2000 })
               .toFormat(sharpFormat)
               .toFile(convertedPath);
-            console.log('Image conversion completed');
+            logger.log('Image conversion completed');
           } catch (imageError) {
-            console.error('Image conversion failed:', imageError);
+            logger.error('Image conversion failed:', imageError);
             throw new Error('Image conversion failed');
           }
         }
 
       } else if (conversionType === 'word->pdf') {
         // Word to PDF conversion
-        console.log('Converting Word to PDF...');
+        logger.log('Converting Word to PDF...');
         try {
           // Try using docx2pdf Python package first
           await execFileAsync('python', ['-c', `
@@ -231,9 +232,9 @@ except Exception as e:
     print(f"Conversion failed: {e}")
     sys.exit(1)
           `]);
-          console.log('Word to PDF conversion completed using docx2pdf');
+          logger.log('Word to PDF conversion completed using docx2pdf');
         } catch (pythonError) {
-          console.log('Python docx2pdf failed, trying alternative...');
+          logger.log('Python docx2pdf failed, trying alternative...');
           // Fallback: Create a simple PDF with the document content
           try {
             const result = await mammoth.extractRawText({ path: tempFilePath });
@@ -253,18 +254,18 @@ except Exception as e:
             
             const pdfBytes = await pdfDoc.save();
             fs.writeFileSync(convertedPath, pdfBytes);
-            console.log('Word to PDF conversion completed using fallback method');
+            logger.log('Word to PDF conversion completed using fallback method');
           } catch (fallbackError) {
-            console.error('All Word to PDF conversion methods failed:', fallbackError);
+            logger.error('All Word to PDF conversion methods failed:', fallbackError);
             // Last resort: copy original file
             fs.copyFileSync(tempFilePath, convertedPath);
-            console.log('Word file uploaded without conversion');
+            logger.log('Word file uploaded without conversion');
           }
         }
 
       } else if (conversionType === 'pdf->word') {
         // PDF to Word conversion
-        console.log('Converting PDF to Word...');
+        logger.log('Converting PDF to Word...');
         const outputDocx = convertedPath.replace(/\.\w+$/, '.docx');
         
         try {
@@ -290,12 +291,12 @@ except Exception as e:
               fs.unlinkSync(convertedPath);
             }
             convertedPath = outputDocx;
-            console.log('PDF to Word conversion completed using pdf2docx');
+            logger.log('PDF to Word conversion completed using pdf2docx');
           } else {
             throw new Error('PDF to Word conversion failed - output file not created');
           }
         } catch (pythonError) {
-          console.log('Python pdf2docx failed, trying alternative...');
+          logger.log('Python pdf2docx failed, trying alternative...');
           // Fallback: Extract text and create a simple text file
           try {
             const dataBuffer = fs.readFileSync(tempFilePath);
@@ -306,47 +307,47 @@ except Exception as e:
             const txtPath = convertedPath.replace(/\.\w+$/, '.txt');
             fs.writeFileSync(txtPath, textContent);
             convertedPath = txtPath;
-            console.log('PDF to text conversion completed using fallback method');
+            logger.log('PDF to text conversion completed using fallback method');
           } catch (fallbackError) {
-            console.error('All PDF to Word conversion methods failed:', fallbackError);
+            logger.error('All PDF to Word conversion methods failed:', fallbackError);
             // Last resort: copy original file
             fs.copyFileSync(tempFilePath, convertedPath);
-            console.log('PDF file uploaded without conversion');
+            logger.log('PDF file uploaded without conversion');
           }
         }
 
       } else if (conversionType === 'pdf->txt') {
         // PDF to text conversion
-        console.log('Converting PDF to text...');
+        logger.log('Converting PDF to text...');
         try {
           const dataBuffer = fs.readFileSync(tempFilePath);
           const data = await pdfParse(dataBuffer);
           const textContent = data.text;
           
           fs.writeFileSync(convertedPath, textContent);
-          console.log('PDF to text conversion completed');
+          logger.log('PDF to text conversion completed');
         } catch (textError) {
-          console.error('PDF to text conversion failed:', textError);
+          logger.error('PDF to text conversion failed:', textError);
           throw new Error('PDF to text conversion failed');
         }
 
       } else if (conversionType === 'word->txt') {
         // Word to text conversion
-        console.log('Converting Word to text...');
+        logger.log('Converting Word to text...');
         try {
           const result = await mammoth.extractRawText({ path: tempFilePath });
           const textContent = result.value;
           
           fs.writeFileSync(convertedPath, textContent);
-          console.log('Word to text conversion completed');
+          logger.log('Word to text conversion completed');
         } catch (textError) {
-          console.error('Word to text conversion failed:', textError);
+          logger.error('Word to text conversion failed:', textError);
           throw new Error('Word to text conversion failed');
         }
 
       } else if (conversionType === 'pdf->images') {
         // PDF to images conversion
-        console.log('Converting PDF to images...');
+        logger.log('Converting PDF to images...');
         try {
           const convert = pdf2pic.fromPath(tempFilePath, {
             density: 100,
@@ -372,20 +373,20 @@ except Exception as e:
               }
             });
             
-            console.log('PDF to images conversion completed');
+            logger.log('PDF to images conversion completed');
           } else {
             throw new Error('No images generated from PDF');
           }
         } catch (imageError) {
-          console.error('PDF to images conversion failed:', imageError);
+          logger.error('PDF to images conversion failed:', imageError);
           // Fallback: copy original file
           fs.copyFileSync(tempFilePath, convertedPath);
-          console.log('PDF file uploaded without conversion');
+          logger.log('PDF file uploaded without conversion');
         }
 
       } else if (conversionType === 'excel->csv') {
         // Excel to CSV conversion
-        console.log('Converting Excel to CSV...');
+        logger.log('Converting Excel to CSV...');
         try {
           const workbook = xlsx.readFile(tempFilePath);
           const sheetName = workbook.SheetNames[0];
@@ -393,15 +394,15 @@ except Exception as e:
           const csvContent = xlsx.utils.sheet_to_csv(worksheet);
           
           fs.writeFileSync(convertedPath, csvContent);
-          console.log('Excel to CSV conversion completed');
+          logger.log('Excel to CSV conversion completed');
         } catch (csvError) {
-          console.error('Excel to CSV conversion failed:', csvError);
+          logger.error('Excel to CSV conversion failed:', csvError);
           throw new Error('Excel to CSV conversion failed');
         }
 
       } else if (conversionType === 'excel->pdf') {
         // Excel to PDF conversion (simplified)
-        console.log('Converting Excel to PDF...');
+        logger.log('Converting Excel to PDF...');
         try {
           const workbook = xlsx.readFile(tempFilePath);
           const sheetName = workbook.SheetNames[0];
@@ -422,27 +423,27 @@ except Exception as e:
           
           const pdfBytes = await pdfDoc.save();
           fs.writeFileSync(convertedPath, pdfBytes);
-          console.log('Excel to PDF conversion completed');
+          logger.log('Excel to PDF conversion completed');
         } catch (pdfError) {
-          console.error('Excel to PDF conversion failed:', pdfError);
+          logger.error('Excel to PDF conversion failed:', pdfError);
           // Fallback: copy original file
           fs.copyFileSync(tempFilePath, convertedPath);
-          console.log('Excel file uploaded without conversion');
+          logger.log('Excel file uploaded without conversion');
         }
 
       } else if (conversionType === 'ppt->pdf') {
         // PowerPoint to PDF conversion (placeholder)
-        console.log('PowerPoint to PDF conversion not fully implemented - uploading original file');
+        logger.log('PowerPoint to PDF conversion not fully implemented - uploading original file');
         fs.copyFileSync(tempFilePath, convertedPath);
 
       } else {
         // Fallback: just copy original
-        console.log('No specific conversion handler, copying original file');
+        logger.log('No specific conversion handler, copying original file');
         fs.copyFileSync(tempFilePath, convertedPath);
       }
 
     } catch (conversionError) {
-      console.error('Conversion error:', conversionError);
+      logger.error('Conversion error:', conversionError);
       
       // Clean up temp files with proper error handling
       if (tempFilePath !== file.path) {
@@ -460,7 +461,7 @@ except Exception as e:
       await safeDeleteFile(tempFilePath);
     }
 
-    console.log('Uploading to Cloudinary...');
+    logger.log('Uploading to Cloudinary...');
 
     // Upload to Cloudinary
     const uploadResult = await cloudinary.uploader.upload(convertedPath, {
@@ -468,7 +469,7 @@ except Exception as e:
       resource_type: 'auto'
     });
 
-    console.log('Cloudinary upload completed');
+    logger.log('Cloudinary upload completed');
 
     // Remove temp files with proper error handling
     await cleanupFiles([file.path, convertedPath]);
@@ -495,7 +496,7 @@ except Exception as e:
       }
     }
 
-    console.log('Creating database entry with settings:', {
+    logger.log('Creating database entry with settings:', {
       code,
       hasPassword: !!hashedPassword,
       expiryHours: hours,
@@ -516,7 +517,7 @@ except Exception as e:
       downloadCount: 0
     });
 
-    console.log('Upload process completed successfully');
+    logger.log('Upload process completed successfully');
 
     res.json({ 
       code, 
@@ -529,7 +530,7 @@ except Exception as e:
     });
 
   } catch (err) {
-    console.error('Upload error:', err);
+    logger.error('Upload error:', err);
     res.status(500).json({ 
       message: 'Upload & conversion failed',
       error: err.message 
@@ -647,7 +648,7 @@ const uploadBatchFiles = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Batch upload error:', err);
+    logger.error('Batch upload error:', err);
     res.status(500).json({ message: 'Batch upload failed', error: err.message });
   }
 };
