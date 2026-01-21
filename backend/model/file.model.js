@@ -79,6 +79,14 @@ const fileSchema = new mongoose.Schema({
         default: false,
         index: true
     },
+    firstViewIp: {
+        type: String,
+        default: null
+    },
+    firstViewAt: {
+        type: Date,
+        default: null
+    },
     accessLogs: [{
         ip: String,
         userAgent: String,

@@ -1,6 +1,6 @@
 const cloudinary = require('../config/cloudinary');
 const filemodel = require('../model/file.model');
-const nanoid = require('nanoid').nanoid;
+const { nanoid, customAlphabet } = require('nanoid');
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
@@ -9,12 +9,29 @@ const util = require('util');
 const execFileAsync = util.promisify(execFile);
 const { PDFDocument } = require('pdf-lib');
 const bcrypt = require('bcryptjs');
-const pdfParse = require('pdf-parse');
+const { PDFParse } = require('pdf-parse');
 const mammoth = require('mammoth');
 const xlsx = require('xlsx');
 const pdf2pic = require('pdf2pic');
 const { safeDeleteFile, cleanupFiles } = require('../utils/fileCleanup');
 const logger = require('../utils/logger');
+
+// Create custom nanoid that only uses alphanumeric characters (no symbols)
+const generateCode = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 6);
+
+// Helper function to get the correct filename after conversion
+const getConvertedFileName = (originalName, conversionType) => {
+  if (!conversionType || conversionType === 'none') {
+    return originalName;
+  }
+  
+  // Extract the base name without extension
+  const baseName = path.parse(originalName).name;
+  const targetFormat = conversionType.split('->')[1];
+  
+  // Return new filename with correct extension
+  return `${baseName}.${targetFormat}`;
+};
 
 const allowedConversions = [
   'image->png', 'image->jpg', 'image->jpeg', 'image->webp', 'image->gif', 'image->bmp', 'image->avif', 'image->pdf',
@@ -42,6 +59,15 @@ const uploadAndConvertFile = async (req, res) => {
       return res.status(400).json({ message: 'File is required' });
     }
 
+    // Validate file size FIRST (10MB max for Cloudinary free tier)
+    const maxSize = 10 * 1024 * 1024; // 10MB limit due to Cloudinary free tier
+    if (file.size > maxSize) {
+      return res.status(400).json({ 
+        message: 'File size exceeds 10MB limit (Cloudinary free tier restriction)',
+        details: `File size: ${(file.size / 1024 / 1024).toFixed(2)}MB, Maximum allowed: 10MB`
+      });
+    }
+
     // Handle case where no conversion is needed
     if (!conversionType || conversionType === 'none') {
       logger.log('No conversion requested - uploading original file');
@@ -52,7 +78,8 @@ const uploadAndConvertFile = async (req, res) => {
           const stream = cloudinary.uploader.upload_stream(
             {
               folder: 'original_files',
-              resource_type: 'auto'
+              resource_type: 'auto',
+              timeout: 120000 // 2 minutes timeout for large files
             },
             (error, result) => {
               if (error) {
@@ -69,7 +96,7 @@ const uploadAndConvertFile = async (req, res) => {
       const uploadResult = await streamUpload(file.buffer);
       
       // Create DB entry
-      const code = nanoid(6).toUpperCase();
+      const code = generateCode();
       
       const hours = parseInt(reqExpiryHours, 10) || 1;
       const expiry = new Date(Date.now() + hours * 60 * 60 * 1000);
@@ -98,7 +125,7 @@ const uploadAndConvertFile = async (req, res) => {
       const fileDoc = await filemodel.create({
         code,
         fileUrl: uploadResult.secure_url,
-        originalFileName: file.originalname,
+        originalFileName: getConvertedFileName(file.originalname, 'none'),
         fileSize: file.size,
         conversionType: 'none',
         expiry,
@@ -123,12 +150,6 @@ const uploadAndConvertFile = async (req, res) => {
 
     if (!allowedConversions.includes(conversionType)) {
       return res.status(400).json({ message: 'Invalid conversion type' });
-    }
-
-    // Validate file size (50MB max)
-    const maxSize = 50 * 1024 * 1024;
-    if (file.size > maxSize) {
-      return res.status(400).json({ message: 'File size exceeds 50MB limit' });
     }
 
     const targetFormat = conversionType.split('->')[1];
@@ -300,7 +321,8 @@ except Exception as e:
           // Fallback: Extract text and create a simple text file
           try {
             const dataBuffer = fs.readFileSync(tempFilePath);
-            const data = await pdfParse(dataBuffer);
+            const parser = new PDFParse({ data: dataBuffer });
+            const data = await parser.getText();
             const textContent = data.text;
             
             // Create a simple text file instead of Word
@@ -321,13 +343,21 @@ except Exception as e:
         logger.log('Converting PDF to text...');
         try {
           const dataBuffer = fs.readFileSync(tempFilePath);
-          const data = await pdfParse(dataBuffer);
+          logger.log('PDF buffer size:', dataBuffer.length);
+          
+          const parser = new PDFParse({ data: dataBuffer });
+          logger.log('PDF parser created successfully');
+          
+          const data = await parser.getText();
+          logger.log('PDF text extracted, length:', data.text.length);
+          
           const textContent = data.text;
           
           fs.writeFileSync(convertedPath, textContent);
           logger.log('PDF to text conversion completed');
         } catch (textError) {
           logger.error('PDF to text conversion failed:', textError);
+          logger.error('Error stack:', textError.stack);
           throw new Error('PDF to text conversion failed');
         }
 
@@ -466,7 +496,8 @@ except Exception as e:
     // Upload to Cloudinary
     const uploadResult = await cloudinary.uploader.upload(convertedPath, {
       folder: 'converted_files',
-      resource_type: 'auto'
+      resource_type: 'auto',
+      timeout: 120000 // 2 minutes timeout for large files
     });
 
     logger.log('Cloudinary upload completed');
@@ -475,7 +506,7 @@ except Exception as e:
     await cleanupFiles([file.path, convertedPath]);
 
     // Create DB entry
-    const code = nanoid(6).toUpperCase();
+    const code = generateCode();
     
     // Calculate expiry (default 1 hour, max 7 days)
     const hours = parseInt(reqExpiryHours, 10) || 1;
@@ -506,7 +537,7 @@ except Exception as e:
     const fileDoc = await filemodel.create({
       code,
       fileUrl: uploadResult.secure_url,
-      originalFileName: file.originalname,
+      originalFileName: getConvertedFileName(file.originalname, conversionType),
       fileSize: file.size,
       conversionType,
       expiry,
@@ -574,7 +605,7 @@ const uploadBatchFiles = async (req, res) => {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       try {
-        const code = nanoid(6).toUpperCase();
+        const code = generateCode();
         const targetFormat = conversionType.split('->')[1];
         
         let tempFilePath = path.join(uploadsDir, 'temp-' + Date.now() + '-' + i + path.extname(file.originalname));
@@ -610,7 +641,7 @@ const uploadBatchFiles = async (req, res) => {
         await filemodel.create({
           code,
           fileUrl: uploadResult.secure_url,
-          originalFileName: file.originalname,
+          originalFileName: getConvertedFileName(file.originalname, conversionType),
           fileSize: file.size,
           conversionType,
           expiry,

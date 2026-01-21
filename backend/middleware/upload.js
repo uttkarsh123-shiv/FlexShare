@@ -16,9 +16,8 @@ const storage = diskStorage({
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB (Cloudinary free tier limit)
   fileFilter: (req, file, cb) => {
-    // Allow images, PDFs, Word documents, Excel, and PowerPoint
     const allowedMimes = [
       'image/jpeg',
       'image/jpg', 
@@ -33,7 +32,11 @@ const upload = multer({
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'application/vnd.ms-powerpoint',
       'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      'text/csv'
+      'text/csv',
+      'text/plain',
+      'text/txt',
+      'application/vnd.ms-word',
+      'application/octet-stream' // For files without proper MIME detection
     ];
     
     logger.log('File upload attempt:', {

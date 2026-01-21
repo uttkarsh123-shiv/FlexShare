@@ -80,6 +80,8 @@ const getFileByCode = async (req, res) => {
 const getFileInfo = async (req, res) => {
   try {
     const { code } = req.params;
+    const { markFirstView } = req.query;
+    const clientIp = req.ip || req.connection.remoteAddress;
     
     const fileDoc = await filemodel.findOne({ code: code.toUpperCase() });
 
@@ -92,20 +94,21 @@ const getFileInfo = async (req, res) => {
       return res.status(410).json({ message: 'File expired' });
     }
 
-    // If caller requests to mark the first (detailed) view (typically the uploader
-    // immediately after conversion), set `firstViewShown` to true so future visits
-    // render the compact/card UI. We return `allowDetailedView` to indicate whether
-    // this request should show the full detailed UI.
-    const mark = req.query.markFirstView === 'true';
+    // Handle first view marking for detailed view
     let allowDetailedView = false;
-
-    if (mark && !fileDoc.firstViewShown) {
+    if (markFirstView === 'true' && !fileDoc.firstViewShown) {
       fileDoc.firstViewShown = true;
+      fileDoc.firstViewIp = clientIp;
+      fileDoc.firstViewAt = new Date();
       await fileDoc.save();
+      allowDetailedView = true;
+    } else if (fileDoc.firstViewIp === clientIp) {
+      // Allow detailed view for the same IP that had the first view
       allowDetailedView = true;
     }
 
     res.json({
+      fileUrl: fileDoc.fileUrl,
       originalFileName: fileDoc.originalFileName,
       fileSize: fileDoc.fileSize,
       conversionType: fileDoc.conversionType,
@@ -115,11 +118,10 @@ const getFileInfo = async (req, res) => {
       downloadCount: fileDoc.downloadCount,
       maxDownloads: fileDoc.maxDownloads,
       createdAt: fileDoc.createdAt,
-      firstViewShown: fileDoc.firstViewShown,
       allowDetailedView: allowDetailedView
     });
   } catch (err) {
-    logger.error(err);
+    logger.error('Error in getFileInfo:', err);
     res.status(500).json({ message: 'Server error' });
   }
 };
