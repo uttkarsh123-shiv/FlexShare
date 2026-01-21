@@ -9,12 +9,17 @@ uploads/
 # Environment files
 .env
 .env.local
+.env.production
 .env.*.local
 
 # Build folders
 frontend/build/
 backend/dist/
 backend/build/
+
+Test_data
+COMPLETE_FEATURES_DOCUMENTATION.md
+FUNCTION_BREAKDOWN_GUIDE.md
 
 # IDE / system files
 .DS_Store
