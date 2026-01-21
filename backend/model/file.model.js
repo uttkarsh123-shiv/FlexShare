@@ -120,9 +120,9 @@ const fileModelProxy = {
         return await model.create(data);
     },
     
-    findOne: async (query) => {
+    findOne: (query) => {
         const model = getFileModel();
-        return await model.findOne(query);
+        return model.findOne(query);
     },
     
     updateOne: async (query, update) => {

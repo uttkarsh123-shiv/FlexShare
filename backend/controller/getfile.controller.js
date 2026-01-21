@@ -9,7 +9,19 @@ const getFileByCode = async (req, res) => {
     const clientIp = req.ip || req.connection.remoteAddress;
     const userAgent = req.get('user-agent') || 'Unknown';
 
-    const fileDoc = await filemodel.findOne({ code: code.toUpperCase() }).select('+password');
+    // Handle both Mongoose and memory storage
+    let fileDoc;
+    const model = filemodel;
+    
+    // Check if we're using Mongoose (has select method) or memory storage
+    const query = model.findOne({ code: code.toUpperCase() });
+    if (query && typeof query.select === 'function') {
+      // Mongoose query - can use select
+      fileDoc = await query.select('+password');
+    } else {
+      // Memory storage or direct promise - await directly
+      fileDoc = await query;
+    }
 
     if (!fileDoc) {
       return res.status(404).json({ message: 'File not found' });

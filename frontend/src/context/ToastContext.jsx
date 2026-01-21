@@ -15,7 +15,18 @@ export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
 
   const showToast = (message, type = 'success', duration = 3000) => {
-    const id = Date.now();
+    // Generate unique ID with random component to prevent duplicates
+    const id = Date.now() + Math.random();
+    
+    // Check for duplicate messages and prevent stacking
+    const isDuplicate = toasts.some(toast => 
+      toast.message === message && toast.type === type
+    );
+    
+    if (isDuplicate) {
+      return; // Don't add duplicate toast
+    }
+    
     setToasts((prev) => [...prev, { id, message, type, duration }]);
     return id;
   };

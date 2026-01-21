@@ -28,6 +28,10 @@ Test_data
 COMPLETE_FEATURES_DOCUMENTATION.md
 FUNCTION_BREAKDOWN_GUIDE.md
 
+# Documentation files (except README)
+*.md
+!README.md
+
 # IDE / system files
 .DS_Store
 *.log
@@ -37,3 +41,4 @@ FUNCTION_BREAKDOWN_GUIDE.md
 .test-advanced-settings.html
 .test-upload-design.html
 .test-upload.html
+.test-pdf-quick.js

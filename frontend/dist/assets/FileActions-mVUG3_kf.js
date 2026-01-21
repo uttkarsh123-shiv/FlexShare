@@ -1,0 +1,1 @@
+import{j as s,D as l}from"./index-C96Ur8Nk.js";const n=({onDownload:o,isDownloading:a=!1})=>s.jsx("div",{className:"file-actions",children:s.jsxs("button",{onClick:o,disabled:a,className:"download-button",children:[s.jsx(l,{className:"w-4 h-4"}),a?"Downloading...":"Download File"]})});export{n as default};

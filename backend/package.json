@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "NODE_ENV=development nodemon index.js",
-    "start": "NODE_ENV=production node index.js",
-    "start:dev": "NODE_ENV=development node index.js",
-    "start:prod": "NODE_ENV=production node index.js",
+    "dev": "set NODE_ENV=development && nodemon index.js",
+    "start": "set NODE_ENV=production && node index.js",
+    "start:dev": "set NODE_ENV=development && node index.js",
+    "start:prod": "set NODE_ENV=production && node index.js",
     "test": "node test-conversions.js",
     "build": "echo 'No build step required'",
     "postinstall": "echo 'Installation completed'"
