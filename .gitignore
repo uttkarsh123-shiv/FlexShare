@@ -9,8 +9,15 @@ uploads/
 # Environment files
 .env
 .env.local
+.env.development
 .env.production
 .env.*.local
+backend/.env
+backend/.env.development
+backend/.env.production
+frontend/.env
+frontend/.env.development
+frontend/.env.production
 
 # Build folders
 frontend/build/
