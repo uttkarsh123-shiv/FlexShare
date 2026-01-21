@@ -5,11 +5,18 @@ import { Download, Copy, Check, Share2, ArrowLeft, FileText, Image as ImageIcon,
 import { QRCodeSVG } from "qrcode.react";
 import { useToast } from "../context/ToastContext";
 
-const API_URL = import.meta.env.VITE_API_URL || "https://flexshare-backend.onrender.com";
+const getApiUrl = () => {
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:3000';
+  }
+  return 'https://flexshare-backend.onrender.com';
+};
+
+const API_URL = import.meta.env.VITE_API_URL || getApiUrl();
 
 export default function FilePage() {
   const { code } = useParams();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
   const { showToast } = useToast();
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -24,6 +31,13 @@ export default function FilePage() {
   // Check if user is the sender (came from upload) or receiver (direct link)
   const [isSender, setIsSender] = useState(false);
   const [allowDetailedView, setAllowDetailedView] = useState(false);
+  
+  // Rate limiting for API calls
+  const [lastApiCall, setLastApiCall] = useState(0);
+  const [apiCallCount, setApiCallCount] = useState(0);
+  const [manageButtonDisabled, setManageButtonDisabled] = useState(false);
+  const API_RATE_LIMIT = 2; // Max 2 calls per minute
+  const RATE_LIMIT_WINDOW = 60000; // 1 minute in milliseconds
 
   useEffect(() => {
     // Check if user came from upload (has uploadSuccess in sessionStorage)
@@ -39,6 +53,21 @@ export default function FilePage() {
   }, [code]);
 
   const fetchFileInfo = async (markFirstView = false) => {
+    // Rate limiting check
+    const now = Date.now();
+    
+    // Reset counter if window has passed
+    if (now - lastApiCall > RATE_LIMIT_WINDOW) {
+      setApiCallCount(0);
+    }
+    
+    // Check if rate limit exceeded
+    if (apiCallCount >= API_RATE_LIMIT && now - lastApiCall <= RATE_LIMIT_WINDOW) {
+      const timeRemaining = Math.ceil((RATE_LIMIT_WINDOW - (now - lastApiCall)) / 1000);
+      showToast(`Rate limit exceeded. Please wait ${timeRemaining} seconds before trying again.`, "warning");
+      return;
+    }
+    
     try {
       setLoading(true);
       const url = `${API_URL}/api/file/${code}/info${markFirstView ? '?markFirstView=true' : ''}`;
@@ -47,7 +76,20 @@ export default function FilePage() {
       setAllowDetailedView(!!res.data.allowDetailedView);
       setError(null);
       setRequiresPassword(false);
+      
+      // Update rate limiting counters
+      setLastApiCall(now);
+      setApiCallCount(prev => prev + 1);
+      
     } catch (err) {
+      // Handle server-side rate limiting
+      if (err.response?.status === 429) {
+        const retryAfter = err.response.data?.retryAfter || 60;
+        showToast(`Server rate limit exceeded. Please wait ${retryAfter} seconds before trying again.`, "error");
+        setError("Rate limit exceeded");
+        return;
+      }
+      
       if (err.response?.status === 404) {
         setError("File not found");
       } else if (err.response?.status === 410) {
@@ -61,6 +103,21 @@ export default function FilePage() {
   };
 
   const fetchFileWithPassword = async () => {
+    // Rate limiting check
+    const now = Date.now();
+    
+    // Reset counter if window has passed
+    if (now - lastApiCall > RATE_LIMIT_WINDOW) {
+      setApiCallCount(0);
+    }
+    
+    // Check if rate limit exceeded
+    if (apiCallCount >= API_RATE_LIMIT && now - lastApiCall <= RATE_LIMIT_WINDOW) {
+      const timeRemaining = Math.ceil((RATE_LIMIT_WINDOW - (now - lastApiCall)) / 1000);
+      showToast(`Rate limit exceeded. Please wait ${timeRemaining} seconds before trying again.`, "warning");
+      return;
+    }
+    
     try {
       setLoading(true);
       const res = await axios.post(`${API_URL}/api/file/${code}`, {
@@ -69,7 +126,19 @@ export default function FilePage() {
       setFile(res.data);
       setError(null);
       setRequiresPassword(false);
+      
+      // Update rate limiting counters
+      setLastApiCall(now);
+      setApiCallCount(prev => prev + 1);
+      
     } catch (err) {
+      // Handle server-side rate limiting
+      if (err.response?.status === 429) {
+        const retryAfter = err.response.data?.retryAfter || 60;
+        showToast(`Server rate limit exceeded. Please wait ${retryAfter} seconds before trying again.`, "error");
+        return;
+      }
+      
       if (err.response?.status === 401) {
         if (err.response.data.requiresPassword) {
           setRequiresPassword(true);
@@ -94,22 +163,43 @@ export default function FilePage() {
 
   useEffect(() => {
     if (code) {
-      // If this visit is immediately after an upload (sender), ask server to
-      // mark and allow the one-time detailed view. For all other visitors, do
-      // not request marking and they will see the compact/card view.
+      // Always show compact card view by default (old UI)
+      // Only show detailed view if explicitly requested
+      const forceDetailed = new URLSearchParams(window.location.search).get('detailed') === 'true';
       const uploadSuccess = sessionStorage.getItem('uploadSuccess');
       const uploadCode = sessionStorage.getItem('uploadCode');
-      const mark = uploadSuccess && uploadCode === code;
-      fetchFileInfo(mark);
+      
+      // Only mark as first view (detailed) if explicitly requested or uploader's first visit
+      const mark = forceDetailed || (uploadSuccess && uploadCode === code);
+      
+      // Add a small delay to prevent rapid successive calls
+      const timeoutId = setTimeout(() => {
+        fetchFileInfo(mark);
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
     }
   }, [code]);
 
-  const handlePasswordSubmit = (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-    if (password.trim()) {
-      fetchFileWithPassword();
-    } else {
+    if (!password.trim()) {
       showToast("Please enter a password", "warning");
+      return;
+    }
+
+    // Check if this is for download or initial file access
+    if (file && file.fileUrl) {
+      // File info already loaded, this is for download
+      await performDownload(password.trim());
+      if (!isDownloading) {
+        // Download was successful, close password modal
+        setRequiresPassword(false);
+        setPassword("");
+      }
+    } else {
+      // Initial file access
+      fetchFileWithPassword();
     }
   };
 
@@ -143,45 +233,64 @@ export default function FilePage() {
   };
 
   const handleDownload = async () => {
-    if (!file) return;
-
-    setIsDownloading(true);
-    showToast('Preparing download...', 'info');
-
-    // Prefer using the available file URL returned by the info endpoint.
-    // Avoid calling the POST endpoint which may cause server errors; this
-    // keeps logic changes limited to the frontend download flow only.
-    const downloadUrl = file.fileUrl;
-
-    if (!downloadUrl) {
-      showToast('No download URL available', 'error');
-      setIsDownloading(false);
+    if (!file) {
+      showToast('No file information available', 'error');
       return;
     }
 
+    // If file has password protection, show password modal first
+    if (file.hasPassword) {
+      setRequiresPassword(true);
+      return;
+    }
+
+    // For non-password protected files, proceed with download
+    await performDownload();
+  };
+
+  const performDownload = async (downloadPassword = null) => {
+    setIsDownloading(true);
+    showToast('Preparing download...', 'info');
+
     try {
-      // Attempt blob download first (better UX). If CORS prevents it or
-      // the file is large, fall back to opening in a new tab.
-      const resp = await fetch(downloadUrl, { mode: 'cors' });
-      if (!resp.ok) throw new Error('Network response not ok');
-      const blob = await resp.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file.originalFileName || downloadUrl.split('/').pop().split('?')[0];
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      showToast('Download completed!', 'success');
+      // Make request to backend to get authenticated download URL
+      const requestBody = downloadPassword ? { password: downloadPassword } : {};
+      
+      const response = await axios.post(`${API_URL}/api/file/${code}`, requestBody);
+      
+      if (response.data && response.data.fileUrl) {
+        // Create a temporary link to trigger download
+        const link = document.createElement('a');
+        link.href = response.data.fileUrl;
+        link.download = response.data.originalFileName || 'download';
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        
+        // Add to DOM, click, and remove
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast('Download started!', 'success');
+        
+        // Update download count in UI
+        setFile(prev => ({
+          ...prev,
+          downloadCount: response.data.downloadCount
+        }));
+      } else {
+        throw new Error('No download URL received');
+      }
     } catch (err) {
-      // Fallback: open the file URL in a new tab so browser handles download
-      console.warn('Blob download failed, falling back to opening URL', err);
-      try {
-        window.open(downloadUrl, '_blank', 'noopener');
-        showToast('Opened file in new tab. Use browser Save to download.', 'info');
-      } catch (e) {
-        showToast('Unable to open file for download', 'error');
+      if (err.response?.status === 401) {
+        showToast('Invalid password', 'error');
+        return; // Keep password modal open
+      } else if (err.response?.status === 403) {
+        showToast('Download limit reached', 'error');
+      } else if (err.response?.status === 410) {
+        showToast('File has expired', 'error');
+      } else {
+        showToast('Download failed. Please try again.', 'error');
       }
     } finally {
       setIsDownloading(false);
@@ -219,6 +328,52 @@ export default function FilePage() {
     });
   };
 
+  const handleManageFileSettings = () => {
+    // Check rate limiting
+    const now = Date.now();
+    
+    // Reset counter if window has passed
+    if (now - lastApiCall > RATE_LIMIT_WINDOW) {
+      setApiCallCount(0);
+    }
+    
+    // Check if rate limit exceeded
+    if (apiCallCount >= API_RATE_LIMIT && now - lastApiCall <= RATE_LIMIT_WINDOW) {
+      const timeRemaining = Math.ceil((RATE_LIMIT_WINDOW - (now - lastApiCall)) / 1000);
+      showToast(`Rate limit exceeded. Please wait ${timeRemaining} seconds before trying again.`, "warning");
+      return;
+    }
+    
+    // Disable button temporarily to prevent rapid clicks
+    setManageButtonDisabled(true);
+    
+    // Update rate limiting counters
+    setLastApiCall(now);
+    setApiCallCount(prev => prev + 1);
+    
+    // Show the message
+    showToast("File management features coming soon!", "info");
+    
+    // Re-enable button after 2 seconds
+    setTimeout(() => {
+      setManageButtonDisabled(false);
+    }, 2000);
+  };
+
+  const getRateLimitStatus = () => {
+    const now = Date.now();
+    const timeSinceLastCall = now - lastApiCall;
+    
+    if (timeSinceLastCall > RATE_LIMIT_WINDOW) {
+      return { remaining: API_RATE_LIMIT, resetTime: 0 };
+    }
+    
+    const remaining = Math.max(0, API_RATE_LIMIT - apiCallCount);
+    const resetTime = Math.ceil((RATE_LIMIT_WINDOW - timeSinceLastCall) / 1000);
+    
+    return { remaining, resetTime };
+  };
+
   const getTimeRemaining = (expiryDate) => {
     if (!expiryDate) return "Unknown";
     const now = new Date();
@@ -248,51 +403,104 @@ export default function FilePage() {
   }
 
   if (requiresPassword) {
+    const isForDownload = file && file.fileUrl; // If we have file info, this is for download
+    
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0c0a09] via-[#171717] to-[#0c0a09] flex items-center justify-center px-4">
-        <div className="bg-[#171717] rounded-xl p-8 border border-[#383838] shadow-xl w-full max-w-md">
-          <div className="text-center mb-6">
-            <Shield className="w-16 h-16 text-orange-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-white mb-2">Password Protected</h2>
-            <p className="text-gray-400">This file requires a password to access</p>
-          </div>
-          
-          <form onSubmit={handlePasswordSubmit} className="space-y-4">
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
-                className="w-full p-4 pr-12 rounded-lg bg-[#1a1a1a] border border-[#383838] focus:outline-none focus:border-orange-600 transition text-white placeholder-gray-500"
-                autoFocus
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition"
-              >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
+      <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center px-4 z-50 animate-in fade-in duration-300">
+        <div className="relative bg-gray-900/95 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl w-full max-w-lg transform animate-in zoom-in-95 duration-300">
+          {/* Content */}
+          <div className="text-center">
+            {/* Header */}
+            <h2 className="text-4xl font-bold text-white mb-4">
+              {isForDownload ? "Enter Password" : "Enter File Code"}
+            </h2>
             
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                disabled={!password.trim() || loading}
-                className="flex-1 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition"
-              >
-                {loading ? "Verifying..." : "Access File"}
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate("/")}
-                className="px-6 py-3 rounded-lg border border-[#383838] hover:border-orange-600 text-gray-400 hover:text-orange-400 transition"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+            <p className="text-gray-400 text-lg mb-8">
+              {isForDownload 
+                ? "Enter the password to download this file" 
+                : "Enter the 6-character code to access your file"
+              }
+            </p>
+            
+            {/* Password Input Boxes */}
+            <form onSubmit={handlePasswordSubmit} className="space-y-8">
+              <div className="flex justify-center gap-3">
+                {[0, 1, 2, 3, 4, 5].map((index) => (
+                  <input
+                    key={index}
+                    type={showPassword ? "text" : "password"}
+                    maxLength="1"
+                    value={password[index] || ''}
+                    onChange={(e) => {
+                      const newPassword = password.split('');
+                      newPassword[index] = e.target.value.toUpperCase();
+                      const updatedPassword = newPassword.join('');
+                      setPassword(updatedPassword);
+                      
+                      // Auto-focus next input
+                      if (e.target.value && index < 5) {
+                        const nextInput = e.target.parentElement.children[index + 1];
+                        if (nextInput) nextInput.focus();
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      // Handle backspace to go to previous input
+                      if (e.key === 'Backspace' && !password[index] && index > 0) {
+                        const prevInput = e.target.parentElement.children[index - 1];
+                        if (prevInput) prevInput.focus();
+                      }
+                    }}
+                    className="w-16 h-16 text-center text-2xl font-bold bg-gray-800/50 border border-gray-600 rounded-2xl text-white focus:border-blue-500 focus:bg-gray-700/50 transition-all duration-200 focus:outline-none"
+                    autoFocus={index === 0}
+                  />
+                ))}
+              </div>
+              
+              {/* Show/Hide Password Toggle */}
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-200 text-sm"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? "Hide" : "Show"} characters
+                </button>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-4">
+                <button
+                  type="submit"
+                  disabled={password.length < 6 || loading || isDownloading}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 transform hover:scale-105 disabled:hover:scale-100"
+                >
+                  {loading || isDownloading ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Processing...
+                    </div>
+                  ) : (
+                    isForDownload ? "Download File" : "Access File"
+                  )}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRequiresPassword(false);
+                    setPassword("");
+                    if (!isForDownload) {
+                      navigate("/");
+                    }
+                  }}
+                  className="px-8 py-4 rounded-2xl border border-gray-600 hover:border-gray-500 hover:bg-gray-800/50 text-gray-300 hover:text-white font-semibold text-lg transition-all duration-300"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     );
@@ -332,9 +540,11 @@ export default function FilePage() {
     maxDownloads = null, 
     createdAt = null 
   } = file || {};
+  
   const showDetailed = allowDetailedView === true; // server explicitly allowed this request
-  // For safety, if sender flagged in-session, prefer detailed view on first load
-  const renderDetailed = isSender ? true : showDetailed;
+  // Default to compact view (old UI), only show detailed if explicitly allowed
+  const renderDetailed = showDetailed;
+  
   const filename = file.originalFileName || fileUrl?.split("/").pop().split("?")[0] || "Unknown file";
   const shareUrl = window.location.href;
   const isImage = fileUrl?.match(/\.(jpg|jpeg|png|gif|webp|bmp|avif)$/i) || conversionType?.startsWith("image->");
@@ -380,7 +590,14 @@ export default function FilePage() {
               
               {/* File type badge */}
               <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium text-white border border-white/10">
-                {conversionType?.split("->")[1]?.toUpperCase() || "FILE"}
+                {(() => {
+                  if (conversionType && conversionType.includes('->')) {
+                    return conversionType.split('->')[1]?.toUpperCase() || 'FILE';
+                  }
+                  // Fallback: detect from filename
+                  const ext = filename.split('.').pop()?.toUpperCase();
+                  return ext || 'FILE';
+                })()}
               </div>
             </div>
 
@@ -445,6 +662,24 @@ export default function FilePage() {
                   {isDownloading ? "Downloading..." : "Download File"}
                 </button>
                 <button
+                  onClick={() => {
+                    // Check rate limiting before navigating
+                    const now = Date.now();
+                    if (apiCallCount >= API_RATE_LIMIT && now - lastApiCall <= RATE_LIMIT_WINDOW) {
+                      const timeRemaining = Math.ceil((RATE_LIMIT_WINDOW - (now - lastApiCall)) / 1000);
+                      showToast(`Rate limit exceeded. Please wait ${timeRemaining} seconds before trying again.`, "warning");
+                      return;
+                    }
+                    
+                    const currentUrl = new URL(window.location);
+                    currentUrl.searchParams.set('detailed', 'true');
+                    window.location.href = currentUrl.toString();
+                  }}
+                  className="px-8 py-4 rounded-xl border-2 border-[#383838] hover:border-orange-600 text-gray-300 hover:text-orange-400 font-semibold transition-all hover:scale-105 bg-[#0c0a09]/30"
+                >
+                  View Details
+                </button>
+                <button
                   onClick={() => navigate('/')}
                   className="px-8 py-4 rounded-xl border-2 border-[#383838] hover:border-orange-600 text-gray-300 hover:text-orange-400 font-semibold transition-all hover:scale-105 bg-[#0c0a09]/30"
                 >
@@ -469,20 +704,6 @@ export default function FilePage() {
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-
-          {/* Additional Info Card */}
-          <div className="mt-6 bg-[#171717]/60 backdrop-blur-xl rounded-2xl border border-[#383838]/50 p-6">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Shield className="w-5 h-5 text-orange-500" />
-              About FlexShare
-            </h3>
-            <div className="space-y-2 text-sm text-gray-400">
-              <p>• Files are automatically deleted after expiry</p>
-              <p>• Your download is secure and private</p>
-              <p>• No registration required</p>
-              <p>• Free file conversion and sharing</p>
             </div>
           </div>
         </div>
@@ -542,7 +763,14 @@ export default function FilePage() {
               
               {/* File type badge */}
               <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-white">
-                {conversionType?.split("->")[1]?.toUpperCase() || "FILE"}
+                {(() => {
+                  if (conversionType && conversionType.includes('->')) {
+                    return conversionType.split('->')[1]?.toUpperCase() || 'FILE';
+                  }
+                  // Fallback: detect from filename
+                  const ext = filename.split('.').pop()?.toUpperCase();
+                  return ext || 'FILE';
+                })()}
               </div>
             </div>
 
@@ -728,11 +956,33 @@ export default function FilePage() {
               {isSender && (
                 <div className="mt-4 pt-4 border-t border-[#383838]">
                   <button
-                    onClick={() => showToast("File management features coming soon!", "info")}
-                    className="w-full px-4 py-2 bg-[#383838] hover:bg-[#484848] rounded-lg transition text-sm"
+                    onClick={handleManageFileSettings}
+                    disabled={manageButtonDisabled}
+                    className="w-full px-4 py-2 bg-[#383838] hover:bg-[#484848] disabled:bg-gray-700 disabled:cursor-not-allowed rounded-lg transition text-sm"
                   >
-                    Manage File Settings
+                    {manageButtonDisabled ? "Please wait..." : "Manage File Settings"}
                   </button>
+                  
+                  {/* Rate limit indicator */}
+                  {(() => {
+                    const { remaining, resetTime } = getRateLimitStatus();
+                    if (remaining < API_RATE_LIMIT || resetTime > 0) {
+                      return (
+                        <div className="mt-2 text-xs text-gray-500 text-center">
+                          {remaining === 0 ? (
+                            <span className="text-orange-400">
+                              Rate limit reached. Reset in {resetTime}s
+                            </span>
+                          ) : (
+                            <span>
+                              {remaining}/{API_RATE_LIMIT} requests remaining
+                            </span>
+                          )}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               )}
             </div>

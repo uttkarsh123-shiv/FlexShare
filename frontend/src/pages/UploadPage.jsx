@@ -7,7 +7,17 @@ import { useToast } from "../context/ToastContext";
 import ThemeToggle from "../component/ThemeToggle";
 import "../styles/upload-page.css";
 
-const API_URL = import.meta.env.VITE_API_URL || "https://flexshare-backend.onrender.com";
+// Auto-detect environment and set API URL accordingly
+const getApiUrl = () => {
+  // If we're in development (localhost), use local backend
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:3000';
+  }
+  // If we're in production (deployed), use production backend
+  return 'https://flexshare-backend.onrender.com';
+};
+
+const API_URL = import.meta.env.VITE_API_URL || getApiUrl();
 
 export default function UploadPage() {
   const [file, setFile] = useState(null);
@@ -30,10 +40,10 @@ export default function UploadPage() {
     
     if (!selectedFile) return;
 
-    // File size validation (50MB max)
-    const maxSize = 50 * 1024 * 1024; // 50MB
+    // File size validation (10MB max - Cloudinary free tier limit)
+    const maxSize = 10 * 1024 * 1024; // 10MB
     if (selectedFile.size > maxSize) {
-      showToast("File size exceeds 50MB limit", "error");
+      showToast("File size exceeds 10MB limit (Cloudinary free tier restriction)", "error");
       return;
     }
 
@@ -170,6 +180,7 @@ export default function UploadPage() {
       });
 
       setCode(res.data.code);
+      setShowDropdown(false); // Close dropdown when upload is successful
       showToast(res.data.message || "File uploaded successfully!", "success");
       
       // Mark user as sender for the FilePage
@@ -569,34 +580,90 @@ export default function UploadPage() {
               </div>
             )}
 
-            {/* Success Message */}
+            {/* Success Message Modal */}
             {code && (
               <div className="upload-success">
-                <CheckCircle2 className="upload-success-icon" />
-                <div className="upload-success-content">
-                  <p>🎉 File Upload Complete!</p>
-                  <p>
-                    Your file code is: <span>{code}</span>
-                  </p>
-                  <p>
-                    Share this code or use the link below to access your file.
-                  </p>
-                  <div className="upload-success-actions">
-                    <button
-                      onClick={() => navigate(`/file/${code}`)}
-                      className="upload-success-view-btn"
-                    >
-                      View File
-                    </button>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(`${window.location.origin}/file/${code}`);
-                        showToast("Link copied to clipboard!", "success");
-                      }}
-                      className="upload-success-copy-btn"
-                    >
-                      Copy Link
-                    </button>
+                <div className="upload-success-modal">
+                  <button
+                    onClick={() => {
+                      setCode("");
+                      setStep(1);
+                      setFile(null);
+                      setConversionType("");
+                      setDescription("");
+                      setPassword("");
+                      setExpiryHours(1);
+                      setMaxDownloads("");
+                    }}
+                    style={{
+                      position: 'absolute',
+                      top: '15px',
+                      right: '15px',
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '30px',
+                      height: '30px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      color: '#9ca3af',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = 'rgba(239, 68, 68, 0.2)';
+                      e.target.style.color = '#ef4444';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+                      e.target.style.color = '#9ca3af';
+                    }}
+                  >
+                    <X size={16} />
+                  </button>
+                  <CheckCircle2 className="upload-success-icon" />
+                  <div className="upload-success-content">
+                    <p>🎉 File Upload Complete!</p>
+                    <p>
+                      Your file code is: <span>{code}</span>
+                    </p>
+                    <p>
+                      Share this code or use the link below to access your file.
+                    </p>
+                    <div className="upload-success-actions">
+                      <button
+                        onClick={() => navigate(`/file/${code}`)}
+                        className="upload-success-view-btn"
+                      >
+                        View File
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/file/${code}`);
+                          showToast("Link copied to clipboard!", "success");
+                        }}
+                        className="upload-success-copy-btn"
+                      >
+                        Copy Link
+                      </button>
+                      <button
+                        onClick={() => {
+                          setCode("");
+                          setStep(1);
+                          setFile(null);
+                          setConversionType("");
+                          setDescription("");
+                          setPassword("");
+                          setExpiryHours(1);
+                          setMaxDownloads("");
+                        }}
+                        className="upload-success-copy-btn"
+                        style={{ marginLeft: '10px' }}
+                      >
+                        Upload Another
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
