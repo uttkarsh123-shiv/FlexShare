@@ -9,12 +9,22 @@ const getFileByCode = async (req, res) => {
     const clientIp = req.ip || req.connection.remoteAddress;
     const userAgent = req.get('user-agent') || 'Unknown';
 
+    logger.log(`File access attempt: ${code}, IP: ${clientIp}, HasPassword: ${!!password}`);
+
+    // Handle codes with dashes - remove dashes and validate
+    const cleanCode = code.replace(/-/g, '').toUpperCase();
+    
+    // Validate code format
+    if (!cleanCode || cleanCode.length !== 6) {
+      return res.status(400).json({ message: 'Invalid file code format' });
+    }
+
     // Handle both Mongoose and memory storage
     let fileDoc;
     const model = filemodel;
     
     // Check if we're using Mongoose (has select method) or memory storage
-    const query = model.findOne({ code: code.toUpperCase() });
+    const query = model.findOne({ code: cleanCode });
     if (query && typeof query.select === 'function') {
       // Mongoose query - can use select
       fileDoc = await query.select('+password');
@@ -24,51 +34,77 @@ const getFileByCode = async (req, res) => {
     }
 
     if (!fileDoc) {
-      return res.status(404).json({ message: 'File not found' });
+      logger.log(`File not found: ${cleanCode} (original: ${code})`);
+      return res.status(404).json({ message: 'File not found or has been removed' });
     }
 
     // Check expiry
     if (new Date() > fileDoc.expiry) {
-      return res.status(410).json({ message: 'File expired' });
+      logger.log(`File expired: ${cleanCode} (original: ${code}), expired at: ${fileDoc.expiry}`);
+      return res.status(410).json({ message: 'File has expired' });
     }
 
     // Check password if required
     if (fileDoc.hasPassword) {
       if (!password) {
+        logger.log(`Password required for file: ${cleanCode} (original: ${code})`);
         return res.status(401).json({ 
-          message: 'Password required',
+          message: 'Password required to access this file',
           requiresPassword: true 
         });
       }
       
-      const isValidPassword = await bcrypt.compare(password, fileDoc.password);
-      if (!isValidPassword) {
-        return res.status(401).json({ 
-          message: 'Invalid password',
-          requiresPassword: true 
-        });
+      try {
+        const isValidPassword = await bcrypt.compare(password, fileDoc.password);
+        if (!isValidPassword) {
+          logger.log(`Invalid password attempt for file: ${cleanCode} (original: ${code})`);
+          return res.status(401).json({ 
+            message: 'Invalid password',
+            requiresPassword: true 
+          });
+        }
+      } catch (bcryptError) {
+        logger.error('Password comparison error:', bcryptError);
+        return res.status(500).json({ message: 'Authentication error' });
       }
     }
 
     // Check download limit
     if (fileDoc.maxDownloads && fileDoc.downloadCount >= fileDoc.maxDownloads) {
+      logger.log(`Download limit reached for file: ${cleanCode} (original: ${code}), count: ${fileDoc.downloadCount}, max: ${fileDoc.maxDownloads}`);
       return res.status(403).json({ 
-        message: 'Maximum download limit reached',
+        message: 'Maximum download limit reached for this file',
         maxDownloads: fileDoc.maxDownloads,
         currentDownloads: fileDoc.downloadCount
       });
     }
 
+    // Validate file URL
+    if (!fileDoc.fileUrl) {
+      logger.error(`File URL missing for code: ${cleanCode} (original: ${code})`);
+      return res.status(500).json({ message: 'File URL not available' });
+    }
+
     // Log access
-    fileDoc.accessLogs.push({
-      ip: clientIp,
-      userAgent: userAgent,
-      accessedAt: new Date()
-    });
+    if (fileDoc.accessLogs) {
+      fileDoc.accessLogs.push({
+        ip: clientIp,
+        userAgent: userAgent,
+        accessedAt: new Date()
+      });
+    }
 
     // Increment download count
-    fileDoc.downloadCount += 1;
-    await fileDoc.save();
+    fileDoc.downloadCount = (fileDoc.downloadCount || 0) + 1;
+    
+    try {
+      await fileDoc.save();
+    } catch (saveError) {
+      logger.error('Error saving download count:', saveError);
+      // Continue with response even if save fails
+    }
+
+    logger.log(`File access successful: ${cleanCode} (original: ${code}), new download count: ${fileDoc.downloadCount}`);
 
     res.json({
       fileUrl: fileDoc.fileUrl,
@@ -83,8 +119,8 @@ const getFileByCode = async (req, res) => {
       firstViewShown: fileDoc.firstViewShown
     });
   } catch (err) {
-    logger.error(err);
-    res.status(500).json({ message: 'Server error' });
+    logger.error('getFileByCode error:', err);
+    res.status(500).json({ message: 'Server error while accessing file' });
   }
 };
 
@@ -95,30 +131,64 @@ const getFileInfo = async (req, res) => {
     const { markFirstView } = req.query;
     const clientIp = req.ip || req.connection.remoteAddress;
     
-    const fileDoc = await filemodel.findOne({ code: code.toUpperCase() });
+    logger.log(`File info request: ${code}, IP: ${clientIp}, markFirstView: ${markFirstView}`);
+
+    // Handle codes with dashes - remove dashes and validate
+    const cleanCode = code.replace(/-/g, '').toUpperCase();
+    
+    // Validate code format
+    if (!cleanCode || cleanCode.length !== 6) {
+      return res.status(400).json({ message: 'Invalid file code format' });
+    }
+    
+    // Use lean query for better performance (returns plain JS object)
+    const model = filemodel;
+    let fileDoc;
+    
+    const query = model.findOne({ code: cleanCode });
+    if (query && typeof query.lean === 'function') {
+      // Mongoose query - use lean for better performance
+      fileDoc = await query.lean();
+    } else {
+      // Memory storage - await directly
+      fileDoc = await query;
+    }
 
     if (!fileDoc) {
-      return res.status(404).json({ message: 'File not found' });
+      logger.log(`File not found for info request: ${cleanCode} (original: ${code})`);
+      return res.status(404).json({ message: 'File not found or has been removed' });
     }
 
     // Check expiry
     if (new Date() > fileDoc.expiry) {
-      return res.status(410).json({ message: 'File expired' });
+      logger.log(`File expired for info request: ${cleanCode} (original: ${code}), expired at: ${fileDoc.expiry}`);
+      return res.status(410).json({ message: 'File has expired' });
     }
 
     // Handle first view marking for detailed view
     let allowDetailedView = false;
     if (markFirstView === 'true' && !fileDoc.firstViewShown) {
-      fileDoc.firstViewShown = true;
-      fileDoc.firstViewIp = clientIp;
-      fileDoc.firstViewAt = new Date();
-      await fileDoc.save();
-      allowDetailedView = true;
+      // Need to update document, so fetch full document
+      try {
+        const fullDoc = await model.findOne({ code: cleanCode });
+        if (fullDoc && !fullDoc.firstViewShown) {
+          fullDoc.firstViewShown = true;
+          fullDoc.firstViewIp = clientIp;
+          fullDoc.firstViewAt = new Date();
+          await fullDoc.save();
+          allowDetailedView = true;
+          logger.log(`First view marked for file: ${cleanCode} (original: ${code})`);
+        }
+      } catch (updateError) {
+        logger.error('Error updating first view:', updateError);
+        // Continue without marking first view
+      }
     } else if (fileDoc.firstViewIp === clientIp) {
       // Allow detailed view for the same IP that had the first view
       allowDetailedView = true;
     }
 
+    // Return only necessary fields for better performance
     res.json({
       fileUrl: fileDoc.fileUrl,
       originalFileName: fileDoc.originalFileName,
@@ -127,14 +197,14 @@ const getFileInfo = async (req, res) => {
       expiry: fileDoc.expiry,
       description: fileDoc.description,
       hasPassword: fileDoc.hasPassword,
-      downloadCount: fileDoc.downloadCount,
+      downloadCount: fileDoc.downloadCount || 0,
       maxDownloads: fileDoc.maxDownloads,
       createdAt: fileDoc.createdAt,
       allowDetailedView: allowDetailedView
     });
   } catch (err) {
     logger.error('Error in getFileInfo:', err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error while fetching file information' });
   }
 };
 

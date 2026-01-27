@@ -1,28 +1,17 @@
-/* FlexShare Upload Page - Modern Design (Matching Hero) - Updated v2.0 */
-
-/* IMPORTANT: Clear browser cache (Ctrl+F5) if changes don't appear */
-/* Last updated: 2026-01-12 - Modern glassmorphism design */
-
-/* Reset and Base Styles */
 * {
   box-sizing: border-box;
 }
 
-/* Main Container - UPDATED DESIGN */
 .upload-page {
   min-height: 100vh;
-  /* Background handled by global theme */
   color: #e5e7eb !important;
   padding: 40px 20px !important;
   display: flex !important;
   justify-content: center !important;
   position: relative !important;
-  /* Force modern design */
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
   overflow: hidden;
 }
-
-/* Animated Background Elements handled by global theme */
 
 .upload-container {
   max-width: 800px;
@@ -178,11 +167,9 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  background: rgba(255, 255, 255, 0.08);
   padding: 25px;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
@@ -381,22 +368,17 @@
   width: 100%;
   padding: 14px 16px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: white;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: white !important;
   transition: all 0.3s ease;
   font-size: 14px;
 }
 
-.description-input:focus,
-.password-input:focus,
-.expiry-select:focus,
-.download-limit-input:focus,
-.conversion-dropdown-btn:focus {
-  outline: none;
-  border-color: #ea580c;
-  background: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+.expiry-select option {
+  background: #1a1a1a !important;
+  color: white !important;
+  padding: 10px;
 }
 
 .description-input::placeholder,
@@ -550,15 +532,11 @@
 }
 
 .conversion-dropdown-menu {
-  position: absolute;
-  z-index: 20;
+  position: absolute !important;
+  z-index: 9999 !important;
   margin-top: 8px;
   width: 100%;
   border-radius: 12px;
-  background: rgba(26, 26, 26, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(20px);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
   overflow: hidden;
   max-height: 300px;
   overflow-y: auto;
@@ -566,8 +544,8 @@
 
 .conversion-category {
   padding: 12px 16px;
-  background: rgba(234, 88, 12, 0.1);
-  color: #ea580c;
+  background: rgba(234, 88, 12, 0.2) !important;
+  color: #ea580c !important;
   font-size: 13px;
   font-weight: 600;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -581,16 +559,6 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #e5e7eb;
-}
-
-.conversion-option:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.conversion-option-active {
-  background: rgba(234, 88, 12, 0.2);
-  color: #ea580c;
 }
 
 /* Upload Progress */
@@ -800,7 +768,6 @@
 }
 
 .upload-submit-btn:disabled {
-  opacity: 0.6;
   cursor: not-allowed;
   transform: none;
   background: rgba(75, 85, 99, 0.5);
@@ -981,4 +948,39 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Additional styles for better dropdown handling */
+.upload-step-3 {
+  min-height: 600px; /* Ensure enough space for long dropdowns */
+}
+
+.conversion-section {
+  position: relative;
+  z-index: 10;
+}
+
+/* Ensure dropdown can extend beyond container if needed */
+.conversion-dropdown {
+  position: relative;
+  z-index: 10;
+}
+
+/* Custom scrollbar for dropdown */
+.conversion-dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.conversion-dropdown-menu::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.conversion-dropdown-menu::-webkit-scrollbar-thumb {
+  background: rgba(234, 88, 12, 0.6);
+  border-radius: 3px;
+}
+
+.conversion-dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(234, 88, 12, 0.8);
 }

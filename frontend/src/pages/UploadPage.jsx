@@ -115,9 +115,9 @@ export default function UploadPage() {
   const handlePublish = async () => {
     if (isUploading) return;
 
-    // Check if conversion is required and selected
+    // Check if conversion is required and selected - allow "none" as valid option
     if (availableConversions.length > 0 && !conversionType) {
-      showToast("Please select a conversion type", "warning");
+      showToast("Please select a conversion type or 'No Conversion'", "warning");
       return;
     }
 
@@ -203,9 +203,14 @@ export default function UploadPage() {
     const fileType = file.type;
     const fileName = file.name.toLowerCase();
     
+    // Always add "No Conversion" option first
+    const conversions = [
+      { label: "No Conversion (Share Original)", value: "none", icon: "📄", category: "Original" }
+    ];
+    
     // Image conversions
     if (fileType.startsWith('image/')) {
-      return [
+      conversions.push(
         { label: "Image → PNG", value: "image->png", icon: "🖼️", category: "Image" },
         { label: "Image → JPG", value: "image->jpg", icon: "🖼️", category: "Image" },
         { label: "Image → JPEG", value: "image->jpeg", icon: "🖼️", category: "Image" },
@@ -214,46 +219,45 @@ export default function UploadPage() {
         { label: "Image → BMP", value: "image->bmp", icon: "🖼️", category: "Image" },
         { label: "Image → AVIF", value: "image->avif", icon: "🖼️", category: "Image" },
         { label: "Image → PDF", value: "image->pdf", icon: "📄", category: "Document" }
-      ];
+      );
     }
     
     // PDF conversions
     if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
-      return [
-        { label: "PDF → Word", value: "pdf->word", icon: "�", category: "Document" },
-        { label: "PDF → Text", value: "pdf->txt", icon: "�", category: "Document" },
+      conversions.push(
+        { label: "PDF → Word", value: "pdf->word", icon: "📝", category: "Document" },
+        { label: "PDF → Text", value: "pdf->txt", icon: "📄", category: "Document" },
         { label: "PDF → Images", value: "pdf->images", icon: "🖼️", category: "Image" }
-      ];
+      );
     }
     
     // Word document conversions
     if (fileType.includes('word') || fileType.includes('document') || 
         fileName.endsWith('.doc') || fileName.endsWith('.docx')) {
-      return [
+      conversions.push(
         { label: "Word → PDF", value: "word->pdf", icon: "📄", category: "Document" },
         { label: "Word → Text", value: "word->txt", icon: "📄", category: "Document" }
-      ];
+      );
     }
     
     // Excel conversions
     if (fileType.includes('sheet') || fileType.includes('excel') || 
         fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
-      return [
-        { label: "Excel → PDF", value: "excel->pdf", icon: "�", category: "Spreadsheet" },
+      conversions.push(
+        { label: "Excel → PDF", value: "excel->pdf", icon: "📊", category: "Spreadsheet" },
         { label: "Excel → CSV", value: "excel->csv", icon: "📊", category: "Spreadsheet" }
-      ];
+      );
     }
     
     // PowerPoint conversions
     if (fileType.includes('presentation') || fileType.includes('powerpoint') || 
         fileName.endsWith('.ppt') || fileName.endsWith('.pptx')) {
-      return [
+      conversions.push(
         { label: "PowerPoint → PDF", value: "ppt->pdf", icon: "📊", category: "Presentation" }
-      ];
+      );
     }
     
-    // Default - no conversions available
-    return [];
+    return conversions;
   };
 
   const availableConversions = getAvailableConversions(file);
@@ -345,7 +349,7 @@ export default function UploadPage() {
                         Drag & drop or click to browse
                       </p>
                       <p>
-                        Supports: Images, PDF, Word, Excel, PowerPoint (Max 50MB)
+                        Supports: Images, PDF, Word, Excel, PowerPoint (Max 10MB)
                       </p>
                     </div>
                   </div>
@@ -500,9 +504,7 @@ export default function UploadPage() {
                   <span>
                     {conversionType
                       ? availableConversions.find((opt) => opt.value === conversionType)?.label
-                      : availableConversions.length > 0 
-                        ? "Select conversion type"
-                        : "No conversions available for this file type"}
+                      : "Select conversion type or 'No Conversion'"}
                   </span>
                   {availableConversions.length > 0 && (
                     <svg
@@ -524,19 +526,62 @@ export default function UploadPage() {
                 {showDropdown && availableConversions.length > 0 && (
                   <>
                     <div
-                      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10 }}
-                      onClick={() => setShowDropdown(false)}
+                      style={{ 
+                        position: 'fixed', 
+                        top: 0, 
+                        left: 0, 
+                        right: 0, 
+                        bottom: 0, 
+                        zIndex: 9998,
+                        background: 'rgba(0, 0, 0, 0.3)',
+                      }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowDropdown(false);
+                      }}
                     />
-                    <div className="conversion-dropdown-menu">
+                    <div 
+                      className="conversion-dropdown-menu"
+                      style={{
+                        position: 'absolute',
+                        zIndex: 9999,
+                        marginTop: '8px',
+                        width: '100%',
+                        borderRadius: '12px',
+                        background: '#1a1a1a',
+                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        boxShadow: '0 25px 50px rgba(0, 0, 0, 0.8)',
+                        overflow: 'hidden',
+                        maxHeight: '400px', // Increased from 300px to 400px
+                        overflowY: 'auto'
+                      }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                    >
                       {Object.entries(groupedOptions).map(([category, options]) => (
                         <div key={category}>
-                          <div className="conversion-category">
+                          <div 
+                            className="conversion-category"
+                            style={{
+                              padding: '12px 16px',
+                              background: 'rgba(234, 88, 12, 0.2)',
+                              color: '#ea580c',
+                              fontSize: '13px',
+                              fontWeight: '600',
+                              borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                            }}
+                          >
                             {category}
                           </div>
                           {options.map((option) => (
                             <div
                               key={option.value}
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
                                 setConversionType(option.value);
                                 setShowDropdown(false);
                               }}
@@ -545,6 +590,30 @@ export default function UploadPage() {
                                   ? "conversion-option-active"
                                   : ""
                               }`}
+                              style={{
+                                cursor: 'pointer',
+                                padding: '14px 16px',
+                                fontSize: '14px',
+                                transition: 'all 0.3s ease',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px',
+                                color: conversionType === option.value ? '#ea580c' : '#e5e7eb',
+                                background: conversionType === option.value ? 'rgba(234, 88, 12, 0.3)' : 'transparent',
+                                border: 'none'
+                              }}
+                              onMouseEnter={(e) => {
+                                if (conversionType !== option.value) {
+                                  e.target.style.background = 'rgba(255, 255, 255, 0.15)';
+                                  e.target.style.color = 'white';
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (conversionType !== option.value) {
+                                  e.target.style.background = 'transparent';
+                                  e.target.style.color = '#e5e7eb';
+                                }
+                              }}
                             >
                               <span>{option.icon}</span>
                               <span>{option.label}</span>

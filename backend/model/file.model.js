@@ -44,8 +44,7 @@ const fileSchema = new mongoose.Schema({
     },
     expiry: {
         type: Date,
-        required: true,
-        index: { expires: 0 }
+        required: true
     },
     description: {
         type: String,
@@ -93,6 +92,16 @@ const fileSchema = new mongoose.Schema({
         accessedAt: { type: Date, default: Date.now }
     }]
 }, { timestamps: true });
+
+// Add indexes for better query performance
+fileSchema.index({ code: 1 }); // Primary lookup field
+fileSchema.index({ expiry: 1 }); // For cleanup queries and TTL
+fileSchema.index({ createdAt: -1 }); // For sorting by creation date
+fileSchema.index({ downloadCount: 1 }); // For analytics
+fileSchema.index({ hasPassword: 1 }); // For filtering protected files
+
+// TTL index for automatic document expiration
+fileSchema.index({ expiry: 1 }, { expireAfterSeconds: 0 });
 
 // Dynamic model selection based on environment and connection status
 function getFileModel() {

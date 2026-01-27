@@ -49,26 +49,37 @@ export default function FilePage() {
   const [error, setError] = useState(null);
   const [requiresPassword, setRequiresPassword] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true); // Track initial load to prevent UI flash
 
   // Fetch file information
   const fetchFileInfo = useCallback(async (markFirstView = false) => {
     try {
       setLoading(true);
+      setError(null);
+      
       const url = `${API_URL}/api/file/${code}/info${markFirstView ? '?markFirstView=true' : ''}`;
       const res = await axios.get(url);
+      
       setFile(res.data);
-      setError(null);
       setRequiresPassword(false);
+      setInitialLoad(false); // Mark initial load as complete
     } catch (err) {
+      console.error('Fetch file info error:', err);
+      
       if (err.response?.status === 404) {
-        setError("File not found");
+        setError("File not found or has been removed");
       } else if (err.response?.status === 410) {
         setError("File has expired");
+      } else if (err.response?.status === 500) {
+        setError("Server error. Please try again later.");
+      } else if (err.code === 'NETWORK_ERROR' || !err.response) {
+        setError("Network error. Please check your connection.");
       } else {
-        setError("Failed to load file");
+        setError("Failed to load file information");
       }
     } finally {
       setLoading(false);
+      setInitialLoad(false); // Ensure initial load is marked complete even on error
     }
   }, [code]);
 
@@ -79,63 +90,109 @@ export default function FilePage() {
       const res = await axios.post(`${API_URL}/api/file/${code}`, {
         password: password
       });
+      
       setFile(res.data);
       setError(null);
       setRequiresPassword(false);
+      setInitialLoad(false); // Mark initial load as complete
     } catch (err) {
+      console.error('Fetch with password error:', err);
+      
       if (err.response?.status === 401) {
-        if (err.response.data.requiresPassword) {
+        if (err.response.data?.requiresPassword) {
           setRequiresPassword(true);
           if (password) {
             showToast("Invalid password", "error");
           }
+        } else {
+          showToast("Authentication failed", "error");
         }
       } else if (err.response?.status === 404) {
-        setError("File not found");
+        setError("File not found or has been removed");
       } else if (err.response?.status === 410) {
         setError("File has expired");
       } else if (err.response?.status === 403) {
-        setError("Download limit reached");
+        setError("Download limit reached for this file");
       } else {
-        setError("Failed to load file");
+        setError("Failed to access file");
+        showToast("Failed to access file. Please try again.", "error");
       }
     } finally {
       setLoading(false);
+      setInitialLoad(false); // Ensure initial load is marked complete even on error
     }
   }, [code, showToast]);
 
   // Download function
   const downloadFileFromURL = useCallback(async (url, filename) => {
     try {
-      const fileResponse = await fetch(url);
+      // Validate URL
+      if (!url || typeof url !== 'string') {
+        throw new Error('Invalid download URL');
+      }
+
+      // Add timeout and better error handling
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+      const fileResponse = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          'Accept': '*/*',
+        }
+      });
+
+      clearTimeout(timeoutId);
+
       if (!fileResponse.ok) {
-        throw new Error(`Failed to fetch file: ${fileResponse.status}`);
+        throw new Error(`Failed to fetch file: ${fileResponse.status} ${fileResponse.statusText}`);
       }
       
       const blob = await fileResponse.blob();
+      
+      // Validate blob
+      if (!blob || blob.size === 0) {
+        throw new Error('Downloaded file is empty');
+      }
+
       const blobUrl = window.URL.createObjectURL(blob);
       
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.download = filename;
+      link.download = filename || 'download';
       link.style.display = 'none';
       
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       
-      window.URL.revokeObjectURL(blobUrl);
+      // Clean up blob URL after a short delay
+      setTimeout(() => {
+        window.URL.revokeObjectURL(blobUrl);
+      }, 1000);
+
     } catch (error) {
       console.error('Download error:', error);
-      // Fallback to direct link method
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      
+      if (error.name === 'AbortError') {
+        throw new Error('Download timeout. Please try again.');
+      } else if (error.message.includes('Failed to fetch')) {
+        // Fallback to direct link method for CORS issues
+        try {
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = filename || 'download';
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } catch (fallbackError) {
+          throw new Error('Download failed. The file may no longer be available.');
+        }
+      } else {
+        throw error;
+      }
     }
   }, []);
 
@@ -147,6 +204,8 @@ export default function FilePage() {
 
     try {
       const requestBody = downloadPassword ? { password: downloadPassword } : {};
+      
+      // Use the correct API endpoint for file access
       const response = await axios.post(`${API_URL}/api/file/${code}`, requestBody);
       
       if (response.data && response.data.fileUrl) {
@@ -157,28 +216,40 @@ export default function FilePage() {
         
         showToast('Download started!', 'success');
         
+        // Update download count in local state
         setFile(prev => ({
           ...prev,
-          downloadCount: response.data.downloadCount
+          downloadCount: response.data.downloadCount || (prev.downloadCount + 1)
         }));
       } else {
-        throw new Error('No download URL received');
+        throw new Error('No download URL received from server');
       }
     } catch (err) {
+      console.error('Download error:', err);
+      
       if (err.response?.status === 401) {
-        showToast('Invalid password', 'error');
+        if (err.response.data?.requiresPassword) {
+          setRequiresPassword(true);
+          showToast('Password required for this file', 'warning');
+        } else {
+          showToast('Invalid password', 'error');
+        }
         return;
       } else if (err.response?.status === 403) {
-        showToast('Download limit reached', 'error');
+        showToast('Download limit reached for this file', 'error');
+      } else if (err.response?.status === 404) {
+        showToast('File not found or has been removed', 'error');
+        navigate('/');
       } else if (err.response?.status === 410) {
         showToast('File has expired', 'error');
+        navigate('/');
       } else {
         showToast('Download failed. Please try again.', 'error');
       }
     } finally {
       setIsDownloading(false);
     }
-  }, [code, isDownloading, downloadFileFromURL, showToast]);
+  }, [code, isDownloading, downloadFileFromURL, showToast, navigate]);
 
   // Handle download
   const handleDownload = useCallback(async () => {
@@ -235,7 +306,39 @@ export default function FilePage() {
     }
   }, [code, fetchFileInfo]);
 
-  // Render loading state
+  // Render loading state - show minimal loading during initial load to prevent UI flash
+  if (loading && initialLoad) {
+    return (
+      <div className="file-page">
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '100vh',
+          background: 'transparent' 
+        }}>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            gap: '20px' 
+          }}>
+            <div style={{ 
+              width: '40px', 
+              height: '40px', 
+              border: '3px solid rgba(234, 88, 12, 0.3)', 
+              borderTop: '3px solid #ea580c', 
+              borderRadius: '50%', 
+              animation: 'spin 1s linear infinite' 
+            }} />
+            <p style={{ color: '#9ca3af', fontSize: '14px' }}>Loading file...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show regular loading spinner for subsequent loads
   if (loading) {
     return <LoadingSpinner />;
   }
