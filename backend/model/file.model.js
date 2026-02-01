@@ -70,22 +70,7 @@ const fileSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    // Flag to indicate whether the detailed (full) UI view has already been shown
-    // This is set once (typically immediately after conversion/upload) so that
-    // subsequent visits show a compact/card view instead of the full detailed page.
-    firstViewShown: {
-        type: Boolean,
-        default: false,
-        index: true
-    },
-    firstViewIp: {
-        type: String,
-        default: null
-    },
-    firstViewAt: {
-        type: Date,
-        default: null
-    },
+    // Access logging for security and analytics
     accessLogs: [{
         ip: String,
         userAgent: String,

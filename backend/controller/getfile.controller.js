@@ -115,8 +115,7 @@ const getFileByCode = async (req, res) => {
       description: fileDoc.description,
       downloadCount: fileDoc.downloadCount,
       maxDownloads: fileDoc.maxDownloads,
-      createdAt: fileDoc.createdAt,
-      firstViewShown: fileDoc.firstViewShown
+      createdAt: fileDoc.createdAt
     });
   } catch (err) {
     logger.error('getFileByCode error:', err);
@@ -165,29 +164,6 @@ const getFileInfo = async (req, res) => {
       return res.status(410).json({ message: 'File has expired' });
     }
 
-    // Handle first view marking for detailed view
-    let allowDetailedView = false;
-    if (markFirstView === 'true' && !fileDoc.firstViewShown) {
-      // Need to update document, so fetch full document
-      try {
-        const fullDoc = await model.findOne({ code: cleanCode });
-        if (fullDoc && !fullDoc.firstViewShown) {
-          fullDoc.firstViewShown = true;
-          fullDoc.firstViewIp = clientIp;
-          fullDoc.firstViewAt = new Date();
-          await fullDoc.save();
-          allowDetailedView = true;
-          logger.log(`First view marked for file: ${cleanCode} (original: ${code})`);
-        }
-      } catch (updateError) {
-        logger.error('Error updating first view:', updateError);
-        // Continue without marking first view
-      }
-    } else if (fileDoc.firstViewIp === clientIp) {
-      // Allow detailed view for the same IP that had the first view
-      allowDetailedView = true;
-    }
-
     // Return only necessary fields for better performance
     res.json({
       fileUrl: fileDoc.fileUrl,
@@ -199,8 +175,7 @@ const getFileInfo = async (req, res) => {
       hasPassword: fileDoc.hasPassword,
       downloadCount: fileDoc.downloadCount || 0,
       maxDownloads: fileDoc.maxDownloads,
-      createdAt: fileDoc.createdAt,
-      allowDetailedView: allowDetailedView
+      createdAt: fileDoc.createdAt
     });
   } catch (err) {
     logger.error('Error in getFileInfo:', err);

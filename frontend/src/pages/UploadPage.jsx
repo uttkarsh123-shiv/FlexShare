@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import axios from "axios";
 import { useDropzone } from "react-dropzone";
+import { throttle, debounce } from "lodash";
 import { X, Upload, FileText, Image as ImageIcon, File, CheckCircle2, Loader2, Clock, Shield, Download, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../context/ToastContext";
@@ -34,6 +35,26 @@ export default function UploadPage() {
   const [maxDownloads, setMaxDownloads] = useState("");
   const navigate = useNavigate();
   const { showToast } = useToast();
+
+  // Debounced handlers for form inputs to prevent excessive re-renders
+  const debouncedSetDescription = useCallback(
+    debounce((value) => setDescription(value), 300),
+    []
+  );
+
+  const debouncedSetPassword = useCallback(
+    debounce((value) => setPassword(value), 300),
+    []
+  );
+
+  // Throttled copy to clipboard function
+  const handleCopyLink = useCallback(
+    throttle(() => {
+      navigator.clipboard.writeText(`${window.location.origin}/file/${code}`);
+      showToast("Link copied to clipboard!", "success");
+    }, 1000), // 1 second throttle
+    [code, showToast]
+  );
 
   const onDrop = useCallback((acceptedFiles) => {
     const selectedFile = acceptedFiles[0];
@@ -112,37 +133,39 @@ export default function UploadPage() {
     return nameWithoutExt.substring(0, maxNameLength) + "..." + "." + extension;
   };
 
-  const handlePublish = async () => {
-    if (isUploading) return;
+  // Throttled upload function - prevents spam clicking
+  const handlePublish = useCallback(
+    throttle(async () => {
+      if (isUploading) return;
 
-    // Check if conversion is required and selected - allow "none" as valid option
-    if (availableConversions.length > 0 && !conversionType) {
-      showToast("Please select a conversion type or 'No Conversion'", "warning");
-      return;
-    }
-
-    if (!file) {
-      showToast("Please select a file", "warning");
-      return;
-    }
-
-    // Validate password if provided
-    if (password.trim() && password.trim().length < 4) {
-      showToast("Password must be at least 4 characters long", "error");
-      return;
-    }
-
-    // Validate maxDownloads if provided
-    if (maxDownloads && maxDownloads.trim()) {
-      const downloadLimit = parseInt(maxDownloads.trim(), 10);
-      if (isNaN(downloadLimit) || downloadLimit < 1 || downloadLimit > 100) {
-        showToast("Download limit must be between 1 and 100", "error");
+      // Check if conversion is required and selected - allow "none" as valid option
+      if (availableConversions.length > 0 && !conversionType) {
+        showToast("Please select a conversion type or 'No Conversion'", "warning");
         return;
       }
-    }
 
-    setIsUploading(true);
-    setUploadProgress(0);
+      if (!file) {
+        showToast("Please select a file", "warning");
+        return;
+      }
+
+      // Validate password if provided
+      if (password.trim() && password.trim().length < 4) {
+        showToast("Password must be at least 4 characters long", "error");
+        return;
+      }
+
+      // Validate maxDownloads if provided
+      if (maxDownloads && maxDownloads.trim()) {
+        const downloadLimit = parseInt(maxDownloads.trim(), 10);
+        if (isNaN(downloadLimit) || downloadLimit < 1 || downloadLimit > 100) {
+          showToast("Download limit must be between 1 and 100", "error");
+          return;
+        }
+      }
+
+      setIsUploading(true);
+      setUploadProgress(0);
 
     const formData = new FormData();
     formData.append("file", file);
@@ -192,10 +215,12 @@ export default function UploadPage() {
       console.error('Upload error:', err);
       const errorMessage = err.response?.data?.message || err.response?.data?.errors || err.message || "Upload failed";
       showToast(errorMessage, "error");
-    } finally {
-      setIsUploading(false);
-    }
-  };
+      } finally {
+        setIsUploading(false);
+      }
+    }, 3000), // 3 second throttle for uploads
+    [isUploading, availableConversions, conversionType, file, password, maxDownloads, expiryHours, description, showToast]
+  );
 
   const getAvailableConversions = (file) => {
     if (!file) return [];
@@ -708,10 +733,7 @@ export default function UploadPage() {
                         View File
                       </button>
                       <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(`${window.location.origin}/file/${code}`);
-                          showToast("Link copied to clipboard!", "success");
-                        }}
+                        onClick={handleCopyLink}
                         className="upload-success-copy-btn"
                       >
                         Copy Link

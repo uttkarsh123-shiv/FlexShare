@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { throttle } from "lodash";
 import { useToast } from "../context/ToastContext";
 import { ErrorBoundary } from "react-error-boundary";
 import { SimpleErrorFallback } from "../components/ErrorFallback";
@@ -196,60 +197,63 @@ export default function FilePage() {
     }
   }, []);
 
-  // Perform download
-  const performDownload = useCallback(async (downloadPassword = null) => {
-    if (isDownloading) return;
-    
-    setIsDownloading(true);
+  // Throttled download function - prevents spam clicking
+  const performDownload = useCallback(
+    throttle(async (downloadPassword = null) => {
+      if (isDownloading) return;
+      
+      setIsDownloading(true);
 
-    try {
-      const requestBody = downloadPassword ? { password: downloadPassword } : {};
-      
-      // Use the correct API endpoint for file access
-      const response = await axios.post(`${API_URL}/api/file/${code}`, requestBody);
-      
-      if (response.data && response.data.fileUrl) {
-        await downloadFileFromURL(
-          response.data.fileUrl, 
-          response.data.originalFileName || 'download'
-        );
+      try {
+        const requestBody = downloadPassword ? { password: downloadPassword } : {};
         
-        showToast('Download started!', 'success');
+        // Use the correct API endpoint for file access
+        const response = await axios.post(`${API_URL}/api/file/${code}`, requestBody);
         
-        // Update download count in local state
-        setFile(prev => ({
-          ...prev,
-          downloadCount: response.data.downloadCount || (prev.downloadCount + 1)
-        }));
-      } else {
-        throw new Error('No download URL received from server');
-      }
-    } catch (err) {
-      console.error('Download error:', err);
-      
-      if (err.response?.status === 401) {
-        if (err.response.data?.requiresPassword) {
-          setRequiresPassword(true);
-          showToast('Password required for this file', 'warning');
+        if (response.data && response.data.fileUrl) {
+          await downloadFileFromURL(
+            response.data.fileUrl, 
+            response.data.originalFileName || 'download'
+          );
+          
+          showToast('Download started!', 'success');
+          
+          // Update download count in local state
+          setFile(prev => ({
+            ...prev,
+            downloadCount: response.data.downloadCount || (prev.downloadCount + 1)
+          }));
         } else {
-          showToast('Invalid password', 'error');
+          throw new Error('No download URL received from server');
         }
-        return;
-      } else if (err.response?.status === 403) {
-        showToast('Download limit reached for this file', 'error');
-      } else if (err.response?.status === 404) {
-        showToast('File not found or has been removed', 'error');
-        navigate('/');
-      } else if (err.response?.status === 410) {
-        showToast('File has expired', 'error');
-        navigate('/');
-      } else {
-        showToast('Download failed. Please try again.', 'error');
+      } catch (err) {
+        console.error('Download error:', err);
+        
+        if (err.response?.status === 401) {
+          if (err.response.data?.requiresPassword) {
+            setRequiresPassword(true);
+            showToast('Password required for this file', 'warning');
+          } else {
+            showToast('Invalid password', 'error');
+          }
+          return;
+        } else if (err.response?.status === 403) {
+          showToast('Download limit reached for this file', 'error');
+        } else if (err.response?.status === 404) {
+          showToast('File not found or has been removed', 'error');
+          navigate('/');
+        } else if (err.response?.status === 410) {
+          showToast('File has expired', 'error');
+          navigate('/');
+        } else {
+          showToast('Download failed. Please try again.', 'error');
+        }
+      } finally {
+        setIsDownloading(false);
       }
-    } finally {
-      setIsDownloading(false);
-    }
-  }, [code, isDownloading, downloadFileFromURL, showToast, navigate]);
+    }, 2000), // 2 second throttle
+    [code, isDownloading, downloadFileFromURL, showToast, navigate]
+  );
 
   // Handle download
   const handleDownload = useCallback(async () => {
