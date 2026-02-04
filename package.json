@@ -2,10 +2,11 @@
   "scripts": {
     "test-conversion": "node test-basic-conversion.js",
     "test-server": "node -e \"console.log('Testing server connectivity...'); require('axios').get('http://localhost:3000/api/health').then(() => console.log('✅ Server is running')).catch(() => console.log('❌ Server is not running'))\"",
-    "test-pdf": "node test-pdf-conversions.js"
+    "test-pdf": "node test-pdf-conversions.js",
+    "test-password": "node test-password-protection.js"
   },
   "dependencies": {
-    "axios": "^1.13.2",
+    "axios": "^1.13.4",
     "form-data": "^4.0.5"
   }
 }

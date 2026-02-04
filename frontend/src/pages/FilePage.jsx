@@ -396,6 +396,7 @@ export default function FilePage() {
                 conversionType={conversionType}
                 description={description}
                 isImage={isImage}
+                hasPassword={hasPassword}
               />
             </Suspense>
           </ErrorBoundary>

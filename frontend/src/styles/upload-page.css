@@ -780,28 +780,46 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .upload-page {
+    padding: 20px 10px !important;
+    overflow-x: hidden;
+  }
+  
   .upload-title {
     font-size: 2.5rem;
   }
   
   .upload-container {
-    padding: 0 15px;
+    padding: 0 10px;
+    max-width: 100%;
   }
   
   .step-indicators {
     gap: 8px;
+    padding: 0 10px;
   }
   
   .step-indicator-item {
-    padding: 6px 15px;
+    padding: 6px 12px;
+    font-size: 12px;
   }
   
   .file-dropzone {
     height: 280px;
+    margin: 0 5px;
   }
   
   .file-dropzone-content {
-    padding: 0 20px;
+    padding: 0 15px;
+  }
+  
+  .file-preview-card {
+    padding: 20px 15px;
+    gap: 15px;
+  }
+  
+  .file-info p:first-child {
+    font-size: 14px;
   }
   
   .step-navigation {
@@ -813,6 +831,7 @@
   .step-next-btn {
     width: 100%;
     justify-content: center;
+    padding: 16px;
   }
   
   .upload-step-3 > div:last-child {
@@ -823,6 +842,76 @@
   .upload-step-3 > div:last-child > button {
     width: 100%;
     justify-content: center;
+    padding: 16px;
+  }
+  
+  .upload-success {
+    padding: 15px;
+  }
+  
+  .upload-success-modal {
+    padding: 25px 20px;
+    margin: 0 10px;
+  }
+  
+  .upload-success-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .upload-success-view-btn,
+  .upload-success-copy-btn {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+  }
+  
+  /* Fix conversion dropdown on mobile */
+  .conversion-dropdown-menu {
+    max-height: 250px;
+    font-size: 14px;
+  }
+  
+  .conversion-option {
+    padding: 12px 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .upload-page {
+    padding: 15px 5px !important;
+  }
+  
+  .upload-title {
+    font-size: 2rem;
+  }
+  
+  .upload-subtitle {
+    font-size: 1rem;
+    padding: 0 10px;
+  }
+  
+  .file-dropzone {
+    height: 250px;
+    margin: 0;
+  }
+  
+  .file-preview-card {
+    padding: 15px 10px;
+    gap: 10px;
+  }
+  
+  .description-section,
+  .advanced-settings,
+  .conversion-section,
+  .upload-progress {
+    padding: 20px 15px;
+    margin: 0 5px;
+  }
+  
+  .upload-success-modal {
+    padding: 20px 15px;
+    margin: 0 5px;
   }
 }
 

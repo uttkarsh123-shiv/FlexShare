@@ -56,6 +56,69 @@ export default function UploadPage() {
     [code, showToast]
   );
 
+  const getAvailableConversions = (file) => {
+    if (!file) return [];
+    
+    const fileType = file.type;
+    const fileName = file.name.toLowerCase();
+    
+    // Always add "No Conversion" option first
+    const conversions = [
+      { label: "No Conversion (Share Original)", value: "none", icon: "📄", category: "Original" }
+    ];
+    
+    // Image conversions
+    if (fileType.startsWith('image/')) {
+      conversions.push(
+        { label: "Image → PNG", value: "image->png", icon: "🖼️", category: "Image" },
+        { label: "Image → JPG", value: "image->jpg", icon: "🖼️", category: "Image" },
+        { label: "Image → JPEG", value: "image->jpeg", icon: "🖼️", category: "Image" },
+        { label: "Image → WebP", value: "image->webp", icon: "🖼️", category: "Image" },
+        { label: "Image → GIF", value: "image->gif", icon: "🖼️", category: "Image" },
+        { label: "Image → BMP", value: "image->bmp", icon: "🖼️", category: "Image" },
+        { label: "Image → AVIF", value: "image->avif", icon: "🖼️", category: "Image" },
+        { label: "Image → PDF", value: "image->pdf", icon: "📄", category: "Document" }
+      );
+    }
+    
+    // PDF conversions
+    if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
+      conversions.push(
+        { label: "PDF → Word", value: "pdf->word", icon: "📝", category: "Document" },
+        { label: "PDF → Text", value: "pdf->txt", icon: "📄", category: "Document" },
+        { label: "PDF → Images", value: "pdf->images", icon: "🖼️", category: "Image" }
+      );
+    }
+    
+    // Word document conversions
+    if ((fileType.includes('word') || fileType.includes('wordprocessingml')) || 
+        fileName.endsWith('.doc') || fileName.endsWith('.docx')) {
+      conversions.push(
+        { label: "Word → PDF", value: "word->pdf", icon: "📄", category: "Document" },
+        { label: "Word → Text", value: "word->txt", icon: "📄", category: "Document" }
+      );
+    }
+    
+    // Excel conversions
+    if (fileType.includes('sheet') || fileType.includes('excel') || 
+        fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
+      conversions.push(
+        { label: "Excel → PDF", value: "excel->pdf", icon: "📊", category: "Spreadsheet" },
+        { label: "Excel → CSV", value: "excel->csv", icon: "📊", category: "Spreadsheet" }
+      );
+    }
+    
+    // PowerPoint conversions
+    if (fileType.includes('presentation') || fileType.includes('powerpoint') || 
+        fileName.endsWith('.ppt') || fileName.endsWith('.pptx')) {
+      conversions.push(
+        { label: "PowerPoint → PDF", value: "ppt->pdf", icon: "📊", category: "Presentation" }
+      );
+    }
+    
+    return conversions;
+  };
+
   const onDrop = useCallback((acceptedFiles) => {
     const selectedFile = acceptedFiles[0];
     
@@ -138,8 +201,11 @@ export default function UploadPage() {
     throttle(async () => {
       if (isUploading) return;
 
+      // Get available conversions inside the function
+      const currentAvailableConversions = getAvailableConversions(file);
+
       // Check if conversion is required and selected - allow "none" as valid option
-      if (availableConversions.length > 0 && !conversionType) {
+      if (currentAvailableConversions.length > 0 && !conversionType) {
         showToast("Please select a conversion type or 'No Conversion'", "warning");
         return;
       }
@@ -219,71 +285,8 @@ export default function UploadPage() {
         setIsUploading(false);
       }
     }, 3000), // 3 second throttle for uploads
-    [isUploading, availableConversions, conversionType, file, password, maxDownloads, expiryHours, description, showToast]
+    [isUploading, conversionType, file, password, maxDownloads, expiryHours, description, showToast]
   );
-
-  const getAvailableConversions = (file) => {
-    if (!file) return [];
-    
-    const fileType = file.type;
-    const fileName = file.name.toLowerCase();
-    
-    // Always add "No Conversion" option first
-    const conversions = [
-      { label: "No Conversion (Share Original)", value: "none", icon: "📄", category: "Original" }
-    ];
-    
-    // Image conversions
-    if (fileType.startsWith('image/')) {
-      conversions.push(
-        { label: "Image → PNG", value: "image->png", icon: "🖼️", category: "Image" },
-        { label: "Image → JPG", value: "image->jpg", icon: "🖼️", category: "Image" },
-        { label: "Image → JPEG", value: "image->jpeg", icon: "🖼️", category: "Image" },
-        { label: "Image → WebP", value: "image->webp", icon: "🖼️", category: "Image" },
-        { label: "Image → GIF", value: "image->gif", icon: "🖼️", category: "Image" },
-        { label: "Image → BMP", value: "image->bmp", icon: "🖼️", category: "Image" },
-        { label: "Image → AVIF", value: "image->avif", icon: "🖼️", category: "Image" },
-        { label: "Image → PDF", value: "image->pdf", icon: "📄", category: "Document" }
-      );
-    }
-    
-    // PDF conversions
-    if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
-      conversions.push(
-        { label: "PDF → Word", value: "pdf->word", icon: "📝", category: "Document" },
-        { label: "PDF → Text", value: "pdf->txt", icon: "📄", category: "Document" },
-        { label: "PDF → Images", value: "pdf->images", icon: "🖼️", category: "Image" }
-      );
-    }
-    
-    // Word document conversions
-    if (fileType.includes('word') || fileType.includes('document') || 
-        fileName.endsWith('.doc') || fileName.endsWith('.docx')) {
-      conversions.push(
-        { label: "Word → PDF", value: "word->pdf", icon: "📄", category: "Document" },
-        { label: "Word → Text", value: "word->txt", icon: "📄", category: "Document" }
-      );
-    }
-    
-    // Excel conversions
-    if (fileType.includes('sheet') || fileType.includes('excel') || 
-        fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
-      conversions.push(
-        { label: "Excel → PDF", value: "excel->pdf", icon: "📊", category: "Spreadsheet" },
-        { label: "Excel → CSV", value: "excel->csv", icon: "📊", category: "Spreadsheet" }
-      );
-    }
-    
-    // PowerPoint conversions
-    if (fileType.includes('presentation') || fileType.includes('powerpoint') || 
-        fileName.endsWith('.ppt') || fileName.endsWith('.pptx')) {
-      conversions.push(
-        { label: "PowerPoint → PDF", value: "ppt->pdf", icon: "📊", category: "Presentation" }
-      );
-    }
-    
-    return conversions;
-  };
 
   const availableConversions = getAvailableConversions(file);
   const groupedOptions = availableConversions.reduce((acc, option) => {
