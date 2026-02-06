@@ -3,6 +3,8 @@ const { promisify } = require('util');
 const fs = require('fs');
 const path = require('path');
 const logger = require('./logger');
+const { PDFParse } = require('pdf-parse');
+const { Document, Packer, Paragraph, TextRun } = require('docx');
 
 const execFileAsync = promisify(execFile);
 
@@ -11,19 +13,51 @@ class LibreOfficeConverter {
     this.timeout = 60000; // 60 seconds timeout
     this.maxConcurrent = 3; // Limit concurrent conversions
     this.activeConversions = 0;
+    this.libreOfficeCmd = null; // Will be set by isAvailable()
+  }
+
+  /**
+   * Get LibreOffice executable path
+   */
+  getLibreOfficeCommand() {
+    // Windows paths
+    const windowsPaths = [
+      'C:\\Program Files\\LibreOffice\\program\\soffice.com',
+      'C:\\Program Files (x86)\\LibreOffice\\program\\soffice.com',
+      'soffice'
+    ];
+    
+    // Unix/Linux paths
+    const unixPaths = ['libreoffice', 'soffice'];
+    
+    const isWindows = process.platform === 'win32';
+    return isWindows ? windowsPaths : unixPaths;
   }
 
   /**
    * Check if LibreOffice is available
    */
   async isAvailable() {
-    try {
-      await execFileAsync('libreoffice', ['--version'], { timeout: 5000 });
+    // If we already found a working command, use it
+    if (this.libreOfficeCmd) {
       return true;
-    } catch (error) {
-      logger.warn('LibreOffice not available:', error.message);
-      return false;
     }
+    
+    const commands = this.getLibreOfficeCommand();
+    
+    for (const cmd of commands) {
+      try {
+        await execFileAsync(cmd, ['--version'], { timeout: 5000 });
+        this.libreOfficeCmd = cmd;
+        logger.log(`LibreOffice found at: ${cmd}`);
+        return true;
+      } catch (error) {
+        // Continue to next command
+      }
+    }
+    
+    logger.warn('LibreOffice not available at any known location');
+    return false;
   }
 
   /**
@@ -36,8 +70,8 @@ class LibreOfficeConverter {
       'excel->pdf': 'pdf',
       'ppt->pdf': 'pdf',
       'word->txt': 'txt',
-      'excel->csv': 'csv',
-      'pdf->txt': 'txt'
+      'excel->csv': 'csv'
+      // Note: pdf->txt is not supported by LibreOffice, use fallback
     };
     return formatMap[conversionType];
   }
@@ -46,6 +80,11 @@ class LibreOfficeConverter {
    * Convert file using LibreOffice
    */
   async convert(inputPath, outputDir, conversionType) {
+    // PDF conversions need special handling (LibreOffice can't convert FROM PDF)
+    if (conversionType === 'pdf->txt' || conversionType === 'pdf->word') {
+      return await this.fallbackPdfConversion(inputPath, outputDir, conversionType);
+    }
+    
     if (this.activeConversions >= this.maxConcurrent) {
       throw new Error('Too many concurrent conversions. Please try again later.');
     }
@@ -53,6 +92,14 @@ class LibreOfficeConverter {
     const targetFormat = this.getTargetFormat(conversionType);
     if (!targetFormat) {
       throw new Error(`Unsupported conversion type: ${conversionType}`);
+    }
+
+    // Ensure LibreOffice is available and command is set
+    if (!this.libreOfficeCmd) {
+      const isAvailable = await this.isAvailable();
+      if (!isAvailable) {
+        throw new Error('LibreOffice is not available');
+      }
     }
 
     this.activeConversions++;
@@ -73,16 +120,10 @@ class LibreOfficeConverter {
         inputPath
       ];
 
-      // Add format-specific options
-      if (conversionType === 'pdf->word') {
-        // Better PDF to Word conversion options
-        args.splice(2, 0, '--infilter=writer_pdf_import');
-      }
-
-      logger.log(`LibreOffice command: libreoffice ${args.join(' ')}`);
+      logger.log(`LibreOffice command: ${this.libreOfficeCmd} ${args.join(' ')}`);
 
       // Execute conversion
-      const { stdout, stderr } = await execFileAsync('libreoffice', args, {
+      const { stdout, stderr } = await execFileAsync(this.libreOfficeCmd, args, {
         timeout: this.timeout,
         env: {
           ...process.env,
@@ -144,29 +185,51 @@ class LibreOfficeConverter {
    * Fallback PDF conversion using pdf-parse
    */
   async fallbackPdfConversion(inputPath, outputDir, conversionType) {
-    const fs = require('fs');
-    const path = require('path');
-    
     try {
-      // Import pdf-parse dynamically to avoid issues
-      const PDFParse = require('pdf-parse');
+      logger.log('Using pdf-parse fallback for PDF conversion');
       
       const dataBuffer = fs.readFileSync(inputPath);
-      const data = await PDFParse(dataBuffer);
+      const parser = new PDFParse({ data: dataBuffer });
+      const result = await parser.getText();
       
       const inputBasename = path.basename(inputPath, path.extname(inputPath));
       let outputPath;
-      let content = data.text;
+      
+      // Extract text from all pages
+      let content = '';
+      if (result.pages && Array.isArray(result.pages)) {
+        content = result.pages.map(page => page.text).join('\n\n');
+      } else if (result.text) {
+        content = result.text;
+      }
       
       if (conversionType === 'pdf->word') {
-        // Create a simple RTF file that Word can open
-        outputPath = path.join(outputDir, `${inputBasename}.rtf`);
-        const rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 ${content.replace(/\n/g, '\\par ')}}`;
-        fs.writeFileSync(outputPath, rtfContent);
+        // Create a proper .docx file using docx library
+        outputPath = path.join(outputDir, `${inputBasename}.docx`);
+        
+        // Split content into paragraphs
+        const paragraphs = content.split('\n').map(line => 
+          new Paragraph({
+            children: [new TextRun(line || ' ')], // Empty line if no content
+          })
+        );
+        
+        const doc = new Document({
+          sections: [{
+            properties: {},
+            children: paragraphs,
+          }],
+        });
+        
+        const buffer = await Packer.toBuffer(doc);
+        fs.writeFileSync(outputPath, buffer);
+        
+        logger.log(`Created Word document: ${outputPath} (${buffer.length} bytes)`);
       } else {
         // Create text file
         outputPath = path.join(outputDir, `${inputBasename}.txt`);
         fs.writeFileSync(outputPath, content);
+        logger.log(`Created text file: ${outputPath} (${content.length} characters)`);
       }
       
       logger.log(`Fallback PDF conversion completed: ${outputPath}`);

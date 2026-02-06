@@ -32,6 +32,10 @@ FUNCTION_BREAKDOWN_GUIDE.md
 *.md
 !README.md
 
+# Test files
+test*.js
+*test*.js
+
 # IDE / system files
 .DS_Store
 *.log
@@ -41,4 +45,3 @@ FUNCTION_BREAKDOWN_GUIDE.md
 .test-advanced-settings.html
 .test-upload-design.html
 .test-upload.html
-.test-pdf-quick.js

@@ -34,7 +34,6 @@ const fileSchema = new mongoose.Schema({
             'pdf->word',
             'word->pdf',
             'pdf->txt',
-            'pdf->images',
             'word->txt',
             'excel->pdf',
             'excel->csv',

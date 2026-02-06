@@ -85,8 +85,7 @@ export default function UploadPage() {
     if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
       conversions.push(
         { label: "PDF → Word", value: "pdf->word", icon: "📝", category: "Document" },
-        { label: "PDF → Text", value: "pdf->txt", icon: "📄", category: "Document" },
-        { label: "PDF → Images", value: "pdf->images", icon: "🖼️", category: "Image" }
+        { label: "PDF → Text", value: "pdf->txt", icon: "📄", category: "Document" }
       );
     }
     

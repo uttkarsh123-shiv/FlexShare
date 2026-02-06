@@ -13,7 +13,6 @@ const uploadSchema = Joi.object({
     'pdf->word',
     'word->pdf',
     'pdf->txt',
-    'pdf->images',
     'word->txt',
     'excel->pdf',
     'excel->csv',

@@ -6,8 +6,6 @@ const path = require('path');
 const sharp = require('sharp');
 const { PDFDocument } = require('pdf-lib');
 const bcrypt = require('bcryptjs');
-const { PDFParse } = require('pdf-parse');
-const pdf2pic = require('pdf2pic');
 const { safeDeleteFile, cleanupFiles } = require('../utils/fileCleanup');
 const logger = require('../utils/logger');
 const LibreOfficeConverter = require('../utils/libreofficeConverter');
@@ -31,7 +29,7 @@ const getConvertedFileName = (originalName, conversionType) => {
 
 const allowedConversions = [
   'image->png', 'image->jpg', 'image->jpeg', 'image->webp', 'image->gif', 'image->bmp', 'image->avif', 'image->pdf',
-  'pdf->word', 'word->pdf', 'pdf->txt', 'pdf->images',
+  'pdf->word', 'word->pdf', 'pdf->txt',
   'excel->pdf', 'excel->csv', 'ppt->pdf', 'word->txt',
   'none' // For files that don't need conversion
 ];
@@ -261,9 +259,20 @@ const uploadAndConvertFile = async (req, res) => {
           if (conversionType === 'pdf->txt') {
             logger.log('Using fallback PDF to text conversion...');
             try {
+              const { PDFParse } = require('pdf-parse');
               const dataBuffer = fs.readFileSync(tempFilePath);
-              const data = await PDFParse(dataBuffer);
-              fs.writeFileSync(convertedPath, data.text);
+              const parser = new PDFParse({ data: dataBuffer });
+              const result = await parser.getText();
+              
+              // Extract text from all pages
+              let content = '';
+              if (result.pages && Array.isArray(result.pages)) {
+                content = result.pages.map(page => page.text).join('\n\n');
+              } else if (result.text) {
+                content = result.text;
+              }
+              
+              fs.writeFileSync(convertedPath, content);
               logger.log('Fallback PDF to text conversion completed');
             } catch (fallbackError) {
               logger.error('Fallback PDF to text conversion failed:', fallbackError);
@@ -274,45 +283,6 @@ const uploadAndConvertFile = async (req, res) => {
             logger.log('LibreOffice failed, uploading original file without conversion');
             fs.copyFileSync(tempFilePath, convertedPath);
           }
-        }
-
-      } else if (conversionType === 'pdf->images') {
-        // PDF to images conversion (keep existing implementation)
-        logger.log('Converting PDF to images...');
-        try {
-          const convert = pdf2pic.fromPath(tempFilePath, {
-            density: 100,
-            saveFilename: "page",
-            savePath: path.dirname(convertedPath),
-            format: "png",
-            width: 600,
-            height: 800
-          });
-          
-          const results = await convert.bulk(-1);
-          
-          if (results && results.length > 0) {
-            // For now, just use the first page
-            const firstPagePath = results[0].path;
-            fs.copyFileSync(firstPagePath, convertedPath.replace(/\.\w+$/, '.png'));
-            convertedPath = convertedPath.replace(/\.\w+$/, '.png');
-            
-            // Clean up temporary files
-            results.forEach(result => {
-              if (fs.existsSync(result.path)) {
-                fs.unlinkSync(result.path);
-              }
-            });
-            
-            logger.log('PDF to images conversion completed');
-          } else {
-            throw new Error('No images generated from PDF');
-          }
-        } catch (imageError) {
-          logger.error('PDF to images conversion failed:', imageError);
-          // Fallback: copy original file
-          fs.copyFileSync(tempFilePath, convertedPath);
-          logger.log('PDF file uploaded without conversion');
         }
 
       } else {
