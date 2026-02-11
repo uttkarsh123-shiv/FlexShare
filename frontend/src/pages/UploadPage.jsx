@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import axios from "axios";
 import { useDropzone } from "react-dropzone";
 import { throttle, debounce } from "lodash";
-import { X, Upload, FileText, Image as ImageIcon, File, CheckCircle2, Loader2, Clock, Shield, Download, Settings } from "lucide-react";
+import { X, Upload, FileText, Image as ImageIcon, File, CheckCircle2, Loader2, Clock, Shield, Download, Settings, Copy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../context/ToastContext";
 import ThemeToggle from "../component/ThemeToggle";
@@ -45,6 +45,15 @@ export default function UploadPage() {
   const debouncedSetPassword = useCallback(
     debounce((value) => setPassword(value), 300),
     []
+  );
+
+  // Throttled copy code function
+  const handleCopyCode = useCallback(
+    throttle(() => {
+      navigator.clipboard.writeText(code);
+      showToast("Code copied to clipboard!", "success");
+    }, 1000),
+    [code, showToast]
   );
 
   // Throttled copy to clipboard function
@@ -720,9 +729,24 @@ export default function UploadPage() {
                   </button>
                   <CheckCircle2 className="upload-success-icon" />
                   <div className="upload-success-content">
-                    <p>🎉 File Upload Complete!</p>
-                    <p>
-                      Your file code is: <span>{code}</span>
+                    <p>File Upload Complete!</p>
+                    <p style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      Your file code is: 
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                        {code}
+                        <button
+                          onClick={handleCopyCode}
+                          onMouseEnter={(e) => {
+                            e.target.style.transform = 'scale(1.05)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.transform = 'scale(1)';
+                          }}
+                          title="Copy code"
+                        >
+                          <Copy size={16} />
+                        </button>
+                      </span>
                     </p>
                     <p>
                       Share this code or use the link below to access your file.
