@@ -69,7 +69,7 @@ const PasswordModal = memo(({
         {/* Form */}
         <form onSubmit={handleSubmit}>
           {/* Password Input */}
-          <div style={{ marginBottom: '0.75rem' }}>
+          <div style={{ marginBottom: '0.75dont rem' }}>
             <label style={{
               display: 'block',
               fontSize: '0.875rem',
@@ -96,6 +96,7 @@ const PasswordModal = memo(({
                   outline: 'none',
                   transition: 'all 0.3s ease'
                 }}
+                className="password-input-no-reveal"
                 onFocus={(e) => {
                   e.target.style.borderColor = '#ea580c';
                   e.target.style.boxShadow = '0 0 0 3px rgba(234, 88, 12, 0.2)';
@@ -224,6 +225,33 @@ const PasswordModal = memo(({
         }
         input::placeholder {
           color: #6b7280;
+        }
+        /* Hide default browser password reveal button - All browsers */
+        input[type="password"]::-ms-reveal,
+        input[type="password"]::-ms-clear {
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
+        }
+        input[type="text"]::-ms-reveal,
+        input[type="text"]::-ms-clear {
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
+        }
+        /* Chrome, Safari, Edge */
+        input::-webkit-credentials-auto-fill-button,
+        input::-webkit-contacts-auto-fill-button {
+          visibility: hidden !important;
+          display: none !important;
+          pointer-events: none !important;
+          height: 0 !important;
+          width: 0 !important;
+          margin: 0 !important;
+        }
+        /* Additional Edge support */
+        input[type="password"]::-ms-reveal {
+          display: none !important;
         }
       `}</style>
     </div>

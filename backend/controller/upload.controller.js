@@ -23,8 +23,25 @@ const getConvertedFileName = (originalName, conversionType) => {
   const baseName = path.parse(originalName).name;
   const targetFormat = conversionType.split('->')[1];
   
+  // Map conversion types to actual file extensions
+  const extensionMap = {
+    'word': 'docx',  // pdf->word should be .docx
+    'txt': 'txt',
+    'pdf': 'pdf',
+    'png': 'png',
+    'jpg': 'jpg',
+    'jpeg': 'jpeg',
+    'webp': 'webp',
+    'gif': 'gif',
+    'bmp': 'bmp',
+    'avif': 'avif',
+    'csv': 'csv'
+  };
+  
+  const actualExtension = extensionMap[targetFormat] || targetFormat;
+  
   // Return new filename with correct extension
-  return `${baseName}.${targetFormat}`;
+  return `${baseName}.${actualExtension}`;
 };
 
 const allowedConversions = [
@@ -73,7 +90,8 @@ const uploadAndConvertFile = async (req, res) => {
             {
               folder: 'original_files',
               resource_type: 'auto',
-              timeout: 120000 // 2 minutes timeout for large files
+              timeout: 120000,
+              invalidate: true
             },
             (error, result) => {
               if (error) {
@@ -163,7 +181,18 @@ const uploadAndConvertFile = async (req, res) => {
       // File is in memory buffer
       tempFilePath = path.join(uploadsDir, 'temp-' + Date.now() + path.extname(file.originalname));
       fs.writeFileSync(tempFilePath, file.buffer);
+      logger.log(`Wrote temp file: ${tempFilePath} (${file.buffer.length} bytes)`);
+    } else {
+      logger.log(`Using existing file path: ${tempFilePath}`);
     }
+    
+    // Verify temp file exists and is readable
+    if (!fs.existsSync(tempFilePath)) {
+      throw new Error('Temp file was not created successfully');
+    }
+    
+    const tempFileStats = fs.statSync(tempFilePath);
+    logger.log(`Temp file verified: ${tempFileStats.size} bytes`);
 
     logger.log('Starting conversion:', conversionType);
 
@@ -174,10 +203,10 @@ const uploadAndConvertFile = async (req, res) => {
           logger.log('Converting image to PDF...');
           
           try {
-            // First, process the image with Sharp to get consistent format
+            // Process image with Sharp - optimized settings
             const processedImageBuffer = await sharp(tempFilePath)
-              .resize({ fit: 'inside', width: 2000, height: 2000 })
-              .jpeg({ quality: 90 })
+              .resize({ fit: 'inside', width: 2000, height: 2000, withoutEnlargement: true })
+              .jpeg({ quality: 85, progressive: true }) // Reduced quality for speed
               .toBuffer();
             
             // Create PDF with the image
@@ -213,14 +242,32 @@ const uploadAndConvertFile = async (req, res) => {
           }
           
         } else {
-          // Regular image conversion with sharp
+          // Regular image conversion with sharp - optimized
           logger.log(`Converting image to ${targetFormat}...`);
           try {
             const sharpFormat = targetFormat === 'jpg' ? 'jpeg' : targetFormat;
-            await sharp(tempFilePath)
-              .resize({ fit: 'inside', width: 2000 })
-              .toFormat(sharpFormat)
-              .toFile(convertedPath);
+            const sharpInstance = sharp(tempFilePath)
+              .resize({ fit: 'inside', width: 2000, withoutEnlargement: true });
+            
+            // Format-specific optimizations
+            switch (sharpFormat) {
+              case 'jpeg':
+                sharpInstance.jpeg({ quality: 85, progressive: true });
+                break;
+              case 'png':
+                sharpInstance.png({ compressionLevel: 6 }); // Balanced compression
+                break;
+              case 'webp':
+                sharpInstance.webp({ quality: 85 });
+                break;
+              case 'avif':
+                sharpInstance.avif({ quality: 85 });
+                break;
+              default:
+                sharpInstance.toFormat(sharpFormat);
+            }
+            
+            await sharpInstance.toFile(convertedPath);
             logger.log('Image conversion completed');
           } catch (imageError) {
             logger.error('Image conversion failed:', imageError);
@@ -240,6 +287,18 @@ const uploadAndConvertFile = async (req, res) => {
             throw new Error('LibreOffice is not installed or not available in PATH');
           }
           
+          // Verify input file before conversion
+          if (!fs.existsSync(tempFilePath)) {
+            throw new Error('Input file not found before conversion');
+          }
+          
+          const inputStats = fs.statSync(tempFilePath);
+          logger.log(`Input file size: ${inputStats.size} bytes`);
+          
+          if (inputStats.size === 0) {
+            throw new Error('Input file is empty');
+          }
+          
           // Use LibreOffice for conversion
           const outputDir = path.dirname(convertedPath);
           const convertedFilePath = await LibreOfficeConverter.convertWithFallback(
@@ -248,12 +307,39 @@ const uploadAndConvertFile = async (req, res) => {
             conversionType
           );
           
+          // Verify output file
+          if (!fs.existsSync(convertedFilePath)) {
+            throw new Error('Conversion completed but output file not found');
+          }
+          
+          const outputStats = fs.statSync(convertedFilePath);
+          logger.log(`Output file size: ${outputStats.size} bytes`);
+          
+          if (outputStats.size === 0) {
+            throw new Error('Conversion produced an empty file');
+          }
+          
+          // For PDF files, do additional validation
+          if (convertedFilePath.endsWith('.pdf')) {
+            const pdfBuffer = fs.readFileSync(convertedFilePath);
+            const header = pdfBuffer.toString('utf8', 0, 10);
+            logger.log(`PDF header check: ${header}`);
+            
+            if (!header.includes('%PDF')) {
+              logger.error('Invalid PDF - dumping first 100 bytes:', pdfBuffer.toString('hex', 0, 100));
+              throw new Error('LibreOffice produced an invalid PDF file');
+            }
+            
+            logger.log('PDF validation passed');
+          }
+          
           // Update convertedPath to the actual output file
           convertedPath = convertedFilePath;
           logger.log(`LibreOffice conversion completed: ${convertedPath}`);
           
         } catch (libreOfficeError) {
           logger.error('LibreOffice conversion failed:', libreOfficeError);
+          logger.error('Error stack:', libreOfficeError.stack);
           
           // Fallback to legacy methods for specific conversions
           if (conversionType === 'pdf->txt') {
@@ -279,9 +365,8 @@ const uploadAndConvertFile = async (req, res) => {
               throw new Error('PDF to text conversion failed');
             }
           } else {
-            // For other document conversions, copy original file if LibreOffice fails
-            logger.log('LibreOffice failed, uploading original file without conversion');
-            fs.copyFileSync(tempFilePath, convertedPath);
+            // For other document conversions, throw the error
+            throw new Error(`Document conversion failed: ${libreOfficeError.message}`);
           }
         }
 
@@ -310,18 +395,81 @@ const uploadAndConvertFile = async (req, res) => {
       await safeDeleteFile(tempFilePath);
     }
 
+    // Verify converted file exists and is valid before uploading
+    if (!fs.existsSync(convertedPath)) {
+      throw new Error('Conversion completed but output file not found');
+    }
+    
+    const convertedStats = fs.statSync(convertedPath);
+    logger.log(`Converted file ready for upload: ${convertedPath} (${convertedStats.size} bytes)`);
+    
+    if (convertedStats.size === 0) {
+      throw new Error('Converted file is empty');
+    }
+    
+    // For PDF files, validate the header one more time before upload
+    if (convertedPath.endsWith('.pdf')) {
+      const pdfBuffer = fs.readFileSync(convertedPath);
+      const header = pdfBuffer.toString('utf8', 0, 10);
+      if (!header.includes('%PDF')) {
+        logger.error(`Invalid PDF header before upload: ${header}`);
+        logger.error('First 200 bytes:', pdfBuffer.toString('hex', 0, 200));
+        throw new Error('PDF file is corrupted before upload');
+      }
+      logger.log('PDF file validated successfully before upload');
+    }
+
     logger.log('Uploading to Cloudinary...');
 
-    // Upload to Cloudinary
-    const uploadResult = await cloudinary.uploader.upload(convertedPath, {
-      folder: 'converted_files',
-      resource_type: 'auto',
-      timeout: 120000 // 2 minutes timeout for large files
-    });
+    // Upload to Cloudinary with proper resource type
+    let uploadResult;
+    try {
+      // Determine resource type based on file
+      const resourceType = convertedPath.endsWith('.pdf') || 
+                          convertedPath.endsWith('.docx') || 
+                          convertedPath.endsWith('.doc') ? 'raw' : 'auto';
+      
+      logger.log(`Uploading as resource type: ${resourceType}`);
+      
+      // Read file into buffer to ensure it's not deleted during upload
+      const fileBuffer = fs.readFileSync(convertedPath);
+      logger.log(`File buffer size: ${fileBuffer.length} bytes`);
+      
+      // Upload using buffer instead of file path
+      uploadResult = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: 'converted_files',
+            resource_type: resourceType,
+            timeout: 120000,
+            use_filename: true,
+            unique_filename: true,
+            // Remove access_mode and type - let Cloudinary use defaults
+            invalidate: true // Invalidate CDN cache
+          },
+          (error, result) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          }
+        );
+        stream.end(fileBuffer);
+      });
+      
+      logger.log('Cloudinary upload completed:', {
+        url: uploadResult.secure_url,
+        size: uploadResult.bytes,
+        format: uploadResult.format
+      });
+      
+    } catch (uploadError) {
+      logger.error('Cloudinary upload failed:', uploadError);
+      throw new Error(`Failed to upload to Cloudinary: ${uploadError.message}`);
+    }
 
-    logger.log('Cloudinary upload completed');
-
-    // Remove temp files with proper error handling
+    // Remove temp files AFTER successful upload
     await cleanupFiles([file.path, convertedPath]);
 
     // Create DB entry

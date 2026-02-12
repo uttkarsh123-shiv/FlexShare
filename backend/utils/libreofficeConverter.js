@@ -10,8 +10,8 @@ const execFileAsync = promisify(execFile);
 
 class LibreOfficeConverter {
   constructor() {
-    this.timeout = 60000; // 60 seconds timeout
-    this.maxConcurrent = 3; // Limit concurrent conversions
+    this.timeout = 120000; // 120 seconds timeout for large files
+    this.maxConcurrent = 5; // Increased from 3 to 5
     this.activeConversions = 0;
     this.libreOfficeCmd = null; // Will be set by isAvailable()
   }
@@ -112,6 +112,18 @@ class LibreOfficeConverter {
         fs.mkdirSync(outputDir, { recursive: true });
       }
 
+      // Verify input file exists and is readable
+      if (!fs.existsSync(inputPath)) {
+        throw new Error(`Input file not found: ${inputPath}`);
+      }
+
+      const inputStats = fs.statSync(inputPath);
+      if (inputStats.size === 0) {
+        throw new Error('Input file is empty');
+      }
+
+      logger.log(`Input file: ${inputPath} (${inputStats.size} bytes)`);
+
       // LibreOffice command
       const args = [
         '--headless',
@@ -122,16 +134,20 @@ class LibreOfficeConverter {
 
       logger.log(`LibreOffice command: ${this.libreOfficeCmd} ${args.join(' ')}`);
 
-      // Execute conversion
+      // Execute conversion with increased timeout
       const { stdout, stderr } = await execFileAsync(this.libreOfficeCmd, args, {
         timeout: this.timeout,
         env: {
           ...process.env,
           SAL_USE_VCLPLUGIN: 'svp', // Use headless plugin
-          HOME: process.env.HOME || '/tmp' // Ensure HOME is set
+          HOME: process.env.HOME || process.env.USERPROFILE || '/tmp' // Ensure HOME is set
         }
       });
 
+      if (stdout) {
+        logger.log('LibreOffice stdout:', stdout);
+      }
+      
       if (stderr) {
         logger.warn('LibreOffice stderr:', stderr);
       }
@@ -140,20 +156,55 @@ class LibreOfficeConverter {
       const inputBasename = path.basename(inputPath, path.extname(inputPath));
       const expectedOutput = path.join(outputDir, `${inputBasename}.${targetFormat}`);
 
-      // Wait a moment for file system to sync
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      logger.log(`Expected output: ${expectedOutput}`);
 
-      if (fs.existsSync(expectedOutput)) {
-        const stats = fs.statSync(expectedOutput);
-        if (stats.size > 0) {
-          logger.log(`LibreOffice conversion successful: ${expectedOutput} (${stats.size} bytes)`);
-          return expectedOutput;
-        } else {
-          throw new Error('Output file is empty');
+      // Poll for file existence with shorter intervals (max 5 seconds total)
+      let attempts = 0;
+      const maxAttempts = 50; // 50 attempts * 100ms = 5 seconds max
+      
+      while (attempts < maxAttempts) {
+        if (fs.existsSync(expectedOutput)) {
+          const stats = fs.statSync(expectedOutput);
+          if (stats.size > 0) {
+            // File exists and has content, validate it
+            
+            // Additional validation for PDF files
+            if (targetFormat === 'pdf') {
+              const pdfBuffer = fs.readFileSync(expectedOutput);
+              // Check if file starts with PDF header
+              if (!pdfBuffer.toString('utf8', 0, 4).includes('%PDF')) {
+                throw new Error('Generated PDF file is corrupted (invalid PDF header)');
+              }
+            }
+            
+            logger.log(`LibreOffice conversion successful: ${expectedOutput} (${stats.size} bytes)`);
+            return expectedOutput;
+          }
         }
-      } else {
-        throw new Error(`Expected output file not found: ${expectedOutput}`);
+        
+        // Wait 100ms before next check
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
       }
+
+      // If we get here, file wasn't created in time
+      // Check if there's an alternative file
+      const files = fs.readdirSync(outputDir);
+      logger.log('Files in output directory:', files);
+      
+      const possibleOutput = files.find(f => f.endsWith(`.${targetFormat}`));
+      if (possibleOutput) {
+        const foundPath = path.join(outputDir, possibleOutput);
+        logger.log(`Found alternative output file: ${foundPath}`);
+        
+        const stats = fs.statSync(foundPath);
+        if (stats.size > 0) {
+          logger.log(`LibreOffice conversion successful: ${foundPath} (${stats.size} bytes)`);
+          return foundPath;
+        }
+      }
+      
+      throw new Error(`Expected output file not found after ${maxAttempts * 100}ms: ${expectedOutput}`);
 
     } catch (error) {
       logger.error('LibreOffice conversion failed:', error);
