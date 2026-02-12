@@ -10,7 +10,7 @@
 .accordion-title {
   font-size: 1.875rem; /* text-3xl */
   font-weight: 600; /* font-semibold */
-  color: white;
+  color: #1e293b;
   margin-bottom: 24px; /* mb-6 */
   text-align: left;
 }
@@ -22,22 +22,22 @@
 }
 
 .accordion-item {
-  background: #111111; /* bg-[#111] */
+  background: rgba(255, 255, 255, 0.8); /* bg-[#111] */
   padding: 16px; /* p-4 */
   border-radius: 8px; /* rounded-lg */
-  border: 1px solid rgba(255, 255, 255, 0.1); /* border-white/10 */
+  border: 1px solid rgba(0, 0, 0, 0.1); /* border-white/10 */
   transition: all 0.3s ease;
 }
 
 .accordion-item:hover {
-  background: #1a1a1a;
+  background: rgba(27, 27, 27, 0.95);
   border-color: rgba(234, 88, 12, 0.3);
 }
 
 .accordion-summary {
   cursor: pointer;
   font-size: 1.125rem; /* text-lg */
-  color: #fb923c; /* text-orange-400 */
+  color: #ea580c; /* text-orange-400 */
   font-weight: 500; /* font-medium */
   list-style: none;
   display: flex;
@@ -48,7 +48,7 @@
 }
 
 .accordion-summary:hover {
-  color: #ea580c;
+  color: #dc2626;
 }
 
 .accordion-summary::-webkit-details-marker {
@@ -59,22 +59,22 @@
   content: '+';
   font-size: 1.5rem;
   font-weight: bold;
-  color: #fb923c;
+  color: #ea580c;
   transition: transform 0.3s ease, color 0.3s ease;
 }
 
 .accordion-item[open] .accordion-summary::after {
   content: '−';
   transform: rotate(180deg);
-  color: #ea580c;
+  color: #dc2626;
 }
 
 .accordion-content {
-  color: #a8a29e;
+  color: #64748b;
   margin-top: 8px; /* mt-2 */
   line-height: 1.6;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
   animation: fadeIn 0.3s ease-out;
 }
 

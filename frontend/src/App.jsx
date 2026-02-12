@@ -9,7 +9,6 @@ import './App.css';
 import './styles/global-theme.css';
 import Notfound from './pages/Notfound';
 import Navbar from './component/Navbar';
-import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 
 const App = () => {
@@ -20,19 +19,17 @@ const App = () => {
         console.error('Application error:', error, errorInfo);
       }}
     >
-      <ThemeProvider>
-        <ToastProvider>
-          <Router>
-            <Navbar />
-            <Routes>
-              <Route path="/" element={<Hero />} />
-              <Route path="/upload" element={<UploadPage />} />
-              <Route path="/file/:code" element={<FilePage />} />
-              <Route path="*" element={<Notfound />} />
-            </Routes>
-          </Router>
-        </ToastProvider>
-      </ThemeProvider>
+      <ToastProvider>
+        <Router>
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<Hero />} />
+            <Route path="/upload" element={<UploadPage />} />
+            <Route path="/file/:code" element={<FilePage />} />
+            <Route path="*" element={<Notfound />} />
+          </Routes>
+        </Router>
+      </ToastProvider>
     </ErrorBoundary>
   );
 }

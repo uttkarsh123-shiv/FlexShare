@@ -71,7 +71,7 @@ export default function Footer() {
               <Mail className="footer-social-icon" />
             </a>
             <a 
-              href="https://github.com" 
+              href="https://github.com/uttkarsh123-shiv" 
               className="footer-social-link"
               title="GitHub"
               target="_blank"

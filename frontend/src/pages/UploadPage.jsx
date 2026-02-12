@@ -5,7 +5,6 @@ import { throttle, debounce } from "lodash";
 import { X, Upload, FileText, Image as ImageIcon, File, CheckCircle2, Loader2, Clock, Shield, Download, Settings, Copy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../context/ToastContext";
-import ThemeToggle from "../component/ThemeToggle";
 import "../styles/upload-page.css";
 
 // Auto-detect environment and set API URL accordingly
@@ -307,9 +306,6 @@ export default function UploadPage() {
 
   return (
     <div className="upload-page">
-      {/* Theme Toggle */}
-      <ThemeToggle />
-      
       <div className="upload-container">
         {/* Header */}
         <div className="upload-header">

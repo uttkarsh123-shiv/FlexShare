@@ -8,7 +8,6 @@ import { MdOutlineSecurity } from "react-icons/md";
 import { FaFileAlt } from "react-icons/fa";
 import Footer from "../component/Footer";
 import { ArrowRight, Sparkles } from "lucide-react";
-import ThemeToggle from "../component/ThemeToggle";
 import "../styles/hero-page.css";
 
 export default function Hero() {
@@ -26,9 +25,6 @@ export default function Hero() {
   return (
     <>
       <div className="hero-page">
-        {/* Theme Toggle */}
-        <ThemeToggle />
-        
         {/* Animated Background Elements */}
         <div className="hero-animated-bg">
           <div className="hero-bg-element-1"></div>
@@ -42,10 +38,10 @@ export default function Hero() {
           </div>
           
           <h1 className="hero-title">
-            Share Smarter.
+             Convert smarter.
             <br />
             <span className="hero-title-accent">
-              Convert Faster.
+              Share Faster.
             </span>
           </h1>
           
@@ -72,15 +68,15 @@ export default function Hero() {
           {/* Stats */}
           <div className="hero-stats">
             <div className="hero-stat-item">
-              <div className="hero-stat-number">50MB</div>
+              <div className="hero-stat-number">10MB</div>
               <div className="hero-stat-label">Max File Size</div>
             </div>
             <div className="hero-stat-item">
-              <div className="hero-stat-number">6+</div>
+              <div className="hero-stat-number">13+</div>
               <div className="hero-stat-label">Formats</div>
             </div>
             <div className="hero-stat-item">
-              <div className="hero-stat-number">1hr</div>
+              <div className="hero-stat-number">1hr+</div>
               <div className="hero-stat-label">Auto Delete</div>
             </div>
           </div>

@@ -3,7 +3,7 @@
 .footer {
   padding: 60px 20px 40px;
   margin-top: 80px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
   position: relative;
 }
 
@@ -46,19 +46,19 @@
 .footer-brand-name {
   font-size: 1.5rem;
   font-weight: 700;
-  color: white;
+  color: #1e293b;
   margin: 0;
 }
 
 .footer-tagline {
-  color: #9ca3af;
+  color: #64748b;
   font-size: 1rem;
   margin: 0;
   line-height: 1.5;
 }
 
 .footer-description {
-  color: #6b7280;
+  color: #475569;
   font-size: 0.9rem;
   line-height: 1.6;
   margin: 0;
@@ -74,7 +74,7 @@
 .footer-links-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: white;
+  color: #1e293b;
   margin: 0 0 16px 0;
 }
 
@@ -88,7 +88,7 @@
 }
 
 .footer-link {
-  color: #9ca3af;
+  color: #64748b;
   text-decoration: none;
   font-size: 0.9rem;
   transition: all 0.3s ease;
@@ -118,7 +118,7 @@
 .footer-contact-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: white;
+  color: #1e293b;
   margin: 0 0 16px 0;
 }
 
@@ -126,7 +126,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #9ca3af;
+  color: #64748b;
   font-size: 0.9rem;
   transition: color 0.3s ease;
 }
@@ -163,13 +163,13 @@
 .footer-social-link {
   width: 40px;
   height: 40px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #9ca3af;
+  color: #64748b;
   text-decoration: none;
   transition: all 0.3s ease;
 }
@@ -190,7 +190,7 @@
 .footer-bottom {
   margin-top: 40px;
   padding-top: 30px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -199,13 +199,13 @@
 }
 
 .footer-copyright {
-  color: #6b7280;
+  color: #475569;
   font-size: 0.85rem;
   margin: 0;
 }
 
 .footer-made-with {
-  color: #9ca3af;
+  color: #64748b;
   font-size: 0.8rem;
   display: flex;
   align-items: center;

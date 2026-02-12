@@ -22,8 +22,9 @@
   font-style: normal;
 }
 
-body{
+body, html{
     overflow-x: hidden;
+     background: #000000;
     /* Background handled by global theme system */
 }
 button{

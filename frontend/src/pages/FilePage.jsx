@@ -267,6 +267,33 @@ export default function FilePage() {
     await performDownload();
   }, [file, isDownloading, performDownload]);
 
+  // Handle preview - opens file in new tab (only for non-password-protected files)
+  const handlePreview = useCallback(async () => {
+    if (!file || !file.fileUrl) {
+      showToast('Preview not available', 'error');
+      return;
+    }
+
+    // Determine file type from URL or originalFileName
+    const fileName = file.originalFileName || '';
+    const fileUrl = file.fileUrl;
+    const extension = fileName.split('.').pop()?.toLowerCase();
+
+    // For document files (Word, Excel, PowerPoint), use viewer
+    const documentExtensions = ['docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt'];
+    
+    if (documentExtensions.includes(extension)) {
+      // Use Google Docs Viewer for better compatibility
+      const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+      window.open(viewerUrl, '_blank');
+      showToast('Opening document preview...', 'success');
+    } else {
+      // For images, PDFs, and text files - open directly
+      window.open(fileUrl, '_blank');
+      showToast('Opening preview in new tab...', 'success');
+    }
+  }, [file, showToast]);
+
   // Handle password submission
   const handlePasswordSubmit = useCallback(async (password) => {
     if (file && file.fileUrl) {
@@ -310,34 +337,78 @@ export default function FilePage() {
     }
   }, [code, fetchFileInfo]);
 
-  // Render loading state - show minimal loading during initial load to prevent UI flash
+  // Render loading state - show unified skeleton during initial load
   if (loading && initialLoad) {
     return (
       <div className="file-page">
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          minHeight: '100vh',
-          background: 'transparent' 
-        }}>
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            gap: '20px' 
-          }}>
-            <div style={{ 
-              width: '40px', 
-              height: '40px', 
-              border: '3px solid rgba(234, 88, 12, 0.3)', 
-              borderTop: '3px solid #ea580c', 
-              borderRadius: '50%', 
-              animation: 'spin 1s linear infinite' 
-            }} />
-            <p style={{ color: '#9ca3af', fontSize: '14px' }}>Loading file...</p>
+        <FileHeader 
+          code={code} 
+          onBackClick={handleBackClick} 
+        />
+        <div className="file-container">
+          <div className="file-card">
+            {/* Single unified skeleton loader */}
+            <div style={{ padding: '2rem' }}>
+              {/* File preview skeleton */}
+              <div style={{
+                background: 'linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%)',
+                backgroundSize: '200% 100%',
+                animation: 'shimmer 1.5s infinite',
+                borderRadius: '12px',
+                height: '300px',
+                marginBottom: '1.5rem'
+              }} />
+              
+              {/* Stats skeleton */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', marginBottom: '1rem' }}>
+                {[1,2,3,4].map(i => (
+                  <div key={i} style={{
+                    background: 'linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%)',
+                    backgroundSize: '200% 100%',
+                    animation: 'shimmer 1.5s infinite',
+                    borderRadius: '8px',
+                    height: '60px'
+                  }} />
+                ))}
+              </div>
+              
+              {/* Buttons skeleton */}
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                <div style={{
+                  background: 'linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%)',
+                  backgroundSize: '200% 100%',
+                  animation: 'shimmer 1.5s infinite',
+                  borderRadius: '12px',
+                  height: '48px',
+                  flex: 1
+                }} />
+                <div style={{
+                  background: 'linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%)',
+                  backgroundSize: '200% 100%',
+                  animation: 'shimmer 1.5s infinite',
+                  borderRadius: '12px',
+                  height: '48px',
+                  flex: 1
+                }} />
+              </div>
+              
+              {/* Info skeleton */}
+              <div style={{
+                background: 'linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%)',
+                backgroundSize: '200% 100%',
+                animation: 'shimmer 1.5s infinite',
+                borderRadius: '8px',
+                height: '80px'
+              }} />
+            </div>
           </div>
         </div>
+        <style>{`
+          @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+          }
+        `}</style>
       </div>
     );
   }
@@ -375,62 +446,54 @@ export default function FilePage() {
         onBackClick={handleBackClick} 
       />
 
-      <Suspense fallback={<PasswordModalLoader />}>
-        <LazyPasswordModal
-          isOpen={requiresPassword}
-          onSubmit={handlePasswordSubmit}
-          onCancel={handlePasswordCancel}
-          isLoading={loading || isDownloading}
-          isForDownload={file && file.fileUrl}
-        />
-      </Suspense>
+      <LazyPasswordModal
+        isOpen={requiresPassword}
+        onSubmit={handlePasswordSubmit}
+        onCancel={handlePasswordCancel}
+        isLoading={loading || isDownloading}
+        isForDownload={file && file.fileUrl}
+      />
 
       <div className="file-container">
         <div className="file-card">
           
           <ErrorBoundary FallbackComponent={SimpleErrorFallback}>
-            <Suspense fallback={<FilePreviewLoader />}>
-              <LazyFilePreview
-                fileUrl={fileUrl}
-                filename={filename}
-                conversionType={conversionType}
-                description={description}
-                isImage={isImage}
-                hasPassword={hasPassword}
-              />
-            </Suspense>
+            <LazyFilePreview
+              fileUrl={fileUrl}
+              filename={filename}
+              conversionType={conversionType}
+              description={description}
+              isImage={isImage}
+              hasPassword={hasPassword}
+            />
           </ErrorBoundary>
 
           <div className="file-content">
             <ErrorBoundary FallbackComponent={SimpleErrorFallback}>
-              <Suspense fallback={<FileStatsLoader />}>
-                <LazyFileStats
-                  conversionType={conversionType}
-                  expiry={expiry}
-                  downloadCount={downloadCount}
-                  maxDownloads={maxDownloads}
-                  hasPassword={hasPassword}
-                />
-              </Suspense>
+              <LazyFileStats
+                conversionType={conversionType}
+                expiry={expiry}
+                downloadCount={downloadCount}
+                maxDownloads={maxDownloads}
+                hasPassword={hasPassword}
+              />
             </ErrorBoundary>
 
             <ErrorBoundary FallbackComponent={SimpleErrorFallback}>
-              <Suspense fallback={<FileActionsLoader />}>
-                <LazyFileActions
-                  onDownload={handleDownload}
-                  isDownloading={isDownloading}
-                />
-              </Suspense>
+              <LazyFileActions
+                onDownload={handleDownload}
+                onPreview={handlePreview}
+                isDownloading={isDownloading}
+                hasPassword={hasPassword}
+              />
             </ErrorBoundary>
 
             <ErrorBoundary FallbackComponent={SimpleErrorFallback}>
-              <Suspense fallback={<FileInfoLoader />}>
-                <LazyFileInfo
-                  createdAt={createdAt}
-                  expiry={expiry}
-                  hasPassword={hasPassword}
-                />
-              </Suspense>
+              <LazyFileInfo
+                createdAt={createdAt}
+                expiry={expiry}
+                hasPassword={hasPassword}
+              />
             </ErrorBoundary>
           </div>
         </div>

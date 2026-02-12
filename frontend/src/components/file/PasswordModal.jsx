@@ -1,4 +1,4 @@
-import React, { useState, memo, useCallback } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 
 const PasswordModal = memo(({ 
@@ -13,7 +13,7 @@ const PasswordModal = memo(({
 
   const handleSubmit = useCallback((e) => {
     e.preventDefault();
-    if (password.length < 4) return; // Changed from 6 to 4
+    if (password.length < 4) return;
     onSubmit(password);
   }, [password, onSubmit]);
 
@@ -28,83 +28,204 @@ const PasswordModal = memo(({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-lg flex items-center justify-center p-6 z-50 animate-in fade-in duration-300">
-      <div className="relative bg-gradient-to-br from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/20 shadow-2xl w-full max-w-md transform animate-in zoom-in-95 duration-300">
-        {/* Decorative gradient border */}
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 via-transparent to-orange-500/20 rounded-2xl blur-sm -z-10"></div>
-        
-        <div className="text-center">
-          {/* Icon */}
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-orange-500/20 to-orange-600/20 rounded-full flex items-center justify-center mb-6 border border-orange-500/30">
-            <svg className="w-8 h-8 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-
-          <h2 className="text-2xl font-bold text-white mb-2">
-            Enter Password
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(0, 0, 0, 0.8)',
+      backdropFilter: 'blur(12px)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '1rem',
+      zIndex: 50
+    }}>
+      <div style={{
+        background: '#1e2530',
+        borderRadius: '1.5rem',
+        padding: '2.5rem',
+        border: '1px solid rgba(107, 114, 128, 0.3)',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+        width: '100%',
+        maxWidth: '32rem'
+      }}>
+        {/* Header */}
+        <div style={{ marginBottom: '2.5rem', textAlign: 'center' }}>
+          <h2 style={{
+            fontSize: '1.875rem',
+            fontWeight: 700,
+            color: 'white',
+            marginBottom: '0.75rem'
+          }}>
+            Password Protected
           </h2>
-          
-          <p className="text-gray-400 text-sm mb-8 leading-relaxed">
-            This file is password protected. Enter the password to download.
+          <p style={{
+            color: '#9ca3af',
+            fontSize: '1rem'
+          }}>
+            This file requires a password to access
           </p>
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="flex justify-center">
+        </div>
+        
+        {/* Form */}
+        <form onSubmit={handleSubmit}>
+          {/* Password Input */}
+          <div style={{ marginBottom: '0.75rem' }}>
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              color: '#d1d5db',
+              marginBottom: '0.75rem'
+            }}>
+              Password
+            </label>
+            <div style={{ position: 'relative' }}>
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => handlePasswordChange(e.target.value)}
-                placeholder="Enter password"
-                className="w-full max-w-xs px-4 py-3 text-center text-lg font-medium bg-gray-800/60 border border-gray-600/50 rounded-xl text-white focus:border-orange-500 focus:bg-gray-700/60 focus:ring-2 focus:ring-orange-500/20 transition-all duration-200 focus:outline-none placeholder-gray-500"
+                placeholder="Enter your password"
+                style={{
+                  width: '100%',
+                  padding: '1rem 3.5rem 1rem 1.25rem',
+                  background: '#0f1419',
+                  border: '1px solid rgba(107, 114, 128, 0.5)',
+                  borderRadius: '0.75rem',
+                  color: 'white',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'all 0.3s ease'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#ea580c';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(234, 88, 12, 0.2)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'rgba(107, 114, 128, 0.5)';
+                  e.target.style.boxShadow = 'none';
+                }}
                 autoFocus
                 minLength={4}
               />
-            </div>
-            
-            <div className="flex justify-center">
               <button
                 type="button"
                 onClick={togglePasswordVisibility}
-                className="flex items-center gap-2 text-gray-400 hover:text-orange-400 transition-colors duration-200 text-sm font-medium"
+                style={{
+                  position: 'absolute',
+                  right: '1rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: '#9ca3af',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '0.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  transition: 'color 0.3s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#d1d5db'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}
+                tabIndex={-1}
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                {showPassword ? "Hide" : "Show"} password
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
+          </div>
+          
+          {/* Action Buttons */}
+          <div style={{
+            display: 'flex',
+            gap: '1rem',
+            paddingTop: '1rem'
+          }}>
+            <button
+              type="button"
+              onClick={onCancel}
+              style={{
+                flex: 1,
+                padding: '1rem 1.5rem',
+                borderRadius: '0.75rem',
+                border: '1px solid #4b5563',
+                background: 'transparent',
+                color: '#d1d5db',
+                fontSize: '1rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#6b7280';
+                e.currentTarget.style.background = 'rgba(31, 41, 55, 0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#4b5563';
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              Cancel
+            </button>
             
-            <div className="flex gap-3 pt-2">
-              <button
-                type="submit"
-                disabled={password.length < 4 || isLoading}
-                className="flex-1 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-[1.02] disabled:hover:scale-100 shadow-lg hover:shadow-orange-500/25"
-              >
-                {isLoading ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Processing...
-                  </div>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Download File
-                  </>
-                )}
-              </button>
-              
-              <button
-                type="button"
-                onClick={onCancel}
-                className="px-6 py-3 rounded-xl border border-gray-600/50 hover:border-gray-500 hover:bg-gray-800/50 text-gray-300 hover:text-white font-semibold text-sm transition-all duration-300 hover:scale-[1.02]"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
+            <button
+              type="submit"
+              disabled={password.length < 4 || isLoading}
+              style={{
+                flex: 1,
+                background: password.length < 4 || isLoading ? '#374151' : '#ea580c',
+                color: 'white',
+                padding: '1rem 1.5rem',
+                borderRadius: '0.75rem',
+                fontSize: '1rem',
+                fontWeight: 600,
+                border: 'none',
+                cursor: password.length < 4 || isLoading ? 'not-allowed' : 'pointer',
+                opacity: password.length < 4 || isLoading ? 0.5 : 1,
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                if (password.length >= 4 && !isLoading) {
+                  e.currentTarget.style.background = '#c2410c';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (password.length >= 4 && !isLoading) {
+                  e.currentTarget.style.background = '#ea580c';
+                }
+              }}
+            >
+              {isLoading ? (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem'
+                }}>
+                  <div style={{
+                    width: '1.25rem',
+                    height: '1.25rem',
+                    border: '2px solid rgba(255, 255, 255, 0.3)',
+                    borderTopColor: 'white',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }}></div>
+                  <span>Verifying...</span>
+                </div>
+              ) : (
+                "Download"
+              )}
+            </button>
+          </div>
+        </form>
       </div>
+      
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        input::placeholder {
+          color: #6b7280;
+        }
+      `}</style>
     </div>
   );
 });

@@ -1,4 +1,5 @@
 import React from 'react';
+import { RefreshCw, Clock, Download, Shield } from 'lucide-react';
 
 const FileStats = ({ 
   conversionType, 
@@ -28,16 +29,22 @@ const FileStats = ({
     <div className="file-stats">
       <div className="stat-item">
         <div className="stat-value conversion">
-          {conversionType?.replace("->", " → ") || "None"}
+          {conversionType?.replace("->", " → ") || "none"}
         </div>
-        <div className="stat-label">Conversion</div>
+        <div className="stat-label">
+          <RefreshCw className="w-3 h-3" />
+          Conversion
+        </div>
       </div>
       
       <div className="stat-item">
         <div className="stat-value time">
           {getTimeRemaining(expiry)}
         </div>
-        <div className="stat-label">Time Left</div>
+        <div className="stat-label">
+          <Clock className="w-3 h-3" />
+          Time Left
+        </div>
       </div>
       
       <div className="stat-item">
@@ -45,14 +52,24 @@ const FileStats = ({
           {downloadCount || 0}
           {maxDownloads ? `/${maxDownloads}` : ""}
         </div>
-        <div className="stat-label">Downloads</div>
+        <div className="stat-label">
+          <Download className="w-3 h-3" />
+          Downloads
+        </div>
       </div>
       
       <div className="stat-item">
         <div className="stat-value protected">
-          {hasPassword ? "Yes" : "No"}
+          {hasPassword ? (
+            <Shield className="w-5 h-5 inline" />
+          ) : (
+            "No"
+          )}
         </div>
-        <div className="stat-label">Protected</div>
+        <div className="stat-label">
+          <Shield className="w-3 h-3" />
+          Protected
+        </div>
       </div>
     </div>
   );
