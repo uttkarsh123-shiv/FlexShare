@@ -5,7 +5,7 @@ const fileSchema = new mongoose.Schema({
     code: {
         type: String,
         required: true,
-        unique: true,
+        unique: true,  // This creates an index automatically
         uppercase: true
     },
     fileUrl: {
@@ -43,7 +43,8 @@ const fileSchema = new mongoose.Schema({
     },
     expiry: {
         type: Date,
-        required: true
+        required: true,
+        index: true  // Simple index for TTL and queries
     },
     description: {
         type: String,
@@ -77,14 +78,13 @@ const fileSchema = new mongoose.Schema({
     }]
 }, { timestamps: true });
 
-// Add indexes for better query performance
-fileSchema.index({ code: 1 }); // Primary lookup field
-fileSchema.index({ expiry: 1 }); // For cleanup queries and TTL
+// Add additional indexes for better query performance
+// Note: code and expiry already have indexes from schema definition above
 fileSchema.index({ createdAt: -1 }); // For sorting by creation date
 fileSchema.index({ downloadCount: 1 }); // For analytics
 fileSchema.index({ hasPassword: 1 }); // For filtering protected files
 
-// TTL index for automatic document expiration
+// TTL index for automatic document expiration (uses existing expiry index)
 fileSchema.index({ expiry: 1 }, { expireAfterSeconds: 0 });
 
 // Dynamic model selection based on environment and connection status

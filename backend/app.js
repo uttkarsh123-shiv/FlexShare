@@ -46,6 +46,20 @@ app.use(cors({
   credentials: true
 }));
 
+// Root route for health checks
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    message: 'FlexShare Backend API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      upload: '/api/uploads',
+      file: '/api/file/:code'
+    }
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
