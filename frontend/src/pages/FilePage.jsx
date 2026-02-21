@@ -267,33 +267,6 @@ export default function FilePage() {
     await performDownload();
   }, [file, isDownloading, performDownload]);
 
-  // Handle preview - opens file in new tab (only for non-password-protected files)
-  const handlePreview = useCallback(async () => {
-    if (!file || !file.fileUrl) {
-      showToast('Preview not available', 'error');
-      return;
-    }
-
-    // Determine file type from URL or originalFileName
-    const fileName = file.originalFileName || '';
-    const fileUrl = file.fileUrl;
-    const extension = fileName.split('.').pop()?.toLowerCase();
-
-    // For document files (Word, Excel, PowerPoint), use viewer
-    const documentExtensions = ['docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt'];
-    
-    if (documentExtensions.includes(extension)) {
-      // Use Google Docs Viewer for better compatibility
-      const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
-      window.open(viewerUrl, '_blank');
-      showToast('Opening document preview...', 'success');
-    } else {
-      // For images, PDFs, and text files - open directly
-      window.open(fileUrl, '_blank');
-      showToast('Opening preview in new tab...', 'success');
-    }
-  }, [file, showToast]);
-
   // Handle password submission
   const handlePasswordSubmit = useCallback(async (password) => {
     if (file && file.fileUrl) {
@@ -482,9 +455,7 @@ export default function FilePage() {
             <ErrorBoundary FallbackComponent={SimpleErrorFallback}>
               <LazyFileActions
                 onDownload={handleDownload}
-                onPreview={handlePreview}
                 isDownloading={isDownloading}
-                hasPassword={hasPassword}
               />
             </ErrorBoundary>
 
