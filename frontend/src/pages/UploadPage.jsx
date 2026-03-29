@@ -14,7 +14,7 @@ const getApiUrl = () => {
     return 'http://localhost:3000';
   }
   // If we're in production (deployed), use production backend
-  return 'https://flexshare-1.onrender.com';
+  return 'https://flexshare-backend.onrender.com';
 };
 
 const API_URL = import.meta.env.VITE_API_URL || getApiUrl();
