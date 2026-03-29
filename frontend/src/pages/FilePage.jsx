@@ -30,14 +30,7 @@ import {
   FileInfoLoader
 } from "../components/SuspenseLoaders";
 
-const getApiUrl = () => {
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return 'http://localhost:3000';
-  }
-  return 'https://flexshare-backend.onrender.com';
-};
-
-const API_URL = import.meta.env.VITE_API_URL || getApiUrl();
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function FilePage() {
   const { code } = useParams();

@@ -7,14 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "../context/ToastContext";
 import "../styles/upload-page.css";
 
-const getApiUrl = () => {
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return 'http://localhost:3000';
-  }
-  return 'https://flexshare-backend-5yye.onrender.com';
-};
-
-const API_URL = import.meta.env.VITE_API_URL || getApiUrl();
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function UploadPage() {
   const [file, setFile] = useState(null);
