@@ -8,6 +8,11 @@ const {connectDB} = require('./config/db.js');
 const logger = require('./utils/logger');
 const PORT = process.env.PORT || 3000;
 
+// Start the BullMQ worker (runs in the same process for simplicity)
+// In production you'd run this as a separate process: node queue/conversionWorker.js
+require('./queue/conversionWorker');
+logger.log('Conversion worker started');
+
 logger.log(`Loading environment: ${process.env.NODE_ENV || 'development'}`);
 logger.log(`Environment file: ${envFile}`);
 

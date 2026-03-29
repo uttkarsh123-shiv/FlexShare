@@ -5,6 +5,7 @@ const { uploadAndConvertFile, uploadBatchFiles } = require('../controller/upload
 const { validateUpload } = require('../middleware/validation');
 const { uploadLimiter } = require('../middleware/rateLimiter');
 const logger = require('../utils/logger');
+const filemodel = require('../model/file.model');
 
 // Single file upload with validation and rate limiting
 router.post('/uploads', 
@@ -75,5 +76,23 @@ router.post('/uploads/batch',
   validateUpload,
   uploadBatchFiles
 );
+
+// Job status polling — frontend calls this after upload to check conversion progress
+// GET /api/uploads/status/:code
+router.get('/uploads/status/:code', async (req, res) => {
+  try {
+    const file = await filemodel.findOne({ code: req.params.code.toUpperCase() });
+    if (!file) return res.status(404).json({ message: 'File not found' });
+
+    res.json({
+      code: file.code,
+      status: file.status,           // pending | processing | done | failed
+      url: file.status === 'done' ? file.fileUrl : null,
+      conversionType: file.conversionType,
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Status check failed', error: err.message });
+  }
+});
 
 module.exports = router;

@@ -70,6 +70,17 @@ const fileSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    // Job status for async conversion (BullMQ)
+    status: {
+        type: String,
+        enum: ['pending', 'processing', 'done', 'failed'],
+        default: 'done' // 'done' keeps backward compat for sync uploads (no conversion)
+    },
+    jobId: {
+        type: String,
+        default: null
+    },
+
     // Access logging for security and analytics
     accessLogs: [{
         ip: String,
@@ -126,6 +137,13 @@ const fileModelProxy = {
     deleteOne: async (query) => {
         const model = getFileModel();
         return await model.deleteOne(query);
+    },
+
+    findByIdAndUpdate: async (id, update) => {
+        const model = getFileModel();
+        if (model.findByIdAndUpdate) return await model.findByIdAndUpdate(id, update);
+        // memory storage fallback — id is the code in memory storage
+        return await model.updateOne({ _id: id }, update);
     }
 };
 

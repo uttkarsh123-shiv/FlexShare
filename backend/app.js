@@ -31,7 +31,6 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('combined'));
 }
 
-
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
@@ -80,7 +79,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Apply rate limiting to all API routes
 app.use('/api', (req, res, next) => {
-  if (req.path === '/health') return next();
+  if (req.path === '/health' || req.path=== '/api/health') return next();
   apiLimiter(req, res, next);
 });
 
