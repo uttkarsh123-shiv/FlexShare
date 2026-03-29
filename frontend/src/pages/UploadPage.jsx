@@ -7,14 +7,11 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "../context/ToastContext";
 import "../styles/upload-page.css";
 
-// Auto-detect environment and set API URL accordingly
 const getApiUrl = () => {
-  // If we're in development (localhost), use local backend
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     return 'http://localhost:3000';
   }
-  // If we're in production (deployed), use production backend
-  return 'https://flexshare-backend.onrender.com';
+  return 'https://flexshare-backend-5yye.onrender.com';
 };
 
 const API_URL = import.meta.env.VITE_API_URL || getApiUrl();
@@ -134,16 +131,15 @@ export default function UploadPage() {
     // File size validation (10MB max - Cloudinary free tier limit)
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (selectedFile.size > maxSize) {
-      showToast("File size exceeds 10MB limit (Cloudinary free tier restriction)", "error");
+      showToast("File size exceeds 10MB limit", "error");
       return;
     }
 
     setFile(selectedFile);
     setCode("");
     setUploadProgress(0);
-    setConversionType(""); // Reset conversion type when new file is selected
+    setConversionType("");
 
-    // Always use card-style UI, no image preview
   }, [showToast]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -275,15 +271,39 @@ export default function UploadPage() {
         timeout: 300000 // 5 minutes timeout for large files
       });
 
+      // If conversion is async (status: pending), poll until done
+      if (res.data.status === 'pending') {
+        const pollCode = res.data.code;
+        showToast("File uploaded! Converting in background...", "success");
+
+        await new Promise((resolve, reject) => {
+          const interval = setInterval(async () => {
+            try {
+              const statusRes = await axios.get(`${API_URL}/api/uploads/status/${pollCode}`);
+              const { status } = statusRes.data;
+              if (status === 'done') {
+                clearInterval(interval);
+                resolve();
+              } else if (status === 'failed') {
+                clearInterval(interval);
+                reject(new Error('Conversion failed on server'));
+              }
+              // still 'pending' or 'processing' — keep polling
+            } catch (e) {
+              clearInterval(interval);
+              reject(e);
+            }
+          }, 2000); // poll every 2 seconds
+        });
+      }
+
       setCode(res.data.code);
-      setShowDropdown(false); // Close dropdown when upload is successful
-      showToast(res.data.message || "File uploaded successfully!", "success");
-      
-      // Mark user as sender for the FilePage
+      setShowDropdown(false);
+      showToast("File ready!", "success");
+
       sessionStorage.setItem('uploadSuccess', 'true');
       sessionStorage.setItem('uploadCode', res.data.code);
-      
-      // File work completed - no auto-redirect
+
     } catch (err) {
       console.error('Upload error:', err);
       const errorMessage = err.response?.data?.message || err.response?.data?.errors || err.message || "Upload failed";
@@ -676,7 +696,9 @@ export default function UploadPage() {
                   />
                 </div>
                 <p>
-                  Converting {conversionType?.replace("->", " to ")} format...
+                  {uploadProgress < 100
+                    ? `Uploading... ${uploadProgress}%`
+                    : `Converting ${conversionType?.replace("->", " to ")} format...`}
                 </p>
               </div>
             )}
