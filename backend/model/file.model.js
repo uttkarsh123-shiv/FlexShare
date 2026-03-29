@@ -10,7 +10,7 @@ const fileSchema = new mongoose.Schema({
     },
     fileUrl: {
         type: String,
-        required: true
+        default: ''
     },
     originalFileName: {
         type: String,
@@ -44,7 +44,7 @@ const fileSchema = new mongoose.Schema({
     expiry: {
         type: Date,
         required: true,
-        index: true  // Simple index for TTL and queries
+        // index defined below via schema.index() — don't set index:true here too
     },
     description: {
         type: String,
