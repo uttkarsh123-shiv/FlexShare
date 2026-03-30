@@ -1,4 +1,4 @@
-const cloudinary = require('../config/cloudinary');
+const { uploadToS3 } = require('../utils/s3Helper');
 const filemodel = require('../model/file.model');
 const { customAlphabet } = require('nanoid');
 const bcrypt = require('bcryptjs');
@@ -28,15 +28,6 @@ const allowedConversions = [
 ];
 
 // ── shared helpers ────────────────────────────────────────────────────────────
-
-const uploadToCloudinary = (buffer, folder) =>
-  new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      { folder, resource_type: 'auto', timeout: 120000, invalidate: true },
-      (err, result) => (err ? reject(err) : resolve(result))
-    );
-    stream.end(buffer);
-  });
 
 const parseCommonFields = async (body) => {
   const hours = parseInt(body.expiryHours, 10) || 1;
@@ -76,11 +67,11 @@ const uploadAndConvertFile = async (req, res) => {
 
     // ── no conversion: upload original directly, respond immediately ──────────
     if (!conversionType || conversionType === 'none') {
-      const uploadResult = await uploadToCloudinary(file.buffer, 'original_files');
+      const s3Key = await uploadToS3(file.buffer, file.originalname, 'original_files');
 
       const fileDoc = await filemodel.create({
         code,
-        fileUrl: uploadResult.secure_url,
+        fileUrl: s3Key,
         originalFileName: file.originalname,
         fileSize: file.size,
         conversionType: 'none',
@@ -95,7 +86,6 @@ const uploadAndConvertFile = async (req, res) => {
 
       return res.json({
         code,
-        url: uploadResult.secure_url,
         expiry,
         description: fileDoc.description,
         hasPassword: fileDoc.hasPassword,

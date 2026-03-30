@@ -1,6 +1,6 @@
 const { Worker } = require('bullmq');
 const { getRedisConnection } = require('./redisConnection');
-const cloudinary = require('../config/cloudinary');
+const { uploadToS3 } = require('../utils/s3Helper');
 const filemodel = require('../model/file.model');
 const fs = require('fs');
 const path = require('path');
@@ -11,17 +11,6 @@ const logger = require('../utils/logger');
 const LibreOfficeConverter = require('../utils/libreofficeConverter');
 
 const uploadsDir = path.join(__dirname, '../uploads');
-
-// ── helpers ──────────────────────────────────────────────────────────────────
-
-const uploadToCloudinary = (buffer, resourceType, folder) =>
-  new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      { folder, resource_type: resourceType, timeout: 120000, invalidate: true },
-      (err, result) => (err ? reject(err) : resolve(result))
-    );
-    stream.end(buffer);
-  });
 
 const imageToPdf = async (inputPath) => {
   const imgBuffer = await sharp(inputPath)
@@ -73,17 +62,16 @@ const worker = new Worker(
         fs.copyFileSync(tempPath, convertedPath);
       }
 
-      // ── upload to Cloudinary ───────────────────────────────────────────────
-      const isRaw = ['.pdf','.docx','.doc','.txt','.csv'].some(ext => convertedPath.endsWith(ext));
-      const result = await uploadToCloudinary(
+      // ── upload to S3 ──────────────────────────────────────────────────────
+      const s3Key = await uploadToS3(
         fs.readFileSync(convertedPath),
-        isRaw ? 'raw' : 'auto',
+        path.basename(convertedPath),
         'converted_files'
       );
 
-      await filemodel.findByIdAndUpdate(dbRecordId, { fileUrl: result.secure_url, status: 'done' });
-      logger.log(`[Worker] Job ${job.id} done: ${result.secure_url}`);
-      return { url: result.secure_url };
+      await filemodel.findByIdAndUpdate(dbRecordId, { fileUrl: s3Key, status: 'done' });
+      logger.log(`[Worker] Job ${job.id} done: ${s3Key}`);
+      return { key: s3Key };
 
     } finally {
       await cleanupFiles([tempPath, convertedPath]);

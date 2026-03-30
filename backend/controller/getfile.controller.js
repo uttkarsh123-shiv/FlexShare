@@ -1,6 +1,7 @@
 const filemodel = require('../model/file.model');
 const bcrypt = require('bcryptjs');
 const logger = require('../utils/logger');
+const { getPresignedUrl } = require('../utils/s3Helper');
 
 const getFileByCode = async (req, res) => {
   try {
@@ -106,8 +107,11 @@ const getFileByCode = async (req, res) => {
 
     logger.log(`File access successful: ${cleanCode} (original: ${code}), new download count: ${fileDoc.downloadCount}`);
 
+    // Generate a presigned URL valid for 1 hour
+    const presignedUrl = await getPresignedUrl(fileDoc.fileUrl, fileDoc.originalFileName);
+
     res.json({
-      fileUrl: fileDoc.fileUrl,
+      fileUrl: presignedUrl,
       originalFileName: fileDoc.originalFileName,
       fileSize: fileDoc.fileSize,
       conversionType: fileDoc.conversionType,
