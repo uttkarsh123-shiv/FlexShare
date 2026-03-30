@@ -1,41 +1,15 @@
-import React from 'react';
-import { Clock, AlertCircle, Shield } from 'lucide-react';
+import { CalendarDays, Timer, ShieldCheck } from 'lucide-react';
 
-const FileInfo = ({ createdAt, expiry, hasPassword }) => {
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-  };
+const fmt = (d) => d ? new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
 
-  return (
-    <div className="file-info">
-      <div className="file-info-content">
-        <div className="info-item">
-          <Clock className="w-3 h-3" />
-          <span>Created: {formatDate(createdAt)}</span>
-        </div>
-        
-        <div className="info-item">
-          <AlertCircle className="w-3 h-3" />
-          <span>Expires: {formatDate(expiry)}</span>
-        </div>
-        
-        {hasPassword && (
-          <div className="info-item protected">
-            <Shield className="w-3 h-3" />
-            <span>Password Protected</span>
-          </div>
-        )}
-      </div>
+const FileInfo = ({ createdAt, expiry, hasPassword }) => (
+  <div className="file-info">
+    <div className="file-info-content">
+      <span className="info-item"><CalendarDays size={12} />Created {fmt(createdAt)}</span>
+      <span className="info-item"><Timer size={12} />Expires {fmt(expiry)}</span>
+      {hasPassword && <span className="info-item protected"><ShieldCheck size={12} />Password protected</span>}
     </div>
-  );
-};
+  </div>
+);
 
 export default FileInfo;

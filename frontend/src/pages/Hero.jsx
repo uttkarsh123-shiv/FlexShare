@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import OtpInput from "react-otp-input";
 import Accordion from "../component/Accordion";
@@ -17,7 +17,6 @@ export default function Hero() {
 
   const handleCodeSubmit = () => {
     if (code.length === 6) {
-      // Convert to uppercase to match backend expectation
       navigate(`/file/${code.toUpperCase()}`);
     }
   };

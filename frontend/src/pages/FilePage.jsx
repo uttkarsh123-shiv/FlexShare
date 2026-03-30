@@ -307,10 +307,6 @@ export default function FilePage() {
   if (loading && initialLoad) {
     return (
       <div className="file-page">
-        <FileHeader 
-          code={code} 
-          onBackClick={handleBackClick} 
-        />
         <div className="file-container">
           <div className="file-card">
             {/* Single unified skeleton loader */}
@@ -407,11 +403,6 @@ export default function FilePage() {
   // Render main component
   return (
     <div className="file-page">
-      <FileHeader 
-        code={code} 
-        onBackClick={handleBackClick} 
-      />
-
       <LazyPasswordModal
         isOpen={requiresPassword}
         onSubmit={handlePasswordSubmit}
@@ -431,6 +422,7 @@ export default function FilePage() {
               description={description}
               isImage={isImage}
               hasPassword={hasPassword}
+              code={code}
             />
           </ErrorBoundary>
 

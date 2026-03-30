@@ -1,78 +1,43 @@
-import React from 'react';
-import { RefreshCw, Clock, Download, Shield } from 'lucide-react';
+import { ArrowRightLeft, Clock, Download, ShieldCheck } from 'lucide-react';
 
-const FileStats = ({ 
-  conversionType, 
-  expiry, 
-  downloadCount, 
-  maxDownloads, 
-  hasPassword 
-}) => {
-  const getTimeRemaining = (expiryDate) => {
-    if (!expiryDate) return "Unknown";
-    const now = new Date();
-    const expiry = new Date(expiryDate);
-    const diff = expiry - now;
-    
-    if (diff <= 0) return "Expired";
-    
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (days > 0) return `${days}d ${hours}h`;
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
-  };
-
-  return (
-    <div className="file-stats">
-      <div className="stat-item">
-        <div className="stat-value conversion">
-          {conversionType?.replace("->", " → ") || "none"}
-        </div>
-        <div className="stat-label">
-          <RefreshCw className="w-3 h-3" />
-          Conversion
-        </div>
-      </div>
-      
-      <div className="stat-item">
-        <div className="stat-value time">
-          {getTimeRemaining(expiry)}
-        </div>
-        <div className="stat-label">
-          <Clock className="w-3 h-3" />
-          Time Left
-        </div>
-      </div>
-      
-      <div className="stat-item">
-        <div className="stat-value downloads">
-          {downloadCount || 0}
-          {maxDownloads ? `/${maxDownloads}` : ""}
-        </div>
-        <div className="stat-label">
-          <Download className="w-3 h-3" />
-          Downloads
-        </div>
-      </div>
-      
-      <div className="stat-item">
-        <div className="stat-value protected">
-          {hasPassword ? (
-            <Shield className="w-5 h-5 inline" />
-          ) : (
-            "No"
-          )}
-        </div>
-        <div className="stat-label">
-          <Shield className="w-3 h-3" />
-          Protected
-        </div>
-      </div>
-    </div>
-  );
+const getTimeRemaining = (expiryDate) => {
+  if (!expiryDate) return 'Unknown';
+  const diff = new Date(expiryDate) - new Date();
+  if (diff <= 0) return 'Expired';
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  if (d > 0) return `${d}d ${h}h`;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
 };
+
+const Stat = ({ value, label, icon: Icon, className }) => (
+  <div className="stat-item">
+    <span className={`stat-value ${className}`}>{value}</span>
+    <div className="stat-label"><Icon size={11} />{label}</div>
+  </div>
+);
+
+const FileStats = ({ conversionType, expiry, downloadCount, maxDownloads, hasPassword }) => (
+  <div className="file-stats">
+    <Stat
+      value={conversionType?.replace('->', ' → ') || 'none'}
+      label="Conversion" icon={ArrowRightLeft} className="conversion"
+    />
+    <Stat
+      value={getTimeRemaining(expiry)}
+      label="Expires in" icon={Clock} className="time"
+    />
+    <Stat
+      value={`${downloadCount || 0}${maxDownloads ? `/${maxDownloads}` : ''}`}
+      label="Downloads" icon={Download} className="downloads"
+    />
+    <Stat
+      value={hasPassword ? <ShieldCheck size={18} /> : 'Open'}
+      label="Access" icon={ShieldCheck} className="protected"
+    />
+  </div>
+);
 
 export default FileStats;

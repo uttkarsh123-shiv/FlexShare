@@ -2,7 +2,11 @@ import React, { useState, useCallback } from "react";
 import axios from "axios";
 import { useDropzone } from "react-dropzone";
 import { throttle, debounce } from "lodash";
-import { X, Upload, FileText, Image as ImageIcon, File, CheckCircle2, Loader2, Clock, Shield, Download, Settings, Copy } from "lucide-react";
+import {
+  X, Upload, FileText, Image as ImageIcon, File, CheckCircle2, Loader2,
+  Clock, Shield, Download, Settings, Copy,
+  FileImage, FileType2, FileSpreadsheet, Presentation, ArrowRightLeft
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../context/ToastContext";
 import "../styles/upload-page.css";
@@ -62,54 +66,49 @@ export default function UploadPage() {
     
     // Always add "No Conversion" option first
     const conversions = [
-      { label: "No Conversion (Share Original)", value: "none", icon: "📄", category: "Original" }
+      { label: "No Conversion (Share Original)", value: "none", icon: File, color: "#94a3b8", category: "Original" }
     ];
-    
-    // Image conversions
+
     if (fileType.startsWith('image/')) {
       conversions.push(
-        { label: "Image → PNG", value: "image->png", icon: "🖼️", category: "Image" },
-        { label: "Image → JPG", value: "image->jpg", icon: "🖼️", category: "Image" },
-        { label: "Image → JPEG", value: "image->jpeg", icon: "🖼️", category: "Image" },
-        { label: "Image → WebP", value: "image->webp", icon: "🖼️", category: "Image" },
-        { label: "Image → GIF", value: "image->gif", icon: "🖼️", category: "Image" },
-        { label: "Image → BMP", value: "image->bmp", icon: "🖼️", category: "Image" },
-        { label: "Image → AVIF", value: "image->avif", icon: "🖼️", category: "Image" },
-        { label: "Image → PDF", value: "image->pdf", icon: "📄", category: "Document" }
+        { label: "Image → PNG",  value: "image->png",  icon: FileImage, color: "#fb923c", category: "Image" },
+        { label: "Image → JPG",  value: "image->jpg",  icon: FileImage, color: "#fb923c", category: "Image" },
+        { label: "Image → JPEG", value: "image->jpeg", icon: FileImage, color: "#fb923c", category: "Image" },
+        { label: "Image → WebP", value: "image->webp", icon: FileImage, color: "#fb923c", category: "Image" },
+        { label: "Image → GIF",  value: "image->gif",  icon: FileImage, color: "#fb923c", category: "Image" },
+        { label: "Image → BMP",  value: "image->bmp",  icon: FileImage, color: "#fb923c", category: "Image" },
+        { label: "Image → AVIF", value: "image->avif", icon: FileImage, color: "#fb923c", category: "Image" },
+        { label: "Image → PDF",  value: "image->pdf",  icon: FileText,  color: "#f87171", category: "Document" }
       );
     }
-    
-    // PDF conversions
+
     if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
       conversions.push(
-        { label: "PDF → Word", value: "pdf->word", icon: "📝", category: "Document" },
-        { label: "PDF → Text", value: "pdf->txt", icon: "📄", category: "Document" }
+        { label: "PDF → Word", value: "pdf->word", icon: FileType2, color: "#60a5fa", category: "Document" },
+        { label: "PDF → Text", value: "pdf->txt",  icon: FileText,  color: "#94a3b8", category: "Document" }
       );
     }
-    
-    // Word document conversions
-    if ((fileType.includes('word') || fileType.includes('wordprocessingml')) || 
+
+    if ((fileType.includes('word') || fileType.includes('wordprocessingml')) ||
         fileName.endsWith('.doc') || fileName.endsWith('.docx')) {
       conversions.push(
-        { label: "Word → PDF", value: "word->pdf", icon: "📄", category: "Document" },
-        { label: "Word → Text", value: "word->txt", icon: "📄", category: "Document" }
+        { label: "Word → PDF",  value: "word->pdf", icon: FileText, color: "#f87171", category: "Document" },
+        { label: "Word → Text", value: "word->txt", icon: FileText, color: "#94a3b8", category: "Document" }
       );
     }
-    
-    // Excel conversions
-    if (fileType.includes('sheet') || fileType.includes('excel') || 
+
+    if (fileType.includes('sheet') || fileType.includes('excel') ||
         fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
       conversions.push(
-        { label: "Excel → PDF", value: "excel->pdf", icon: "📊", category: "Spreadsheet" },
-        { label: "Excel → CSV", value: "excel->csv", icon: "📊", category: "Spreadsheet" }
+        { label: "Excel → PDF", value: "excel->pdf", icon: FileSpreadsheet, color: "#34d399", category: "Spreadsheet" },
+        { label: "Excel → CSV", value: "excel->csv", icon: FileSpreadsheet, color: "#34d399", category: "Spreadsheet" }
       );
     }
-    
-    // PowerPoint conversions
-    if (fileType.includes('presentation') || fileType.includes('powerpoint') || 
+
+    if (fileType.includes('presentation') || fileType.includes('powerpoint') ||
         fileName.endsWith('.ppt') || fileName.endsWith('.pptx')) {
       conversions.push(
-        { label: "PowerPoint → PDF", value: "ppt->pdf", icon: "📊", category: "Presentation" }
+        { label: "PowerPoint → PDF", value: "ppt->pdf", icon: FileText, color: "#a78bfa", category: "Presentation" }
       );
     }
     
@@ -267,7 +266,7 @@ export default function UploadPage() {
       // If conversion is async (status: pending), poll until done
       if (res.data.status === 'pending') {
         const pollCode = res.data.code;
-        showToast("File uploaded! Converting in background...", "success");
+        showToast("File uploaded! Converting...", "success");
 
         await new Promise((resolve, reject) => {
           const interval = setInterval(async () => {
@@ -660,7 +659,7 @@ export default function UploadPage() {
                                 }
                               }}
                             >
-                              <span>{option.icon}</span>
+                              <span>{option.icon && <option.icon size={15} style={{ color: option.color }} />}</span>
                               <span>{option.label}</span>
                             </div>
                           ))}
