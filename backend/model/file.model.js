@@ -5,7 +5,7 @@ const fileSchema = new mongoose.Schema({
     code: {
         type: String,
         required: true,
-        unique: true,  // This creates an index automatically
+        unique: true,  
         uppercase: true
     },
     fileUrl: {
@@ -44,7 +44,6 @@ const fileSchema = new mongoose.Schema({
     expiry: {
         type: Date,
         required: true,
-        // index defined below via schema.index() — don't set index:true here too
     },
     description: {
         type: String,
@@ -54,7 +53,7 @@ const fileSchema = new mongoose.Schema({
     password: {
         type: String,
         default: null,
-        select: false // Don't return password by default
+        select: false 
     },
     hasPassword: {
         type: Boolean,
@@ -70,18 +69,16 @@ const fileSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    // Job status for async conversion (BullMQ)
     status: {
         type: String,
         enum: ['pending', 'processing', 'done', 'failed'],
-        default: 'done' // 'done' keeps backward compat for sync uploads (no conversion)
+        default: 'done' 
     },
     jobId: {
         type: String,
         default: null
     },
 
-    // Access logging for security and analytics
     accessLogs: [{
         ip: String,
         userAgent: String,
@@ -89,33 +86,27 @@ const fileSchema = new mongoose.Schema({
     }]
 }, { timestamps: true });
 
-fileSchema.index({ createdAt: -1 }); // For sorting by creation date
-fileSchema.index({ downloadCount: 1 }); // For analytics
-fileSchema.index({ hasPassword: 1 }); // For filtering protected files
+fileSchema.index({ createdAt: -1 }); 
+fileSchema.index({ downloadCount: 1 });
+fileSchema.index({ hasPassword: 1 }); 
 
-// TTL index for automatic document expiration (uses existing expiry index)
 fileSchema.index({ expiry: 1 }, { expireAfterSeconds: 0 });
 
-// Dynamic model selection based on environment and connection status
 function getFileModel() {
-    // If explicitly set to skip MongoDB, use memory storage
     if (process.env.MONGO_URI === 'skip') {
         const memoryStorage = require('../storage/memory');
         return memoryStorage;
     }
     
-    // If MongoDB is connected, use MongoDB model
     if (mongoose.connection.readyState === 1) {
         return mongoose.model('File', fileSchema);
     }
     
-    // If MongoDB connection is in progress or failed, use memory storage as fallback
     logger.log('MongoDB not ready, using memory storage as fallback');
     const memoryStorage = require('../storage/memory');
     return memoryStorage;
 }
 
-// Create a proxy object that dynamically selects the appropriate model
 const fileModelProxy = {
     create: async (data) => {
         const model = getFileModel();

@@ -14,32 +14,18 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
   'https://flex-share.vercel.app',
   'https://flexshare-frontend.vercel.app',
-  'http://localhost:3000',
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://127.0.0.1:5173',
-  'http://127.0.0.1:3000'
 ].filter(Boolean);
 
 app.use(compression()); 
 
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-} else {
-  app.use(morgan('combined'));
-}
+morgan.token('short-status', (req, res) => res.statusCode);
+app.use(morgan(':method :url :status :response-time ms', {
+  skip: (req) => req.method === 'OPTIONS'
+}));
 
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
+  origin: process.env.NODE_ENV === 'production' ? allowedOrigins : '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE']
 }));
 
 app.get('/', (req, res) => {
@@ -80,15 +66,6 @@ app.use('/api', (req, res, next) => {
 app.use('/api/file', (req, res, next) => {
   if (req.method === 'GET' && req.path.includes('/info')) {
     res.set('Cache-Control', 'public, max-age=300'); 
-  }
-  next();
-});
-
-app.use('/api', (req, res, next) => {
-  logger.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-  logger.log('Headers:', req.headers);
-  if (req.body && Object.keys(req.body).length > 0) {
-    logger.log('Body:', req.body);
   }
   next();
 });

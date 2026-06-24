@@ -1,6 +1,5 @@
 FROM node:20-bullseye-slim
 
-# Install system dependencies for LibreOffice and Sharp
 RUN apt-get update && apt-get install -y \
     libreoffice \
     libjpeg62-turbo \

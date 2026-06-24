@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { CheckCircle2, XCircle, AlertTriangle, Info, X } from 'lucide-react';
 
 const config = {
-  success: { icon: CheckCircle2, color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
-  error:   { icon: XCircle,      color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
-  warning: { icon: AlertTriangle,color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
-  info:    { icon: Info,         color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+  success: { icon: CheckCircle2, color: '#ffffff', bg: '#16a34a', border: '#15803d' },
+  error:   { icon: XCircle,      color: '#ffffff', bg: '#dc2626', border: '#b91c1c' },
+  warning: { icon: AlertTriangle,color: '#ffffff', bg: '#d97706', border: '#b45309' },
+  info:    { icon: Info,         color: '#ffffff', bg: '#2563eb', border: '#1d4ed8' },
 };
 
 export default function Toast({ message, type = 'success', onClose, duration = 3000 }) {
@@ -34,15 +34,15 @@ export default function Toast({ message, type = 'success', onClose, duration = 3
       transition: 'transform 0.2s ease, opacity 0.2s ease',
     }}>
       <Icon size={15} style={{ color, flexShrink: 0 }} />
-      <span style={{ color: '#111827', fontSize: '0.875rem', fontWeight: 500, flex: 1, lineHeight: 1.4 }}>
+      <span style={{ color: '#ffffff', fontSize: '0.875rem', fontWeight: 500, flex: 1, lineHeight: 1.4 }}>
         {message}
       </span>
       <button onClick={() => { setLeaving(true); setTimeout(onClose, 200); }}
-        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', display: 'flex', padding: '2px' }}>
+        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', display: 'flex', padding: '2px' }}>
         <X size={13} />
       </button>
-      <div style={{ position: 'absolute', bottom: 0, left: 0, height: '2px', width: '100%', background: border }}>
-        <div style={{ height: '100%', background: color, width: '100%', transformOrigin: 'left', animation: `shrink ${duration}ms linear forwards` }} />
+      <div style={{ position: 'absolute', bottom: 0, left: 0, height: '2px', width: '100%', background: 'rgba(0,0,0,0.2)' }}>
+        <div style={{ height: '100%', background: 'rgba(255,255,255,0.5)', width: '100%', transformOrigin: 'left', animation: `shrink ${duration}ms linear forwards` }} />
       </div>
       <style>{`@keyframes shrink { from { transform: scaleX(1); } to { transform: scaleX(0); } }`}</style>
     </div>

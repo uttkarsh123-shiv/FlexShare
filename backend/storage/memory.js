@@ -1,4 +1,3 @@
-// In-memory storage for development testing
 const files = new Map();
 
 const memoryStorage = {
@@ -19,13 +18,11 @@ const memoryStorage = {
     const code = query.code;
     const file = files.get(code);
     if (file) {
-      // Check if expired
       if (new Date() > new Date(file.expiry)) {
         files.delete(code);
         return Promise.resolve(null);
       }
       
-      // Create a mock mongoose document with save method
       const mockDoc = {
         ...file,
         save: function() {

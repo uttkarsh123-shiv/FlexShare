@@ -16,7 +16,6 @@ const imageToPdf = async (inputPath) => {
   const meta = await sharp(inputPath).metadata();
   const hasAlpha = meta.channels === 4 || meta.hasAlpha;
 
-  // Use PNG for images with transparency (preserves alpha), JPEG otherwise
   let imgBuffer, embedFn;
   if (hasAlpha) {
     imgBuffer = await sharp(inputPath)
@@ -41,7 +40,6 @@ const imageToPdf = async (inputPath) => {
   return pdfDoc.save();
 };
 
-// ── worker ───────────────────────────────────────────────────────────────────
 
 const worker = new Worker(
   'file-conversion',
@@ -57,15 +55,12 @@ const worker = new Worker(
     const tempPath = path.join(uploadsDir, `temp-${Date.now()}${path.extname(originalName)}`);
     let convertedPath = path.join(uploadsDir, `converted-${Date.now()}.${targetFormat}`);
 
-    // Restore buffer from job data — BullMQ JSON-serialises Buffers as
-    // { type: 'Buffer', data: [...] }, so we must reconstruct from .data
     const restoredBuffer = Buffer.isBuffer(fileBuffer)
       ? fileBuffer
       : Buffer.from(fileBuffer.data ?? fileBuffer);
     fs.writeFileSync(tempPath, restoredBuffer);
 
     try {
-      // ── convert ────────────────────────────────────────────────────────────
       if (conversionType === 'image->pdf') {
         fs.writeFileSync(convertedPath, await imageToPdf(tempPath));
 
@@ -80,8 +75,6 @@ const worker = new Worker(
         throw new Error(`Unsupported conversion type: ${conversionType}`);
       }
 
-      // ── upload to S3 ──────────────────────────────────────────────────────
-      // Derive the correct output filename from originalName + target format
       const baseName = path.parse(originalName).name;
       const outputFileName = `${baseName}.${targetFormat === 'word' ? 'docx' : targetFormat}`;
       const s3Key = await uploadToS3(
@@ -101,7 +94,6 @@ const worker = new Worker(
   { connection: getRedisConnection(), concurrency: 5 }
 );
 
-worker.on('completed', (job) => logger.log(`[Worker] Job ${job.id} completed`));
 worker.on('failed', async (job, err) => {
   logger.error(`[Worker] Job ${job.id} failed: ${err.message}`);
   await filemodel.findByIdAndUpdate(job.data.dbRecordId, { status: 'failed' }).catch(() => {});
