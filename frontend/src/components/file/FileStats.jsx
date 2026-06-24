@@ -15,29 +15,29 @@ const getTimeRemaining = (expiryDate) => {
 const Stat = ({ value, label, icon: Icon, className }) => (
   <div className="stat-item">
     <span className={`stat-value ${className}`}>{value}</span>
-    <div className="stat-label"><Icon size={11} />{label}</div>
+    <div className="stat-label"><Icon size={10} />{label}</div>
   </div>
 );
 
-const FileStats = ({ conversionType, expiry, downloadCount, maxDownloads, hasPassword }) => (
-  <div className="file-stats">
-    <Stat
-      value={conversionType?.replace('->', ' → ') || 'none'}
-      label="Conversion" icon={ArrowRightLeft} className="conversion"
-    />
-    <Stat
-      value={getTimeRemaining(expiry)}
-      label="Expires in" icon={Clock} className="time"
-    />
-    <Stat
-      value={`${downloadCount || 0}${maxDownloads ? `/${maxDownloads}` : ''}`}
-      label="Downloads" icon={Download} className="downloads"
-    />
-    <Stat
-      value={hasPassword ? <ShieldCheck size={18} /> : 'Open'}
-      label="Access" icon={ShieldCheck} className="protected"
-    />
-  </div>
-);
-
-export default FileStats;
+export default function FileStats({ conversionType, expiry, downloadCount, maxDownloads, hasPassword }) {
+  return (
+    <div className="file-stats">
+      <Stat
+        value={conversionType?.replace('->', ' → ') || 'none'}
+        label="Conversion" icon={ArrowRightLeft} className="conversion"
+      />
+      <Stat
+        value={getTimeRemaining(expiry)}
+        label="Expires in" icon={Clock} className="time"
+      />
+      <Stat
+        value={`${downloadCount || 0}${maxDownloads ? `/${maxDownloads}` : ''}`}
+        label="Downloads" icon={Download} className="downloads"
+      />
+      <Stat
+        value={hasPassword ? <ShieldCheck size={16} /> : 'Open'}
+        label="Access" icon={ShieldCheck} className="protected"
+      />
+    </div>
+  );
+}

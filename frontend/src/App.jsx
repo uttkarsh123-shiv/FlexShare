@@ -1,37 +1,27 @@
-import React from 'react';
+import { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ErrorBoundary } from 'react-error-boundary';
-import { ErrorFallback } from './components/ErrorFallback';
-import Hero from './pages/Hero';
-import UploadPage from './pages/UploadPage';
-import FilePage from './pages/FilePage';
-import './App.css';
-import './styles/global-theme.css';
 import Notfound from './pages/Notfound';
 import Navbar from './component/Navbar';
 import { ToastProvider } from './context/ToastContext';
+import { LazyHomePage, LazyUploadPage, LazyFilePage } from './components/LazyComponents';
+import { PageLoader } from './components/SuspenseLoaders';
 
 const App = () => {
   return (
-    <ErrorBoundary 
-      FallbackComponent={ErrorFallback}
-      onError={(error, errorInfo) => {
-        console.error('Application error:', error, errorInfo);
-      }}
-    >
-      <ToastProvider>
-        <Router>
-          <Navbar />
+    <ToastProvider>
+      <Router>
+        <Navbar />
+        <Suspense fallback={<PageLoader />}>
           <Routes>
-            <Route path="/" element={<Hero />} />
-            <Route path="/upload" element={<UploadPage />} />
-            <Route path="/file/:code" element={<FilePage />} />
+            <Route path="/" element={<LazyHomePage />} />
+            <Route path="/upload" element={<LazyUploadPage />} />
+            <Route path="/file/:code" element={<LazyFilePage />} />
             <Route path="*" element={<Notfound />} />
           </Routes>
-        </Router>
-      </ToastProvider>
-    </ErrorBoundary>
+        </Suspense>
+      </Router>
+    </ToastProvider>
   );
-}
+};
 
 export default App;

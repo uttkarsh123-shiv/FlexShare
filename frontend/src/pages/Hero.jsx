@@ -1,181 +1,239 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import OtpInput from "react-otp-input";
-import Accordion from "../component/Accordion";
-import Card from "../component/Card";
-import { TfiLoop } from "react-icons/tfi";
-import { MdOutlineSecurity } from "react-icons/md";
-import { FaFileAlt } from "react-icons/fa";
+import { Upload, Search, Shield, Clock, Zap, Users, RefreshCw,
+  Lock, BarChart2 } from "lucide-react";
 import Footer from "../component/Footer";
-import { ArrowRight, Sparkles } from "lucide-react";
 import "../styles/hero-page.css";
 
 export default function Hero() {
-  const [code, setCode] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const navigate = useNavigate();
-
-  const handleCodeSubmit = () => {
-    if (code.length === 6) {
-      navigate(`/file/${code.toUpperCase()}`);
-    }
-  };
+  const openUpload = () => window.dispatchEvent(new CustomEvent("flexshare:open-upload"));
+  const openAccess = () => window.dispatchEvent(new CustomEvent("flexshare:open-access"));
 
   return (
-    <>
-      <div className="hero-page">
-        {/* Animated Background Elements */}
-        <div className="hero-animated-bg">
-          <div className="hero-bg-element-1"></div>
-          <div className="hero-bg-element-2"></div>
-        </div>
-
-        <div className="hero-content">
-          <div className="hero-badge">
-            <Sparkles className="w-4 h-4" />
-            <span>Fast • Secure • Free</span>
-          </div>
-          
-          <h1 className="hero-title">
-             Convert smarter.
-            <br />
-            <span className="hero-title-accent">
-              Share Faster.
-            </span>
-          </h1>
-          
-          <p className="hero-subtitle">
-            Convert & share files in seconds. No sign-up needed. Your files are automatically deleted after 1 hour.
-          </p>
-          
-          <div className="hero-buttons">
-            <button
-              onClick={() => navigate("/upload")}
-              className="hero-upload-btn"
-            >
-              <span>Upload & Convert</span>
-              <ArrowRight className="arrow-icon" />
-            </button>
-            <button
-              onClick={() => setShowModal(true)}
-              className="hero-code-btn"
-            >
-              Enter Code
-            </button>
-          </div>
-
-          {/* Stats */}
-          <div className="hero-stats">
-            <div className="hero-stat-item">
-              <div className="hero-stat-number">10MB</div>
-              <div className="hero-stat-label">Max File Size</div>
-            </div>
-            <div className="hero-stat-item">
-              <div className="hero-stat-number">13+</div>
-              <div className="hero-stat-label">Formats</div>
-            </div>
-            <div className="hero-stat-item">
-              <div className="hero-stat-number">1hr+</div>
-              <div className="hero-stat-label">Auto Delete</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Code Modal */}
-        {showModal && (
-          <div 
-            className="code-modal-overlay"
-            onClick={() => setShowModal(false)}
-          >
-            <div 
-              className="code-modal"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h2 className="code-modal-title text-2xl font-bold mb-2">Enter File Code</h2>
-              <p className="code-modal-subtitle text-gray-400 text-sm mb-6">
-                Enter the 6-character code to access your file
-              </p>
-              
-              <div className="code-modal-otp flex justify-center mb-6">
-                <OtpInput
-                  value={code}
-                  onChange={setCode}
-                  numInputs={6}
-                  inputStyle={{
-                    width: "56px",
-                    height: "68px",
-                    border: "2px solid rgba(255, 255, 255, 0.1)",
-                    borderRadius: "12px",
-                    fontSize: "28px",
-                    fontWeight: "700",
-                    textAlign: "center",
-                    backgroundColor: "rgba(12, 10, 9, 0.6)",
-                    color: "#e5e7eb",
-                    margin: "0 6px",
-                    transition: "all 0.3s ease",
-                    backdropFilter: "blur(8px)",
-                  }}
-                  focusStyle={{
-                    border: "2px solid #ea580c",
-                    outline: "none",
-                    boxShadow: "0 0 0 4px rgba(234, 88, 12, 0.1)",
-                    transform: "scale(1.05)",
-                  }}
-                  renderInput={(props) => <input {...props} />}
-                />
-              </div>
-              
-              <div className="code-modal-buttons flex gap-3">
-                <button
-                  onClick={handleCodeSubmit}
-                  disabled={code.length !== 6}
-                  className="code-modal-submit flex-1 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition"
-                >
-                  Access File
-                </button>
-                <button
-                  onClick={() => {
-                    setShowModal(false);
-                    setCode("");
-                  }}
-                  className="code-modal-cancel px-6 py-3 rounded-lg border border-[#383838] hover:border-orange-600 text-gray-400 hover:text-orange-400 transition"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Features Section */}
-      <div className="features-section py-20 px-4 bg-[#0c0a09] flex justify-center">
-        <div className="features-container max-w-6xl mx-auto">
-          <h2 className="features-title text-4xl font-bold text-center mb-12">
-            Why Choose <span className="features-title-accent text-orange-500">FlexShare</span>?
-          </h2>
-          <div className="features-grid grid md:grid-cols-3 gap-8">
-            <Card
-              title="Instant File Conversion"
-              description="Upload any file and get it converted in seconds — no sign up needed. Support for images, PDFs, and Word documents."
-              icon={TfiLoop}
-            />
-            <Card
-              title="Privacy-Focused"
-              description="Your files are automatically deleted after 1 hour. We never store your data permanently. Share with confidence."
-              icon={MdOutlineSecurity}
-            />
-            <Card
-              title="Multiple Formats Supported"
-              description="Convert between Word, PDF, PNG, JPG, JPEG, and WebP formats. More formats coming soon."
-              icon={FaFileAlt}
-            />
-          </div>
-        </div>
-      </div>
-
-      <Accordion />
+    <main>
+      <HeroSection onUpload={openUpload} onAccess={openAccess} />
+      <FeaturesSection />
+      <HowItWorksSection />
+      <FormatsSection />
       <Footer />
-    </>
+    </main>
+  );
+}
+
+function HeroSection({ onUpload, onAccess }) {
+  return (
+    <section className="hero-section">
+      {/* Left column */}
+      <div className="hero-left">
+        <h1 className="hero-title">
+          Convert. Share.<br />
+          Done <span className="hero-title-orange">Simple.</span>
+        </h1>
+        <p className="hero-subtitle">
+          Convert files between multiple formats and securely share them using
+          a 6-digit code. No sign-up required.
+        </p>
+
+        <div className="hero-cta-group">
+          <button className="btn-orange" onClick={onUpload}>
+            <Upload size={16} /> Upload File
+          </button>
+          <button className="btn-violet-outline" onClick={onAccess}>
+            <Search size={16} /> Access File
+          </button>
+        </div>
+
+        <div className="hero-pills">
+          <span className="hero-pill">Password Protected</span>
+          <span className="hero-pill">Auto Expires</span>
+          <span className="hero-pill">Download Limits</span>
+        </div>
+      </div>
+
+      {/* Right column — visual card */}
+      <div className="hero-right">
+        <div className="hero-visual-card">
+          <div className="flow-steps">
+            <div className="flow-step">
+              <div className="flow-step-icon orange"><Upload size={22} /></div>
+              <p className="flow-step-label">Upload</p>
+              <p className="flow-step-sub">Any format</p>
+            </div>
+            <div className="flow-connector" />
+            <div className="flow-step">
+              <div className="flow-step-icon violet">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>
+              </div>
+              <p className="flow-step-label">Convert</p>
+              <p className="flow-step-sub">13+ formats</p>
+            </div>
+            <div className="flow-connector" />
+            <div className="flow-step">
+              <div className="flow-step-icon orange"><Shield size={22} /></div>
+              <p className="flow-step-label">Share</p>
+              <p className="flow-step-sub">6-digit code</p>
+            </div>
+          </div>
+
+          <div className="code-display">
+            <p className="code-display-label">Share using code</p>
+            <div className="code-boxes">
+              {["7", "4", "2", "8", "1", "6"].map((d, i) => (
+                <div key={i} className="code-box">{d}</div>
+              ))}
+            </div>
+            <p className="code-display-sub">Secure · Private · Expires automatically</p>
+          </div>
+
+          <div className="visual-tags" style={{ marginTop: "1rem" }}>
+            <span className="visual-tag">Password Protection</span>
+            <span className="visual-tag">Expiry Control</span>
+            <span className="visual-tag">Download Limits</span>
+            <span className="visual-tag">13+ Formats</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FEATURES SECTION
+═══════════════════════════════════════════════════════════════════════════ */
+const FEATURES = [
+  {
+    icon: Lock, color: "orange",
+    title: "Secure Sharing",
+    desc: "Add password protection to your files so only intended recipients can access them.",
+  },
+  {
+    icon: Clock, color: "violet",
+    title: "Automatic Expiry",
+    desc: "Files are automatically removed after the expiry time you set — from 1 hour to 1 week.",
+  },
+  {
+    icon: BarChart2, color: "orange",
+    title: "Download Controls",
+    desc: "Limit how many times a file can be downloaded to maintain control over distribution.",
+  },
+  {
+    icon: RefreshCw, color: "violet",
+    title: "Multiple Formats",
+    desc: "Convert between Images, PDF, Word, Excel, PowerPoint and more — 13+ supported formats.",
+  },
+  {
+    icon: Users, color: "orange",
+    title: "No Account Required",
+    desc: "Share files instantly without registration. Just upload and share the 6-digit code.",
+  },
+  {
+    icon: Zap, color: "violet",
+    title: "Fast Processing",
+    desc: "Queue-based background conversion ensures your files are ready quickly and reliably.",
+  },
+];
+
+function FeaturesSection() {
+  return (
+    <section className="features-section">
+      <div className="section-header">
+        <h2 className="section-title">Everything you need to share files securely</h2>
+        <p className="section-subtitle">Built for simplicity without compromising on control.</p>
+      </div>
+      <div className="features-grid">
+        {FEATURES.map(({ icon: Icon, color, title, desc }) => (
+          <div key={title} className="feature-card">
+            <div className={`feature-icon-wrap ${color}`}>
+              <Icon size={20} />
+            </div>
+            <h3 className="feature-title">{title}</h3>
+            <p className="feature-desc">{desc}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HOW IT WORKS SECTION
+═══════════════════════════════════════════════════════════════════════════ */
+const HOW_STEPS = [
+  {
+    icon: Upload,
+    title: "Upload",
+    desc: "Upload your file and choose your conversion settings. Supports Images, PDF, Word, Excel, and more.",
+  },
+  {
+    icon: RefreshCw,
+    title: "Convert",
+    desc: "Files are processed securely in the background using our queue-based conversion system.",
+  },
+  {
+    icon: Shield,
+    title: "Share",
+    desc: "Receive a 6-digit code and share it with anyone. Optionally add a password and set an expiry.",
+  },
+];
+
+function HowItWorksSection() {
+  return (
+    <section className="how-section">
+      <div className="section-header">
+        <h2 className="section-title">How it works</h2>
+        <p className="section-subtitle">Three simple steps</p>
+      </div>
+      <div className="how-steps">
+        {HOW_STEPS.map(({ icon: Icon, title, desc }, idx) => (
+          <div key={title} className="how-step-wrapper" style={{ display: 'contents' }}>
+            <div className="how-step">
+              <div className="how-step-num">{idx + 1}</div>
+              <div className="how-step-icon-wrap"><Icon size={22} /></div>
+              <h3>{title}</h3>
+              <p>{desc}</p>
+            </div>
+            {idx < HOW_STEPS.length - 1 && <div className="how-connector" />}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FORMATS SECTION
+═══════════════════════════════════════════════════════════════════════════ */
+const IMAGE_FORMATS = ["JPG", "PNG", "WEBP", "GIF", "BMP", "AVIF"];
+const DOC_FORMATS = [
+  "PDF → Word", "Word → PDF", "PDF → TXT",
+  "Word → TXT", "Excel → PDF", "Excel → CSV", "PPT → PDF",
+];
+
+function FormatsSection() {
+  return (
+    <section className="formats-section">
+      <div className="section-header">
+        <h2 className="section-title">Supported Conversions</h2>
+        <p className="section-subtitle">From images to documents — we've got the formats you need.</p>
+      </div>
+      <div className="formats-grid">
+        <div>
+          <p className="formats-col-title">Images</p>
+          <div className="format-pills">
+            {IMAGE_FORMATS.map((f) => (
+              <span key={f} className="format-pill">{f}</span>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="formats-col-title">Documents</p>
+          <div className="format-pills">
+            {DOC_FORMATS.map((f) => (
+              <span key={f} className="format-pill">{f}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

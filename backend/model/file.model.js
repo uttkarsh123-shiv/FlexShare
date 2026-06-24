@@ -89,8 +89,6 @@ const fileSchema = new mongoose.Schema({
     }]
 }, { timestamps: true });
 
-// Add additional indexes for better query performance
-// Note: code and expiry already have indexes from schema definition above
 fileSchema.index({ createdAt: -1 }); // For sorting by creation date
 fileSchema.index({ downloadCount: 1 }); // For analytics
 fileSchema.index({ hasPassword: 1 }); // For filtering protected files
@@ -142,8 +140,13 @@ const fileModelProxy = {
     findByIdAndUpdate: async (id, update) => {
         const model = getFileModel();
         if (model.findByIdAndUpdate) return await model.findByIdAndUpdate(id, update);
-        // memory storage fallback — id is the code in memory storage
         return await model.updateOne({ _id: id }, update);
+    },
+
+    findById: async (id) => {
+        const model = getFileModel();
+        if (model.findById) return await model.findById(id);
+        return await model.findOne({ _id: id });
     }
 };
 

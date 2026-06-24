@@ -1,95 +1,59 @@
-import { Mail, Github, ExternalLink, Heart, FileText, Shield, Zap } from 'lucide-react';
-import '../styles/footer.css';
+import { Github, Mail } from "lucide-react";
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear();
+  const year = new Date().getFullYear();
 
   return (
-    <footer className="footer">
-      <div className="footer-container">
-        {/* Brand Section */}
-        <div className="footer-brand">
-          <div className="footer-logo">
-            <div className="footer-logo-icon">F</div>
-            <h3 className="footer-brand-name">FlexShare</h3>
+    <footer style={{
+      borderTop: "1px solid #e7e5e4",
+      background: "#ffffff",
+      padding: "3rem 2.5rem 2rem",
+      fontFamily: "'Inter', sans-serif",
+    }}>
+      <div style={{
+        maxWidth: "1100px",
+        margin: "0 auto",
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "2.5rem",
+        marginBottom: "2.5rem",
+        alignItems: "start",
+      }}>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "0.25rem" }}>
+            <div style={{
+              width: "28px", height: "28px", background: "#f97316",
+              borderRadius: "7px", display: "flex", alignItems: "center",
+              justifyContent: "center", color: "white", fontWeight: 800, fontSize: "13px",
+            }}>F</div>
+            <span style={{ fontSize: "1rem", fontWeight: 700, color: "#1c1917" }}>FlexShare</span>
           </div>
-          <p className="footer-tagline">Effortless File Sharing & Conversion</p>
-          <p className="footer-description">
-            Convert and share files instantly with secure, temporary links. 
-            No sign-up required, files auto-delete for your privacy.
+          <p style={{ fontSize: "0.85rem", color: "#78716c", lineHeight: 1.6, margin: 0, maxWidth: "280px" }}>
+            Secure file conversion and sharing made simple. No sign-up required.
           </p>
         </div>
 
-        {/* Quick Links */}
-        <div className="footer-links">
-          <h4 className="footer-links-title">Features</h4>
-          <ul className="footer-links-list">
-            <li>
-              <a href="#features" className="footer-link">
-                <Zap className="footer-link-icon" />
-                Instant Conversion
-              </a>
-            </li>
-            <li>
-              <a href="#features" className="footer-link">
-                <Shield className="footer-link-icon" />
-                Privacy Focused
-              </a>
-            </li>
-            <li>
-              <a href="#features" className="footer-link">
-                <FileText className="footer-link-icon" />
-                Multiple Formats
-              </a>
-            </li>
-            <li>
-              <a href="#about" className="footer-link">
-                <ExternalLink className="footer-link-icon" />
-                About & FAQs
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        {/* Contact Section */}
-        <div className="footer-contact">
-          <h4 className="footer-contact-title">Get in Touch</h4>
-          <div className="footer-contact-item">
-            <Mail className="footer-contact-icon" />
-            <a href="mailto:uttkarshsingh450@gmail.com" className="footer-email-link">
-              uttkarshsingh450@gmail.com
-            </a>
-          </div>
-          
-          {/* Social Links */}
-          <div className="footer-social">
-            <a 
-              href="mailto:uttkarshsingh450@gmail.com" 
-              className="footer-social-link"
-              title="Send Email"
-            >
-              <Mail className="footer-social-icon" />
-            </a>
-            <a 
-              href="https://github.com/uttkarsh123-shiv" 
-              className="footer-social-link"
-              title="GitHub"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Github className="footer-social-icon" />
-            </a>
-          </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "#1c1917", margin: "0 0 0.4rem", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            Open Source
+          </p>
+          <p style={{ fontSize: "0.82rem", color: "#a8a29e", lineHeight: 1.6, margin: 0 }}>
+            FlexShare is an open-source project built as a portfolio piece.
+          </p>
+          <a href="https://github.com/uttkarsh123-shiv" target="_blank" rel="noopener noreferrer"
+            style={{ fontSize: "0.85rem", color: "#78716c", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "5px", marginTop: "0.25rem" }}
+            onMouseEnter={e => e.currentTarget.style.color = "#f97316"}
+            onMouseLeave={e => e.currentTarget.style.color = "#78716c"}>
+            <Github size={14} /> Star on GitHub
+          </a>
         </div>
       </div>
 
-      {/* Bottom Section */}
-      <div className="footer-bottom">
-        <p className="footer-copyright">
-          © {currentYear} FlexShare. All rights reserved.
-        </p>
-        <p className="footer-made-with">
-          Made with <Heart className="footer-heart" /> for seamless file sharing
+      {/* Bottom */}
+      <div style={{ maxWidth: "1100px", margin: "0 auto", borderTop: "1px solid #f0efee", paddingTop: "1.25rem", textAlign: "center" }}>
+        <p style={{ fontSize: "0.75rem", color: "#a8a29e", margin: 0 }}>
+          © {year} FlexShare. All rights reserved.
         </p>
       </div>
     </footer>

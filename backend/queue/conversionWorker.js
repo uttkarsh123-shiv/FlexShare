@@ -13,18 +13,32 @@ const LibreOfficeConverter = require('../utils/libreofficeConverter');
 const uploadsDir = path.join(__dirname, '../uploads');
 
 const imageToPdf = async (inputPath) => {
-  const imgBuffer = await sharp(inputPath)
-    .resize({ fit: 'inside', width: 2000, height: 2000, withoutEnlargement: true })
-    .jpeg({ quality: 85 })
-    .toBuffer();
+  const meta = await sharp(inputPath).metadata();
+  const hasAlpha = meta.channels === 4 || meta.hasAlpha;
+
+  // Use PNG for images with transparency (preserves alpha), JPEG otherwise
+  let imgBuffer, embedFn;
+  if (hasAlpha) {
+    imgBuffer = await sharp(inputPath)
+      .resize({ fit: 'inside', width: 2000, height: 2000, withoutEnlargement: true })
+      .png()
+      .toBuffer();
+    embedFn = 'embedPng';
+  } else {
+    imgBuffer = await sharp(inputPath)
+      .resize({ fit: 'inside', width: 2000, height: 2000, withoutEnlargement: true })
+      .jpeg({ quality: 85 })
+      .toBuffer();
+    embedFn = 'embedJpg';
+  }
 
   const pdfDoc = await PDFDocument.create();
-  const jpg = await pdfDoc.embedJpg(imgBuffer);
-  const { width: w, height: h } = jpg.scale(1);
+  const img = await pdfDoc[embedFn](imgBuffer);
+  const { width: w, height: h } = img.scale(1);
   const ratio = Math.min(595 / w, 842 / h, 1); // fit to A4
   const page = pdfDoc.addPage([w * ratio, h * ratio]);
-  page.drawImage(jpg, { x: 0, y: 0, width: w * ratio, height: h * ratio });
-  return pdfDoc.save(); // returns a Buffer
+  page.drawImage(img, { x: 0, y: 0, width: w * ratio, height: h * ratio });
+  return pdfDoc.save();
 };
 
 // ── worker ───────────────────────────────────────────────────────────────────
@@ -43,8 +57,12 @@ const worker = new Worker(
     const tempPath = path.join(uploadsDir, `temp-${Date.now()}${path.extname(originalName)}`);
     let convertedPath = path.join(uploadsDir, `converted-${Date.now()}.${targetFormat}`);
 
-    // Restore buffer from job data and write to temp file
-    fs.writeFileSync(tempPath, Buffer.from(fileBuffer));
+    // Restore buffer from job data — BullMQ JSON-serialises Buffers as
+    // { type: 'Buffer', data: [...] }, so we must reconstruct from .data
+    const restoredBuffer = Buffer.isBuffer(fileBuffer)
+      ? fileBuffer
+      : Buffer.from(fileBuffer.data ?? fileBuffer);
+    fs.writeFileSync(tempPath, restoredBuffer);
 
     try {
       // ── convert ────────────────────────────────────────────────────────────
@@ -59,13 +77,16 @@ const worker = new Worker(
         convertedPath = await LibreOfficeConverter.convertWithFallback(tempPath, uploadsDir, conversionType);
 
       } else {
-        fs.copyFileSync(tempPath, convertedPath);
+        throw new Error(`Unsupported conversion type: ${conversionType}`);
       }
 
       // ── upload to S3 ──────────────────────────────────────────────────────
+      // Derive the correct output filename from originalName + target format
+      const baseName = path.parse(originalName).name;
+      const outputFileName = `${baseName}.${targetFormat === 'word' ? 'docx' : targetFormat}`;
       const s3Key = await uploadToS3(
         fs.readFileSync(convertedPath),
-        path.basename(convertedPath),
+        outputFileName,
         'converted_files'
       );
 

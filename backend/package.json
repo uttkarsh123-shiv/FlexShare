@@ -9,6 +9,8 @@
     "start:dev": "set NODE_ENV=development && node index.js",
     "start:prod": "set NODE_ENV=production && node index.js",
     "test": "node test-conversions.js",
+    "bench:index": "node benchmarks/benchmark-mongo-index.js",
+    "bench:queue": "node benchmarks/benchmark-queue.js",
     "build": "echo 'No build step required'",
     "postinstall": "echo 'Installation completed'"
   },

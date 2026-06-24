@@ -1,55 +1,31 @@
-import React, { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 import Toast from '../component/Toast';
 
 const ToastContext = createContext();
 
-export const useToast = () => {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used within ToastProvider');
-  }
-  return context;
-};
+export const useToast = () => useContext(ToastContext);
 
 export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
 
   const showToast = (message, type = 'success', duration = 3000) => {
-    // Generate unique ID with random component to prevent duplicates
+    // Prevent duplicate toasts
+    const isDuplicate = toasts.some(t => t.message === message && t.type === type);
+    if (isDuplicate) return;
     const id = Date.now() + Math.random();
-    
-    // Check for duplicate messages and prevent stacking
-    const isDuplicate = toasts.some(toast => 
-      toast.message === message && toast.type === type
-    );
-    
-    if (isDuplicate) {
-      return; // Don't add duplicate toast
-    }
-    
-    setToasts((prev) => [...prev, { id, message, type, duration }]);
-    return id;
+    setToasts(prev => [...prev, { id, message, type, duration }]);
   };
 
-  const removeToast = (id) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  };
+  const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
 
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="fixed top-4 right-4 z-50 space-y-2">
-        {toasts.map((toast) => (
-          <Toast
-            key={toast.id}
-            message={toast.message}
-            type={toast.type}
-            duration={toast.duration}
-            onClose={() => removeToast(toast.id)}
-          />
+      <div style={{ position: 'fixed', top: '72px', right: '1rem', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        {toasts.map(toast => (
+          <Toast key={toast.id} message={toast.message} type={toast.type} duration={toast.duration} onClose={() => removeToast(toast.id)} />
         ))}
       </div>
     </ToastContext.Provider>
   );
 };
-

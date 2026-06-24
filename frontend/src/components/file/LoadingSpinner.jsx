@@ -1,14 +1,11 @@
-import React from 'react';
-
-const LoadingSpinner = () => {
+export default function LoadingSpinner() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0c0a09] via-[#171717] to-[#0c0a09] flex items-center justify-center">
-      <div className="text-center">
-        <div className="w-16 h-16 border-4 border-orange-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-gray-400">Loading file...</p>
+    <div style={{ minHeight: 'calc(100vh - 58px)', background: '#fafaf9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', sans-serif" }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ width: '28px', height: '28px', border: '3px solid #e9d5ff', borderTopColor: '#9333ea', borderRadius: '50%', animation: 'spin 0.7s linear infinite', margin: '0 auto 0.75rem' }} />
+        <p style={{ color: '#a8a29e', fontSize: '0.825rem' }}>Loading...</p>
       </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
-};
-
-export default LoadingSpinner;
+}

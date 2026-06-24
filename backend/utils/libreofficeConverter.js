@@ -3,7 +3,7 @@ const { promisify } = require('util');
 const fs = require('fs');
 const path = require('path');
 const logger = require('./logger');
-const { PDFParse } = require('pdf-parse');
+const pdfParse = require('pdf-parse');
 const { Document, Packer, Paragraph, TextRun } = require('docx');
 
 const execFileAsync = promisify(execFile);
@@ -240,8 +240,7 @@ class LibreOfficeConverter {
       logger.log('Using pdf-parse fallback for PDF conversion');
       
       const dataBuffer = fs.readFileSync(inputPath);
-      const parser = new PDFParse({ data: dataBuffer });
-      const result = await parser.getText();
+      const result = await pdfParse(dataBuffer);
       
       const inputBasename = path.basename(inputPath, path.extname(inputPath));
       let outputPath;

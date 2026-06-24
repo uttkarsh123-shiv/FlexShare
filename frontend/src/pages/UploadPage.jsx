@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import axios from "axios";
 import { useDropzone } from "react-dropzone";
-import { throttle, debounce } from "lodash";
+import { throttle } from "lodash";
 import {
   X, Upload, FileText, Image as ImageIcon, File, CheckCircle2, Loader2,
   Clock, Shield, Download, Settings, Copy,
@@ -29,32 +29,20 @@ export default function UploadPage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
 
-  // Debounced handlers for form inputs to prevent excessive re-renders
-  const debouncedSetDescription = useCallback(
-    debounce((value) => setDescription(value), 300),
-    []
-  );
-
-  const debouncedSetPassword = useCallback(
-    debounce((value) => setPassword(value), 300),
-    []
-  );
-
-  // Throttled copy code function
+  // Throttled copy functions — prevent spam clicking
   const handleCopyCode = useCallback(
     throttle(() => {
       navigator.clipboard.writeText(code);
-      showToast("Code copied to clipboard!", "success");
+      showToast("Code copied!", "success");
     }, 1000),
     [code, showToast]
   );
 
-  // Throttled copy to clipboard function
   const handleCopyLink = useCallback(
     throttle(() => {
       navigator.clipboard.writeText(`${window.location.origin}/file/${code}`);
-      showToast("Link copied to clipboard!", "success");
-    }, 1000), // 1 second throttle
+      showToast("Link copied!", "success");
+    }, 1000),
     [code, showToast]
   );
 
@@ -568,105 +556,28 @@ export default function UploadPage() {
                 </button>
 
                 {showDropdown && availableConversions.length > 0 && (
-                  <>
-                    <div
-                      style={{ 
-                        position: 'fixed', 
-                        top: 0, 
-                        left: 0, 
-                        right: 0, 
-                        bottom: 0, 
-                        zIndex: 9998,
-                        background: 'rgba(0, 0, 0, 0.3)',
-                      }}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setShowDropdown(false);
-                      }}
-                    />
-                    <div 
-                      className="conversion-dropdown-menu"
-                      style={{
-                        position: 'absolute',
-                        zIndex: 9999,
-                        marginTop: '8px',
-                        width: '100%',
-                        borderRadius: '12px',
-                        background: '#1a1a1a',
-                        border: '1px solid rgba(255, 255, 255, 0.15)',
-                        boxShadow: '0 25px 50px rgba(0, 0, 0, 0.8)',
-                        overflow: 'hidden',
-                        maxHeight: '400px', // Increased from 300px to 400px
-                        overflowY: 'auto'
-                      }}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                    >
-                      {Object.entries(groupedOptions).map(([category, options]) => (
-                        <div key={category}>
-                          <div 
-                            className="conversion-category"
-                            style={{
-                              padding: '12px 16px',
-                              background: 'rgba(234, 88, 12, 0.2)',
-                              color: '#ea580c',
-                              fontSize: '13px',
-                              fontWeight: '600',
-                              borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                  <div className="conversion-dropdown-menu">
+                    {Object.entries(groupedOptions).map(([category, options]) => (
+                      <div key={category}>
+                        <div className="conversion-category">{category}</div>
+                        {options.map((option) => (
+                          <div
+                            key={option.value}
+                            onClick={() => {
+                              setConversionType(option.value);
+                              setShowDropdown(false);
                             }}
+                            className={`conversion-option ${
+                              conversionType === option.value ? "conversion-option-active" : ""
+                            }`}
                           >
-                            {category}
+                            {option.icon && <option.icon size={15} style={{ color: option.color }} />}
+                            <span>{option.label}</span>
                           </div>
-                          {options.map((option) => (
-                            <div
-                              key={option.value}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setConversionType(option.value);
-                                setShowDropdown(false);
-                              }}
-                              className={`conversion-option ${
-                                conversionType === option.value
-                                  ? "conversion-option-active"
-                                  : ""
-                              }`}
-                              style={{
-                                cursor: 'pointer',
-                                padding: '14px 16px',
-                                fontSize: '14px',
-                                transition: 'all 0.3s ease',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px',
-                                color: conversionType === option.value ? '#ea580c' : '#e5e7eb',
-                                background: conversionType === option.value ? 'rgba(234, 88, 12, 0.3)' : 'transparent',
-                                border: 'none'
-                              }}
-                              onMouseEnter={(e) => {
-                                if (conversionType !== option.value) {
-                                  e.target.style.background = 'rgba(255, 255, 255, 0.15)';
-                                  e.target.style.color = 'white';
-                                }
-                              }}
-                              onMouseLeave={(e) => {
-                                if (conversionType !== option.value) {
-                                  e.target.style.background = 'transparent';
-                                  e.target.style.color = '#e5e7eb';
-                                }
-                              }}
-                            >
-                              <span>{option.icon && <option.icon size={15} style={{ color: option.color }} />}</span>
-                              <span>{option.label}</span>
-                            </div>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
-                  </>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
