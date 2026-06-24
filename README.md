@@ -53,10 +53,10 @@ Download flow:
 |-------|-------------|
 | Frontend | React 19, Vite 7, React Router v7, Axios, Lucide React |
 | Backend | Node.js 20, Express 5, Mongoose |
-| Queue | BullMQ, Redis (Redis Cloud) |
+| Queue | BullMQ, Redis |
 | Storage | AWS S3 |
 | Database | MongoDB Atlas |
-| File Processing | Sharp (images), LibreOffice (documents), pdf-lib, pdf-parse |
+| File Processing | Sharp (images), LibreOffice (documents), pdf-lib, pdf-parse, docx |
 | Security | bcrypt, Helmet, CORS, Joi, express-rate-limit |
 | DevOps | Docker, GitHub Actions, GHCR, Render, Vercel |
 
@@ -98,7 +98,7 @@ AWS_S3_BUCKET=your-bucket-name
 Start Redis via Docker:
 
 ```bash
-docker run -d --name redis-flexshare -p 6379:6379 redis:alpine
+docker run -d --name redis -p 6379:6379 redis:alpine redis-server --appendonly yes
 ```
 
 Start backend:
@@ -235,7 +235,14 @@ Response:
 
 ### Backend (Render via Docker)
 
-Push to main triggers GitHub Actions which builds the Docker image and pushes to GHCR. Render pulls the latest image automatically.
+Push to `main` triggers GitHub Actions which builds the Docker image and pushes to GHCR. Pull and restart on your server:
+
+```bash
+docker pull ghcr.io/<your-username>/flexshare-backend:latest
+docker stop flexshare-backend && docker rm flexshare-backend
+docker run -d --name flexshare-backend -p 3000:3000 --env-file .env \
+  ghcr.io/<your-username>/flexshare-backend:latest
+```
 
 Required environment variables on Render:
 
