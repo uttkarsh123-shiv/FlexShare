@@ -85,7 +85,9 @@ const uploadAndConvertFile = async (req, res) => {
     });
   }
 
-  // Conversion needed — enqueue job, respond immediately
+  // Conversion needed — upload original to S3 first, enqueue job with s3Key only
+  const tempS3Key = await uploadToS3(file.buffer, file.originalname, 'temp_files');
+
   const fileDoc = await filemodel.create({
     ...sharedFields,
     fileUrl: '',
@@ -94,7 +96,7 @@ const uploadAndConvertFile = async (req, res) => {
   });
 
   const job = await conversionQueue.add('convert', {
-    fileBuffer: file.buffer,
+    tempS3Key,                          // S3 key — not the buffer
     originalName: file.originalname,
     conversionType,
     dbRecordId: fileDoc._id,
@@ -112,57 +114,5 @@ const uploadAndConvertFile = async (req, res) => {
   });
 };
 
-// ── Batch upload ──────────────────────────────────────────────────────────────
 
-const uploadBatchFiles = async (req, res) => {
-  const files = req.files;
-  const { conversionType, description } = req.body;
-
-  if (!files?.length) return res.status(400).json({ message: 'No files uploaded' });
-  if (!conversionType) return res.status(400).json({ message: 'Conversion type is required' });
-  if (files.length > 10) return res.status(400).json({ message: 'Maximum 10 files allowed per batch' });
-
-  const { hours, expiry, hashedPassword, downloadLimit } = await parseCommonFields(req.body);
-  const results = [];
-
-  for (const file of files) {
-    try {
-      const code = generateCode();
-      const fileDoc = await filemodel.create({
-        code, expiry,
-        fileUrl: '',
-        originalFileName: getConvertedFileName(file.originalname, conversionType),
-        fileSize: file.size,
-        conversionType,
-        description: description || 'No description provided',
-        password: hashedPassword,
-        hasPassword: !!hashedPassword,
-        maxDownloads: downloadLimit,
-        downloadCount: 0,
-        status: 'pending',
-      });
-
-      const job = await conversionQueue.add('convert', {
-        fileBuffer: file.buffer,
-        originalName: file.originalname,
-        conversionType,
-        dbRecordId: fileDoc._id,
-      });
-
-      results.push({ code, jobId: job.id, fileName: file.originalname, status: 'pending', success: true });
-    } catch (err) {
-      results.push({ fileName: file.originalname, error: err.message, success: false });
-    }
-  }
-
-  const successful = results.filter(r => r.success);
-  res.json({
-    total: files.length,
-    successful: successful.length,
-    failed: results.length - successful.length,
-    results,
-    expiresIn: `${hours} hour${hours > 1 ? 's' : ''}`,
-  });
-};
-
-module.exports = { uploadAndConvertFile, uploadBatchFiles };
+module.exports = { uploadAndConvertFile };

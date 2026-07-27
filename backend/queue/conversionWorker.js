@@ -1,6 +1,6 @@
 const { Worker } = require('bullmq');
 const { getRedisConnection } = require('./redisConnection');
-const { uploadToS3 } = require('../utils/s3Helper');
+const { uploadFileToS3, downloadFromS3, deleteFromS3 } = require('../utils/s3Helper');
 const filemodel = require('../model/file.model');
 const fs = require('fs');
 const path = require('path');
@@ -44,7 +44,7 @@ const imageToPdf = async (inputPath) => {
 const worker = new Worker(
   'file-conversion',
   async (job) => {
-    const { fileBuffer, originalName, conversionType, dbRecordId } = job.data;
+    const { tempS3Key, originalName, conversionType, dbRecordId } = job.data;
     logger.log(`[Worker] Job ${job.id} started: ${conversionType}`);
 
     await filemodel.findByIdAndUpdate(dbRecordId, { status: 'processing' });
@@ -52,13 +52,14 @@ const worker = new Worker(
     if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
     const targetFormat = conversionType.split('->')[1];
-    const tempPath = path.join(uploadsDir, `temp-${Date.now()}${path.extname(originalName)}`);
-    let convertedPath = path.join(uploadsDir, `converted-${Date.now()}.${targetFormat}`);
 
-    const restoredBuffer = Buffer.isBuffer(fileBuffer)
-      ? fileBuffer
-      : Buffer.from(fileBuffer.data ?? fileBuffer);
-    fs.writeFileSync(tempPath, restoredBuffer);
+    // Use job.id for unique temp filenames — avoids collisions under concurrency
+    const tempPath = path.join(uploadsDir, `temp-${job.id}${path.extname(originalName)}`);
+    let convertedPath = path.join(uploadsDir, `converted-${job.id}.${targetFormat}`);
+
+    // Download original file from S3 — avoids passing large buffers through Redis
+    const fileBuffer = await downloadFromS3(tempS3Key);
+    fs.writeFileSync(tempPath, fileBuffer);
 
     try {
       if (conversionType === 'image->pdf') {
@@ -68,7 +69,7 @@ const worker = new Worker(
         const fmt = targetFormat === 'jpg' ? 'jpeg' : targetFormat;
         await sharp(tempPath).toFormat(fmt, { quality: 85 }).toFile(convertedPath);
 
-      } else if (['word->pdf','pdf->word','excel->pdf','ppt->pdf','word->txt','excel->csv','pdf->txt'].includes(conversionType)) {
+      } else if (['word->pdf', 'pdf->word', 'excel->pdf', 'ppt->pdf', 'word->txt', 'excel->csv', 'pdf->txt'].includes(conversionType)) {
         convertedPath = await LibreOfficeConverter.convertWithFallback(tempPath, uploadsDir, conversionType);
 
       } else {
@@ -77,26 +78,34 @@ const worker = new Worker(
 
       const baseName = path.parse(originalName).name;
       const outputFileName = `${baseName}.${targetFormat === 'word' ? 'docx' : targetFormat}`;
-      const s3Key = await uploadToS3(
-        fs.readFileSync(convertedPath),
-        outputFileName,
-        'converted_files'
-      );
+
+      // Stream converted file directly to S3 — avoids loading large files into memory
+      const s3Key = await uploadFileToS3(convertedPath, outputFileName, 'converted_files');
 
       await filemodel.findByIdAndUpdate(dbRecordId, { fileUrl: s3Key, status: 'done' });
       logger.log(`[Worker] Job ${job.id} done: ${s3Key}`);
       return { key: s3Key };
 
     } finally {
+      // Clean up local temp files
       await cleanupFiles([tempPath, convertedPath]);
+      // Delete the temp S3 file that was uploaded before queuing
+      await deleteFromS3(tempS3Key).catch((err) =>
+        logger.warn(`[Worker] Failed to delete temp S3 key ${tempS3Key}: ${err.message}`)
+      );
     }
   },
-  { connection: getRedisConnection(), concurrency: 5 }
+  // concurrency: 2 — safe for t2.micro (1GB RAM, LibreOffice ~300MB each)
+  { connection: getRedisConnection(), concurrency: 2 }
 );
 
 worker.on('failed', async (job, err) => {
   logger.error(`[Worker] Job ${job.id} failed: ${err.message}`);
   await filemodel.findByIdAndUpdate(job.data.dbRecordId, { status: 'failed' }).catch(() => {});
+  // Clean up temp S3 file on failure too
+  if (job.data.tempS3Key) {
+    await deleteFromS3(job.data.tempS3Key).catch(() => {});
+  }
 });
 
 module.exports = worker;

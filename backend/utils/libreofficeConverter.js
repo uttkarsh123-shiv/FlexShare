@@ -10,7 +10,7 @@ const execFileAsync = promisify(execFile);
 class LibreOfficeConverter {
   constructor() {
     this.timeout = 120000;
-    this.maxConcurrent = 5;
+    this.maxConcurrent = 2; // matches worker concurrency
     this.activeConversions = 0;
     this.libreOfficeCmd = null;
   }
