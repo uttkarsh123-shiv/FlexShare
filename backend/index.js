@@ -5,6 +5,7 @@ require('dotenv').config({ path: path.join(__dirname, envFile) });
 const app = require('./app');
 const {connectDB} = require('./config/db.js');
 const logger = require('./utils/logger');
+const { startCleanupCron } = require('./utils/s3Cleanup');
 const PORT = process.env.PORT || 3000;
 
 async function startWorker() {
@@ -34,6 +35,7 @@ connectDB().then(()=> {
     app.listen(PORT, () => {
         logger.log(`Server is running on port ${PORT}`);
     });
+    startCleanupCron();
 }).catch((err) => {
     logger.error("Failed to connect to the database", err);
     process.exit(1);
