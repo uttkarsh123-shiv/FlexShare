@@ -230,8 +230,8 @@ Response:
 
 | Endpoint | Limit |
 |----------|-------|
-| File info | 2 req/min |
-| File access | 5 req/min |
+| File info | 20 req/min |
+| File access | 10 req/min |
 | Upload | 10 req/min |
 | General API | 30 req/min |
 
