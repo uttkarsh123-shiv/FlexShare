@@ -2,7 +2,7 @@
 
 A file conversion and sharing platform built with React and Node.js. Upload files, convert between formats, and share via a 6-digit code with optional password protection, expiry, and download limits.
 
-Live: [flex-share.vercel.app](https://flex-share.vercel.app)
+Live: [flexshare-omega.vercel.app](https://flexshare-omega.vercel.app)
 
 ---
 
@@ -10,23 +10,26 @@ Live: [flex-share.vercel.app](https://flex-share.vercel.app)
 
 - 17 conversion formats — images, PDF, Word, Excel, PowerPoint
 - Async conversion via BullMQ job queue (Redis-backed)
-- AWS S3 storage with automatic file expiry via lifecycle rules
+- AWS S3 storage with presigned URLs — files are never publicly accessible
+- Automatic S3 cleanup cron tied to MongoDB document expiry
 - Password-protected files with bcrypt hashing
 - Configurable expiry (1 hour to 7 days) and download limits
 - 6-digit shareable codes — no long URLs, no sign-up required
 - Rate limiting per endpoint, Helmet security headers, CORS whitelist
-- Docker-based backend deployed on Render via GHCR
 
 ---
 
 ## Architecture
 
 ```
-Browser (React + Vite)
+Browser (React + Vite on Vercel)
     |
-    | REST API
+    | HTTPS
     v
-Express Backend (Node.js 20)
+Nginx (SSL termination)
+    |
+    v
+Express Backend (Node.js 20, PM2)
     |           |           |
     v           v           v
 MongoDB      Redis       AWS S3
@@ -34,9 +37,9 @@ MongoDB      Redis       AWS S3
 ```
 
 Upload flow with conversion:
-1. Client uploads file — backend stores job in Redis queue, responds immediately with code
-2. BullMQ worker picks up job, converts file (Sharp / LibreOffice)
-3. Worker uploads converted file to S3, updates DB record status to done
+1. Client uploads file — backend uploads original to S3 temp folder, enqueues job with S3 key only (no buffer in Redis)
+2. BullMQ worker downloads file from S3, converts (Sharp / LibreOffice)
+3. Worker streams converted file to S3, updates DB record status to done
 4. Client polls `/api/uploads/status/:code` until status is done
 
 Download flow:
@@ -44,6 +47,11 @@ Download flow:
 2. Backend validates expiry, password, download limit
 3. Backend generates a 1-hour S3 presigned URL
 4. Client downloads directly from S3
+
+File expiry:
+- Cleanup cron runs on startup and every hour
+- Finds expired MongoDB documents, deletes their S3 files first, then removes the documents
+- Prevents orphaned S3 files
 
 ---
 
@@ -53,12 +61,12 @@ Download flow:
 |-------|-------------|
 | Frontend | React 19, Vite 7, React Router v7, Axios, Lucide React |
 | Backend | Node.js 20, Express 5, Mongoose |
-| Queue | BullMQ, Redis (Redis Cloud) |
-| Storage | AWS S3 |
+| Queue | BullMQ, Redis (local) |
+| Storage | AWS S3 (ap-southeast-2) |
 | Database | MongoDB Atlas |
 | File Processing | Sharp (images), LibreOffice (documents), pdf-lib, pdf-parse |
 | Security | bcrypt, Helmet, CORS, Joi, express-rate-limit |
-| DevOps | Docker, GitHub Actions, GHCR, Render, Vercel |
+| Deployment | EC2 (Ubuntu 22.04) + Nginx + PM2 + Let's Encrypt, Vercel |
 
 ---
 
@@ -81,7 +89,7 @@ npm install
 
 Create `backend/.env.development`:
 
-```
+```env
 MONGO_URI=mongodb://localhost:27017/flexshare
 NODE_ENV=development
 PORT=3000
@@ -91,14 +99,14 @@ REDIS_URL=redis://localhost:6379
 
 AWS_ACCESS_KEY_ID=your_key
 AWS_SECRET_ACCESS_KEY=your_secret
-AWS_REGION=ap-south-1
+AWS_REGION=ap-southeast-2
 AWS_S3_BUCKET=your-bucket-name
 ```
 
 Start Redis via Docker:
 
 ```bash
-docker run -d --name redis-flexshare -p 6379:6379 redis:alpine
+docker run -d --name redis-local -p 6379:6379 redis:7-alpine
 ```
 
 Start backend:
@@ -116,7 +124,7 @@ npm install
 
 Create `frontend/.env.development`:
 
-```
+```env
 VITE_API_URL=http://localhost:3000
 ```
 
@@ -151,17 +159,15 @@ FlexShare/
 │   ├── model/           # Mongoose file schema
 │   ├── queue/           # BullMQ queue, worker, Redis connection
 │   ├── route/           # API routes
-│   ├── utils/           # S3 helper, LibreOffice converter, logger, cleanup
-│   ├── Dockerfile
+│   ├── utils/           # S3 helper, LibreOffice converter, logger, S3 cleanup cron
 │   └── app.js
-├── frontend/
-│   └── src/
-│       ├── component/   # Navbar, Toast, Footer
-│       ├── components/  # File page sub-components
-│       ├── context/     # Toast context
-│       ├── pages/       # Hero, UploadPage, FilePage
-│       └── styles/
-└── .github/workflows/   # Docker build and push to GHCR
+└── frontend/
+    └── src/
+        ├── component/   # Navbar, Toast, Footer
+        ├── components/  # File page sub-components
+        ├── context/     # Toast context
+        ├── pages/       # Hero, UploadPage, FilePage
+        └── styles/
 ```
 
 ---
@@ -233,16 +239,32 @@ Response:
 
 ## Deployment
 
-### Backend (Render via Docker)
+### Backend (EC2 + Nginx + PM2)
 
-Push to main triggers GitHub Actions which builds the Docker image and pushes to GHCR. Render pulls the latest image automatically.
+Requirements:
+- Ubuntu 22.04 LTS
+- Node.js 20, Nginx, Redis, PM2, LibreOffice
 
-Required environment variables on Render:
-
+```bash
+git clone https://github.com/UttkarshSingh1738/FlexShare.git
+cd FlexShare/backend
+npm install --omit=dev
 ```
+
+Create `.env.production` with all required variables, then:
+
+```bash
+NODE_ENV=production pm2 start index.js --name flexshare-backend
+pm2 save
+pm2 startup
+```
+
+Required environment variables:
+
+```env
 NODE_ENV=production
 MONGO_URI=
-REDIS_URL=
+REDIS_URL=redis://localhost:6379
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
 AWS_REGION=
@@ -251,12 +273,20 @@ FRONTEND_URL=
 PORT=3000
 ```
 
+SSL via Certbot (Let's Encrypt):
+
+```bash
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d your-domain.duckdns.org
+```
+
 ### Frontend (Vercel)
 
 ```
+Root directory: frontend
 Build command: npm run build
 Output: dist
-Environment: VITE_API_URL=https://your-backend.onrender.com
+Environment: VITE_API_URL=https://your-backend-domain
 ```
 
 ---
@@ -264,8 +294,16 @@ Environment: VITE_API_URL=https://your-backend.onrender.com
 ## S3 Bucket Setup
 
 1. Create bucket with block all public access enabled
-2. Create IAM user with `AmazonS3FullAccess` policy, generate access keys
-3. Add lifecycle rule: expire objects after 8 days (covers max 7-day user expiry)
+2. Create IAM user with policy scoped to your bucket:
+```json
+{
+  "Effect": "Allow",
+  "Action": ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"],
+  "Resource": "arn:aws:s3:::your-bucket-name/*"
+}
+```
+3. Add CORS rule allowing your frontend origin
+4. No lifecycle rules needed — cleanup is handled by the backend cron
 
 Files are never publicly accessible. All downloads go through backend-generated presigned URLs valid for 1 hour.
 
