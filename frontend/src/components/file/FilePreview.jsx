@@ -2,20 +2,25 @@ import { FileText, Image as ImageIcon, File, FileSpreadsheet, Copy, Check } from
 import { useState } from 'react';
 
 const iconMap = {
-  image:   { icon: ImageIcon,       color: '#ea580c' },
+  image:   { icon: ImageIcon,       color: '#f97316' },
   pdf:     { icon: FileText,        color: '#dc2626' },
   word:    { icon: FileText,        color: '#2563eb' },
   excel:   { icon: FileSpreadsheet, color: '#16a34a' },
-  ppt:     { icon: File,            color: '#7c3aed' },
-  default: { icon: File,            color: '#6b7280' },
+  ppt:     { icon: File,            color: '#ea580c' },
+  default: { icon: File,            color: '#78716c' },
 };
 
 const getIconConfig = (conversionType, fileUrl) => {
-  if (conversionType?.startsWith('image->') || fileUrl?.match(/\.(jpg|jpeg|png|gif|webp|bmp|avif)$/i)) return iconMap.image;
-  if (conversionType?.includes('pdf')   || fileUrl?.match(/\.pdf$/i))        return iconMap.pdf;
-  if (conversionType?.includes('word')  || fileUrl?.match(/\.(doc|docx)$/i)) return iconMap.word;
-  if (conversionType?.includes('excel') || fileUrl?.match(/\.(xls|xlsx)$/i)) return iconMap.excel;
-  if (conversionType?.includes('ppt')   || fileUrl?.match(/\.(ppt|pptx)$/i)) return iconMap.ppt;
+  if (conversionType?.startsWith('image->') || fileUrl?.match(/\.(jpg|jpeg|png|gif|webp|bmp|avif)$/i))
+    return iconMap.image;
+  if (conversionType?.includes('pdf') || fileUrl?.match(/\.pdf$/i))
+    return iconMap.pdf;
+  if (conversionType?.includes('word') || fileUrl?.match(/\.(doc|docx)$/i))
+    return iconMap.word;
+  if (conversionType?.includes('excel') || fileUrl?.match(/\.(xls|xlsx)$/i))
+    return iconMap.excel;
+  if (conversionType?.includes('ppt') || fileUrl?.match(/\.(ppt|pptx)$/i))
+    return iconMap.ppt;
   return iconMap.default;
 };
 
@@ -35,7 +40,11 @@ export default function FilePreview({ fileUrl, filename, conversionType, descrip
     <div className="file-preview">
       {isImage && !hasPassword && fileUrl
         ? <img src={fileUrl} alt={filename} className="file-image" loading="lazy" />
-        : <div className="file-icon-container"><Icon size={24} style={{ color }} /></div>
+        : (
+          <div className="file-icon-container">
+            <Icon size={26} style={{ color }} />
+          </div>
+        )
       }
 
       <h2 className="file-title">{filename}</h2>
@@ -46,12 +55,18 @@ export default function FilePreview({ fileUrl, filename, conversionType, descrip
 
       <div className="file-meta-row">
         {showConversion && (
-          <span className="file-conversion">{conversionType.replace('->', ' → ')}</span>
+          <span className="file-conversion">
+            {conversionType.replace('->', ' → ')}
+          </span>
         )}
         {code && (
           <div className="file-code-chip">
             <span className="file-code-value">{code}</span>
-            <button onClick={handleCopy} className={`file-code-copy ${copied ? 'copied' : ''}`} title="Copy code">
+            <button
+              onClick={handleCopy}
+              className={`file-code-copy ${copied ? 'copied' : ''}`}
+              title="Copy code"
+            >
               {copied ? <Check size={12} /> : <Copy size={12} />}
             </button>
           </div>

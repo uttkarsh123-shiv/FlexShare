@@ -14,21 +14,43 @@ export default function FileActions({ onDownload, isDownloading = false, disable
 
   return (
     <div className="file-actions">
-      <button onClick={!isDisabled ? onDownload : undefined} disabled={isDisabled} className="download-button">
+      <button
+        onClick={!isDisabled ? onDownload : undefined}
+        disabled={isDisabled}
+        className="download-button"
+      >
         <Download size={15} />
         {label}
       </button>
 
-      <button onClick={handleShare} style={{
-        display: 'flex', alignItems: 'center', gap: '6px',
-        padding: '0.75rem 1rem', borderRadius: '8px',
-        border: '1px solid #e5e7eb',
-        background: 'transparent', color: '#6b7280',
-        cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem',
-        whiteSpace: 'nowrap',
-      }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = '#374151'; e.currentTarget.style.color = '#111827'; }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = '#6b7280'; }}
+      <button
+        onClick={handleShare}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '0.8rem 1rem',
+          borderRadius: '10px',
+          border: '1px solid #e7e5e4',
+          background: 'transparent',
+          color: '#78716c',
+          cursor: 'pointer',
+          fontWeight: 600,
+          fontSize: '0.875rem',
+          whiteSpace: 'nowrap',
+          fontFamily: "'Inter', sans-serif",
+          transition: 'all 0.15s',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.borderColor = '#fed7aa';
+          e.currentTarget.style.color = '#f97316';
+          e.currentTarget.style.background = '#fff7ed';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.borderColor = '#e7e5e4';
+          e.currentTarget.style.color = '#78716c';
+          e.currentTarget.style.background = 'transparent';
+        }}
       >
         <Share2 size={14} /> Share
       </button>
