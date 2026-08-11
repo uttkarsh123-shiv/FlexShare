@@ -1,70 +1,64 @@
 /* ── FilePage ────────────────────────────────────────────────────────────── */
 .file-page {
-  min-height: calc(100vh - 68px);
-  background: #fafaf9;
+  min-height: calc(100vh - 72px);
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2.5rem 1rem;
+  padding: 3rem 1rem;
   font-family: 'Inter', sans-serif;
 }
 
-.file-container { width: 100%; max-width: 460px; }
+.file-container { width: 100%; max-width: 480px; }
 
-/* ── Card ────────────────────────────────────────────────────────────────── */
 .file-card {
   background: #ffffff;
-  border: 1px solid #e7e5e4;
-  border-radius: 18px;
+  border: 2px solid #000000;
+  border-radius: 0;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.04);
+  box-shadow: 6px 6px 0px #000000;
 }
 
-/* ── Preview section ─────────────────────────────────────────────────────── */
 .file-preview {
-  padding: 2.25rem 2rem 1.75rem;
+  padding: 2.5rem 2.25rem 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  border-bottom: 1px solid #f5f5f4;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .file-icon-container {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
+  width: 58px;
+  height: 58px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-  margin-bottom: 1.125rem;
+  background: #f8f8f8;
+  border: 1.5px solid #cccccc;
+  margin-bottom: 1.25rem;
 }
 
 .file-title {
   font-size: 1rem;
-  font-weight: 600;
-  color: #1c1917;
+  font-weight: 800;
+  color: #000000;
   margin-bottom: 0.4rem;
   word-break: break-word;
-  max-width: 380px;
-  line-height: 1.35;
-  letter-spacing: -0.01em;
+  max-width: 400px;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
-.file-description {
-  color: #a8a29e;
-  font-size: 0.8rem;
-  line-height: 1.55;
-  margin-bottom: 0.1rem;
-}
+.file-description { color: #888888; font-size: 0.8rem; line-height: 1.55; margin-bottom: 0.1rem; }
 
 .file-meta-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 0.875rem;
+  margin-top: 1rem;
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -73,98 +67,72 @@
   display: inline-flex;
   align-items: center;
   background: #fff7ed;
-  border: 1px solid #fed7aa;
+  border: 1px solid #f97316;
   color: #ea580c;
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: 0.68rem;
+  font-weight: 700;
   padding: 3px 10px;
-  border-radius: 6px;
+  border-radius: 0;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
 }
 
 .file-image {
   max-width: 100%;
-  max-height: 190px;
+  max-height: 200px;
   object-fit: contain;
-  border-radius: 10px;
-  margin-bottom: 1.125rem;
-  border: 1px solid #e7e5e4;
+  border-radius: 0;
+  margin-bottom: 1.25rem;
+  border: 1px solid #cccccc;
 }
 
-/* ── Code chip ───────────────────────────────────────────────────────────── */
 .file-code-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #fafaf9;
-  border: 1px solid #e7e5e4;
-  border-radius: 8px;
-  padding: 4px 10px 4px 12px;
+  background: #f8f8f8;
+  border: 1px solid #000000;
+  border-radius: 0;
+  padding: 4px 12px 4px 14px;
 }
 
 .file-code-value {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #1c1917;
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #000000;
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  letter-spacing: 3px;
+  letter-spacing: 4px;
 }
 
-.file-code-copy {
-  background: transparent;
-  border: none;
-  padding: 3px;
-  cursor: pointer;
-  color: #a8a29e;
-  display: flex;
-  align-items: center;
-  transition: color 0.15s;
-}
+.file-code-copy { background: transparent; border: none; padding: 3px; cursor: pointer; color: #888888; display: flex; align-items: center; transition: color 0.15s; }
 .file-code-copy:hover { color: #f97316; }
 .file-code-copy.copied { color: #16a34a; }
 
-/* ── Content area ────────────────────────────────────────────────────────── */
-.file-content {
-  padding: 1.5rem 2rem 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.125rem;
-}
+.file-content { padding: 1.75rem 2.25rem 2.25rem; display: flex; flex-direction: column; gap: 1.25rem; }
 
-/* ── Stats ───────────────────────────────────────────────────────────────── */
-.file-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
+.file-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: #e0e0e0; border: 1px solid #e0e0e0; }
 
 .stat-item {
-  padding: 0.75rem 0.5rem;
-  background: #fafaf9;
-  border: 1px solid #e7e5e4;
-  border-radius: 10px;
+  padding: 0.875rem 0.5rem;
+  background: #ffffff;
   text-align: center;
-  transition: border-color 0.15s;
+  transition: background 0.15s;
 }
-
-.stat-item:hover {
-  border-color: #fed7aa;
-}
+.stat-item:hover { background: #f8f8f8; }
 
 .stat-value {
   display: block;
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 800;
   margin-bottom: 0.3rem;
-  color: #1c1917;
+  color: #000000;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .stat-value.conversion { color: #f97316; }
-.stat-value.time       { color: #ea580c; }
+.stat-value.time       { color: #000000; }
 .stat-value.downloads  { color: #16a34a; }
 .stat-value.protected  { color: #f97316; }
 
@@ -173,14 +141,13 @@
   align-items: center;
   justify-content: center;
   gap: 3px;
-  font-size: 0.57rem;
-  font-weight: 600;
-  color: #a8a29e;
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: #888888;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
 }
 
-/* ── Actions ─────────────────────────────────────────────────────────────── */
 .file-actions { display: flex; gap: 8px; }
 
 .download-button {
@@ -189,53 +156,35 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  padding: 0.8rem 1.25rem;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 0.9rem;
+  padding: 0.875rem 1.25rem;
+  border-radius: 0;
+  font-weight: 700;
+  font-size: 0.875rem;
   border: none;
   cursor: pointer;
   background: #f97316;
   color: white;
   font-family: 'Inter', sans-serif;
-  transition: background 0.15s, box-shadow 0.15s;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: background 0.15s;
 }
-.download-button:hover:not(:disabled) {
-  background: #ea580c;
-  box-shadow: 0 4px 12px rgba(249,115,22,0.25);
-}
-.download-button:disabled {
-  background: #f5f5f4;
-  color: #a8a29e;
-  cursor: not-allowed;
-}
+.download-button:hover:not(:disabled) { background: #ea580c; }
+.download-button:disabled { background: #cccccc; color: #888888; cursor: not-allowed; }
 
-/* ── Info bar ────────────────────────────────────────────────────────────── */
-.file-info { border-top: 1px solid #f5f5f4; padding-top: 0.875rem; }
+.file-info { border-top: 1px solid #e0e0e0; padding-top: 0.875rem; }
 .file-info-content {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 1.125rem;
-  font-size: 0.72rem;
-  color: #a8a29e;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: 1.25rem; font-size: 0.7rem; color: #888888;
 }
-.info-item { display: flex; align-items: center; gap: 4px; font-weight: 500; }
+.info-item { display: flex; align-items: center; gap: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
 
-/* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 520px) {
   .file-page { padding: 0; align-items: flex-start; background: #ffffff; }
   .file-container { max-width: 100%; }
-  .file-card {
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-    min-height: calc(100vh - 60px);
-    box-shadow: none;
-  }
+  .file-card { border-radius: 0; border-left: none; border-right: none; min-height: calc(100vh - 64px); box-shadow: none; }
   .file-stats { grid-template-columns: repeat(2, 1fr); }
   .file-actions { flex-direction: column; }
-  .file-content { padding: 1.25rem 1.5rem 1.75rem; }
-  .file-preview { padding: 1.75rem 1.5rem 1.5rem; }
+  .file-content { padding: 1.5rem; }
+  .file-preview { padding: 2rem 1.5rem 1.75rem; }
 }
