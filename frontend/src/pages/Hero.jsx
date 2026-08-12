@@ -40,12 +40,6 @@ function HeroSection({ onUpload, onAccess }) {
             <Search size={16} /> Access File
           </button>
         </div>
-
-        <div className="hero-pills">
-          <span className="hero-pill">Password Protected</span>
-          <span className="hero-pill">Auto Expires</span>
-          <span className="hero-pill">Download Limits</span>
-        </div>
       </div>
 
       {/* Right column — visual card */}
