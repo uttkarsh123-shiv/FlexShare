@@ -45,12 +45,14 @@
 }
 
 .navbar-brand {
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 1.75rem;
+  font-weight: 400;
   color: #000000;
   margin: 0;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-family: 'DM Serif Display', serif;
+  letter-spacing: -0.01em;
+  text-transform: lowercase;
+  line-height: 1;
 }
 
 .navbar-nav-group {
