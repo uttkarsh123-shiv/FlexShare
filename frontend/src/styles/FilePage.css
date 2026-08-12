@@ -40,15 +40,15 @@
   margin-bottom: 1.25rem;
 }
 .file-title {
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 1.1rem;
+  font-weight: 400;
   color: #000000;
   margin-bottom: 0.4rem;
   word-break: break-word;
   max-width: 400px;
-  line-height: 1.3;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+  line-height: 1.35;
+  font-family: 'DM Serif Display', serif;
+  letter-spacing: -0.01em;
 }
 
 .file-description { color: #888888; font-size: 0.8rem; line-height: 1.55; margin-bottom: 0.1rem; }
