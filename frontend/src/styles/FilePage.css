@@ -39,7 +39,6 @@
   border: 1.5px solid #cccccc;
   margin-bottom: 1.25rem;
 }
-
 .file-title {
   font-size: 1rem;
   font-weight: 800;
@@ -66,9 +65,9 @@
 .file-conversion {
   display: inline-flex;
   align-items: center;
-  background: #fff7ed;
-  border: 1px solid #f97316;
-  color: #ea580c;
+  background: #f0f0f0;
+  border: 1px solid #000000;
+  color: #000000;
   font-size: 0.68rem;
   font-weight: 700;
   padding: 3px 10px;
@@ -105,7 +104,7 @@
 }
 
 .file-code-copy { background: transparent; border: none; padding: 3px; cursor: pointer; color: #888888; display: flex; align-items: center; transition: color 0.15s; }
-.file-code-copy:hover { color: #f97316; }
+.file-code-copy:hover { color: #000000; }
 .file-code-copy.copied { color: #16a34a; }
 
 .file-content { padding: 1.75rem 2.25rem 2.25rem; display: flex; flex-direction: column; gap: 1.25rem; }
@@ -131,10 +130,10 @@
   text-overflow: ellipsis;
 }
 
-.stat-value.conversion { color: #f97316; }
+.stat-value.conversion { color: #000000; }
 .stat-value.time       { color: #000000; }
-.stat-value.downloads  { color: #16a34a; }
-.stat-value.protected  { color: #f97316; }
+.stat-value.downloads  { color: #000000; }
+.stat-value.protected  { color: #000000; }
 
 .stat-label {
   display: flex;
