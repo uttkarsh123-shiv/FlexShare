@@ -13,9 +13,9 @@ export default function ErrorDisplay({ error, onGoHome }) {
         <p style={{ color: '#555555', fontSize: '0.875rem', marginBottom: '2rem', lineHeight: 1.65 }}>
           This file may have expired, reached its download limit, or been removed.
         </p>
-        <button onClick={onGoHome} style={{ background: '#f97316', color: 'white', border: 'none', padding: '12px 28px', fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem', fontFamily: "'Inter', sans-serif", textTransform: 'uppercase', letterSpacing: '0.06em', transition: 'background 0.15s' }}
-          onMouseEnter={e => e.currentTarget.style.background = '#ea580c'}
-          onMouseLeave={e => e.currentTarget.style.background = '#f97316'}>
+        <button onClick={onGoHome} style={{ background: '#000000', color: 'white', border: 'none', padding: '12px 28px', fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem', fontFamily: "'Inter', sans-serif", textTransform: 'uppercase', letterSpacing: '0.06em', transition: 'background 0.15s' }}
+          onMouseEnter={e => e.currentTarget.style.background = '#333333'}
+          onMouseLeave={e => e.currentTarget.style.background = '#000000'}>
           Go Home
         </button>
       </div>

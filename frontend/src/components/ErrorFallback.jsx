@@ -10,8 +10,8 @@ export const ErrorFallback = ({ error, resetErrorBoundary }) => (
       <p style={{ color: '#555555', marginBottom: '1rem', fontSize: '0.875rem', lineHeight: 1.65 }}>An error occurred. Please try refreshing the page.</p>
       <p style={{ color: '#dc2626', fontSize: '0.75rem', fontFamily: 'monospace', marginBottom: '2rem', wordBreak: 'break-all', background: '#fef2f2', padding: '0.625rem', border: '1px solid #fecaca', textAlign: 'left', lineHeight: 1.5 }}>{error.message}</p>
       <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-        <button onClick={resetErrorBoundary} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#f97316', color: 'white', border: 'none', padding: '10px 20px', fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem', fontFamily: "'Inter', sans-serif", textTransform: 'uppercase', letterSpacing: '0.04em' }}
-          onMouseEnter={e => e.currentTarget.style.background = '#ea580c'} onMouseLeave={e => e.currentTarget.style.background = '#f97316'}>
+        <button onClick={resetErrorBoundary} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#000000', color: 'white', border: 'none', padding: '10px 20px', fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem', fontFamily: "'Inter', sans-serif", textTransform: 'uppercase', letterSpacing: '0.04em' }}
+          onMouseEnter={e => e.currentTarget.style.background = '#333333'} onMouseLeave={e => e.currentTarget.style.background = '#000000'}>
           <RefreshCw size={13} /> Retry
         </button>
         <a href="/" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'transparent', color: '#000000', border: '1px solid #000000', padding: '10px 20px', fontWeight: 700, textDecoration: 'none', fontSize: '0.875rem', fontFamily: "'Inter', sans-serif", textTransform: 'uppercase', letterSpacing: '0.04em' }}>
