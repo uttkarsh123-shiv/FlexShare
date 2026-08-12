@@ -161,11 +161,11 @@
 
 .upload-modal-title {
   font-size: 1.4rem;
-  font-weight: 800;
+  font-weight: 400;
   color: #000000;
   margin: 0 0 6px 0;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  font-family: 'DM Serif Display', serif;
+  letter-spacing: -0.01em;
 }
 
 .upload-modal-subtitle {
@@ -494,11 +494,11 @@
 
 .modal-success-title {
   font-size: 1.4rem;
-  font-weight: 800;
+  font-weight: 400;
   color: #000000;
   margin: 0 0 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-family: 'DM Serif Display', serif;
+  letter-spacing: -0.01em;
 }
 
 .modal-success-subtitle { font-size: 0.875rem; color: #555555; margin: 0 0 2rem; line-height: 1.6; }
@@ -604,11 +604,11 @@
 
 .access-modal-title {
   font-size: 1.4rem;
-  font-weight: 800;
+  font-weight: 400;
   color: #000000;
   margin: 0 0 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-family: 'DM Serif Display', serif;
+  letter-spacing: -0.01em;
 }
 
 .access-modal-subtitle { font-size: 0.875rem; color: #555555; margin: 0; line-height: 1.6; }
