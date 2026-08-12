@@ -15,12 +15,12 @@
 
 .upload-title {
   font-size: 2rem;
-  font-weight: 900;
+  font-weight: 400;
   color: #000000;
   margin-bottom: 0.5rem;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  line-height: 1.1;
+  font-family: 'DM Serif Display', serif;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
 }
 
 .upload-title-accent { color: #f97316; }
