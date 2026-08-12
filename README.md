@@ -2,7 +2,7 @@
 
 A file conversion and sharing platform built with React and Node.js. Upload files, convert between formats, and share via a 6-digit code with optional password protection, expiry, and download limits.
 
-Live: [flexshare-omega.vercel.app](https://flexshare-omega.vercel.app)
+Live: [flex-share.vercel.app](https://flex-share.vercel.app)
 
 ---
 
