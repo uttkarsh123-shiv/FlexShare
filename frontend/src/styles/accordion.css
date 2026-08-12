@@ -7,13 +7,13 @@
 
 .accordion-title {
   font-size: 2.25rem;
-  font-weight: 900;
+  font-weight: 400;
   color: #000000;
   margin-bottom: 3rem;
   text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  line-height: 1.1;
+  font-family: 'DM Serif Display', serif;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
 }
 
 .accordion-container { display: flex; flex-direction: column; gap: 0; border: 1px solid #000000; }
