@@ -13,11 +13,11 @@
 
 .hero-title {
   font-size: 4rem;
-  font-weight: 900;
+  font-weight: 400;
   color: #000000;
-  line-height: 1.0;
+  line-height: 1.05;
   letter-spacing: -0.01em;
-  text-transform: uppercase;
+  font-family: 'DM Serif Display', serif;
   margin: 0 0 1.75rem;
 }
 
@@ -208,12 +208,12 @@
 
 .section-title {
   font-size: 2.25rem;
-  font-weight: 900;
+  font-weight: 400;
   color: #000000;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+  font-family: 'DM Serif Display', serif;
+  letter-spacing: -0.01em;
   margin: 0 0 0.75rem;
-  line-height: 1.1;
+  line-height: 1.15;
 }
 
 .section-subtitle { font-size: 1rem; color: #555555; margin: 0; line-height: 1.65; }
