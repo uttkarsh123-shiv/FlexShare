@@ -147,8 +147,8 @@
   flex-shrink: 0;
 }
 
-.flow-step-icon.orange { background: #fff7ed; color: #f97316; border: 1.5px solid #f97316; }
-.flow-step-icon.violet { background: #f8f8f8; color: #000000; border: 1.5px solid #000000; }
+.flow-step-icon.orange { background: #f0f0f0; color: #000000; border: 1.5px solid #000000; }
+.flow-step-icon.violet { background: #f0f0f0; color: #000000; border: 1.5px solid #000000; }
 
 .flow-connector { border-top: 2px solid #cccccc; flex: 1; margin: 0 8px; margin-bottom: 28px; }
 
@@ -177,7 +177,7 @@
   justify-content: center;
   font-size: 1.4rem;
   font-weight: 900;
-  color: #f97316;
+  color: #000000;
   font-family: 'Inter', monospace;
 }
 
@@ -250,8 +250,8 @@
   flex-shrink: 0;
 }
 
-.feature-icon-wrap.orange { background: #fff7ed; color: #f97316; border: 1.5px solid #f97316; }
-.feature-icon-wrap.violet { background: #f8f8f8; color: #000000; border: 1.5px solid #000000; }
+.feature-icon-wrap.orange { background: #f0f0f0; color: #000000; border: 1.5px solid #000000; }
+.feature-icon-wrap.violet { background: #f0f0f0; color: #000000; border: 1.5px solid #000000; }
 
 .feature-title {
   font-size: 0.9rem;
@@ -286,7 +286,7 @@
   width: 36px;
   height: 36px;
   border-radius: 0;
-  background: #f97316;
+  background: #000000;
   color: #ffffff;
   font-weight: 900;
   font-size: 0.9rem;
@@ -344,7 +344,7 @@
   transition: all 0.15s;
 }
 
-.format-pill:hover { border-color: #f97316; color: #f97316; background: #fffbf7; }
+.format-pill:hover { border-color: #000000; color: #000000; background: #f0f0f0; }
 
 /* ── Shared ──────────────────────────────────────────────────────────────── */
 .btn-primary {
