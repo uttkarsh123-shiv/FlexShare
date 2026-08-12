@@ -15,7 +15,7 @@ export default function PasswordModal({ isOpen, onSubmit, onCancel, isLoading })
         <div style={{ width: '52px', height: '52px', background: '#f0f0f0', border: '1.5px solid #000000', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
           <Lock size={22} color="#000000" />
         </div>
-        <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#000000', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Password Required</h2>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 400, color: '#000000', margin: '0 0 6px', fontFamily: "'DM Serif Display', serif", letterSpacing: '-0.01em' }}>Password Required</h2>
         <p style={{ color: '#555555', fontSize: '0.875rem', margin: '0 0 1.75rem', lineHeight: 1.65 }}>This file is password protected.</p>
         <form onSubmit={handleSubmit}>
           <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: '#000000', marginBottom: '7px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Password</label>

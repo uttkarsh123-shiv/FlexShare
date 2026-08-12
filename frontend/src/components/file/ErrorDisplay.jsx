@@ -7,7 +7,7 @@ export default function ErrorDisplay({ error, onGoHome }) {
         <div style={{ width: '56px', height: '56px', background: '#fef2f2', border: '1.5px solid #ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 0 1.5rem' }}>
           <AlertCircle size={26} color="#dc2626" />
         </div>
-        <h1 style={{ fontSize: '1rem', fontWeight: 800, color: '#000000', marginBottom: '0.625rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+        <h1 style={{ fontSize: '1.25rem', fontWeight: 400, color: '#000000', marginBottom: '0.625rem', fontFamily: "'DM Serif Display', serif", letterSpacing: '-0.01em' }}>
           {error || 'File Not Found'}
         </h1>
         <p style={{ color: '#555555', fontSize: '0.875rem', marginBottom: '2rem', lineHeight: 1.65 }}>

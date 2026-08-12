@@ -6,7 +6,7 @@ export const ErrorFallback = ({ error, resetErrorBoundary }) => (
       <div style={{ width: '56px', height: '56px', background: '#fef2f2', border: '1.5px solid #ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
         <AlertTriangle size={26} color="#dc2626" />
       </div>
-      <h2 style={{ color: '#000000', fontSize: '1.1rem', fontWeight: 800, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Something Went Wrong</h2>
+      <h2 style={{ color: '#000000', fontSize: '1.25rem', fontWeight: 400, marginBottom: '0.5rem', fontFamily: "'DM Serif Display', serif", letterSpacing: '-0.01em' }}>Something Went Wrong</h2>
       <p style={{ color: '#555555', marginBottom: '1rem', fontSize: '0.875rem', lineHeight: 1.65 }}>An error occurred. Please try refreshing the page.</p>
       <p style={{ color: '#dc2626', fontSize: '0.75rem', fontFamily: 'monospace', marginBottom: '2rem', wordBreak: 'break-all', background: '#fef2f2', padding: '0.625rem', border: '1px solid #fecaca', textAlign: 'left', lineHeight: 1.5 }}>{error.message}</p>
       <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
