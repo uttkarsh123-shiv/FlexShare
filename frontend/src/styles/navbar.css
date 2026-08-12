@@ -53,31 +53,51 @@
   text-transform: uppercase;
 }
 
-.navbar-icon-group {
+.navbar-nav-group {
   display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.navbar-nav-link {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-}
-
-.navbar-icon-btn {
-  width: 40px;
-  height: 40px;
   background: transparent;
-  border: 1px solid #000000;
-  border-radius: 0;
-  cursor: pointer;
+  border: none;
   color: #000000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s, color 0.15s;
-  flex-shrink: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  text-decoration: none;
+  padding: 0;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
 }
 
-.navbar-icon-btn:hover {
-  background: #000000;
+.navbar-nav-link:hover { opacity: 0.6; }
+
+.navbar-nav-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #f97316;
+  border: none;
   color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  padding: 10px 22px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  transition: background 0.15s;
 }
+
+.navbar-nav-cta:hover { background: #ea580c; }
 
 /* ── Modal overlay ──────────────────────────────────────────────────────── */
 .modal-overlay {
@@ -669,10 +689,13 @@
   .modal-box { max-width: 100%; margin: 0.5rem; box-shadow: none; }
   .upload-modal-inner,
   .access-modal-inner { padding: 1.75rem 1.25rem 1.5rem; }
+  .navbar-nav-group { gap: 1.25rem; }
+  .navbar-nav-link span, .navbar-nav-cta span { display: none; }
 }
 
 @media (max-width: 480px) {
   .navbar { padding: 0 1rem; }
   .navbar-brand { display: none; }
+  .navbar-nav-group { gap: 0.75rem; }
   .access-otp-input { width: 42px !important; height: 50px !important; font-size: 1.1rem; }
 }
