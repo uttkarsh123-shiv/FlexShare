@@ -636,29 +636,26 @@ const Navbar = () => {
           </div>
 
           {/* Icon buttons */}
-          <div className="navbar-icon-group">
+          <div className="navbar-nav-group">
             <a
-              href="https://github.com/uttkarsh123-shiv"
+              href="https://github.com/uttkarsh124-shiv"
               target="_blank"
               rel="noopener noreferrer"
-              className="navbar-icon-btn"
-              aria-label="GitHub"
+              className="navbar-nav-link"
             >
-              <Github size={16} />
+              <Github size={14} /> GitHub
             </a>
             <button
-              className="navbar-icon-btn"
-              aria-label="Upload file"
+              className="navbar-nav-cta"
               onClick={() => { setShowUpload(true); setShowAccess(false); }}
             >
-              <Upload size={16} />
+              <Upload size={14} /> Upload File
             </button>
             <button
-              className="navbar-icon-btn"
-              aria-label="Access file"
+              className="navbar-nav-link"
               onClick={() => { setShowAccess(true); setShowUpload(false); }}
             >
-              <Search size={16} />
+              <Search size={14} /> Access File
             </button>
           </div>
         </div>
