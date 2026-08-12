@@ -2,12 +2,12 @@ import { FileText, Image as ImageIcon, File, FileSpreadsheet, Copy, Check } from
 import { useState } from 'react';
 
 const iconMap = {
-  image:   { icon: ImageIcon,       color: '#f97316' },
-  pdf:     { icon: FileText,        color: '#dc2626' },
-  word:    { icon: FileText,        color: '#2563eb' },
-  excel:   { icon: FileSpreadsheet, color: '#16a34a' },
-  ppt:     { icon: File,            color: '#ea580c' },
-  default: { icon: File,            color: '#78716c' },
+  image:   { icon: ImageIcon,       color: '#000000' },
+  pdf:     { icon: FileText,        color: '#000000' },
+  word:    { icon: FileText,        color: '#000000' },
+  excel:   { icon: FileSpreadsheet, color: '#000000' },
+  ppt:     { icon: File,            color: '#000000' },
+  default: { icon: File,            color: '#888888' },
 };
 
 const getIconConfig = (conversionType, fileUrl) => {
