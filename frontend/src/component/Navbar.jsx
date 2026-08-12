@@ -631,7 +631,6 @@ const Navbar = () => {
         <div className="navbar-inner">
           {/* Logo */}
           <div className="navbar-logo-group" onClick={() => navigate("/")}>
-            <div className="navbar-logo-icon">F</div>
             <span className="navbar-brand">FlexShare</span>
           </div>
 
