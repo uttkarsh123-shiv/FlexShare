@@ -153,7 +153,7 @@
 
 /* Code display */
 .code-display {
-  background: #f8f8f8;
+  background: #ffffff;
   border: 1px solid #cccccc;
   border-radius: 0;
   padding: 2rem;
@@ -198,7 +198,7 @@
 
 /* ── Features Section ────────────────────────────────────────────────────── */
 .features-section {
-  background: #f8f8f8;
+  background: #ffffff;
   padding: 8rem 3rem;
   border-top: 1px solid #e0e0e0;
 }
@@ -300,7 +300,7 @@
   width: 56px;
   height: 56px;
   border-radius: 0;
-  background: #f8f8f8;
+  background: #ffffff;
   color: #000000;
   border: 1.5px solid #000000;
   display: flex;
@@ -315,7 +315,7 @@
 .how-connector { border-top: 1px solid #cccccc; flex: 0 0 60px; margin-top: 3.5rem; }
 
 /* ── Formats Section ─────────────────────────────────────────────────────── */
-.formats-section { background: #f8f8f8; padding: 7rem 3rem; border-top: 1px solid #e0e0e0; }
+.formats-section { background: #ffffff; padding: 7rem 3rem; border-top: 1px solid #e0e0e0; }
 
 .formats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; max-width: 900px; margin: 0 auto; }
 
