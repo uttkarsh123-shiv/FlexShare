@@ -7,7 +7,7 @@ export default function Footer() {
       <div style={{ maxWidth: "1280px", margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4rem", marginBottom: "4rem", alignItems: "start" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "0.25rem" }}>
-            <div style={{ width: "32px", height: "32px", background: "#f97316", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 900, fontSize: "14px" }}>F</div>
+            <div style={{ width: "32px", height: "32px", background: "#000000", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 900, fontSize: "14px" }}>F</div>
             <span style={{ fontSize: "1rem", fontWeight: 900, color: "#000000", textTransform: "uppercase", letterSpacing: "0.08em" }}>FlexShare</span>
           </div>
           <p style={{ fontSize: "0.875rem", color: "#555555", lineHeight: 1.7, margin: 0, maxWidth: "300px" }}>Secure file conversion and sharing made simple. No sign-up required.</p>
