@@ -45,7 +45,7 @@
   letter-spacing: 0.03em;
 }
 
-.accordion-summary:hover { background: #f8f8f8; }
+.accordion-summary:hover { background: #ffffff; }
 .accordion-item[open] .accordion-summary { color: #f97316; background: #fff7ed; }
 .accordion-summary::-webkit-details-marker { display: none; }
 
