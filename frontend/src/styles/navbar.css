@@ -33,7 +33,7 @@
 .navbar-logo-icon {
   width: 32px;
   height: 32px;
-  background: #f97316;
+  background: #000000;
   border-radius: 0;
   display: flex;
   align-items: center;
@@ -186,7 +186,7 @@
 }
 
 .modal-step-circle.active {
-  background: #f97316;
+  background: #000000;
   color: #ffffff;
 }
 
@@ -226,8 +226,8 @@
 
 .modal-dropzone:hover,
 .modal-dropzone.active {
-  border-color: #f97316;
-  background: #fffbf7;
+  border-color: #000000;
+  background: #f8f8f8;
 }
 
 .modal-dropzone-icon {
@@ -327,8 +327,8 @@
 .modal-input:focus,
 .modal-select:focus,
 .modal-textarea:focus {
-  border-color: #f97316;
-  box-shadow: 3px 3px 0px #f97316;
+  border-color: #000000;
+  box-shadow: 3px 3px 0px #000000;
 }
 
 .modal-textarea { resize: vertical; min-height: 80px; }
@@ -389,7 +389,7 @@
   transition: border-color 0.15s;
 }
 
-.modal-conversion-btn:hover { border-color: #f97316; }
+.modal-conversion-btn:hover { border-color: #000000; }
 
 .modal-conversion-menu {
   position: absolute;
@@ -428,8 +428,8 @@
   transition: background 0.1s;
 }
 
-.modal-conv-option:hover { background: #fffbf7; color: #f97316; }
-.modal-conv-option.selected { background: #fff7ed; color: #f97316; font-weight: 700; }
+.modal-conv-option:hover { background: #f0f0f0; color: #000000; }
+.modal-conv-option.selected { background: #000000; color: #ffffff; font-weight: 700; }
 
 /* ── Progress bar ────────────────────────────────────────────────────────── */
 .modal-progress-wrap {
@@ -499,7 +499,7 @@
   justify-content: center;
   font-size: 1.5rem;
   font-weight: 900;
-  color: #f97316;
+  color: #000000;
   font-family: 'Inter', monospace;
 }
 
@@ -610,8 +610,8 @@
 }
 
 .access-otp-input:focus {
-  border-color: #f97316;
-  box-shadow: 3px 3px 0px #f97316;
+  border-color: #000000;
+  box-shadow: 3px 3px 0px #000000;
   background: #ffffff;
 }
 
@@ -647,7 +647,7 @@
   letter-spacing: 0.04em;
 }
 
-.file-info-badge.orange { background: #fff7ed; color: #ea580c; border: 1px solid #f97316; }
+.file-info-badge.orange { background: #f0f0f0; color: #000000; border: 1px solid #000000; }
 .file-info-badge.red { background: #fef2f2; color: #ef4444; border: 1px solid #fca5a5; }
 
 /* ── Error state ─────────────────────────────────────────────────────────── */
