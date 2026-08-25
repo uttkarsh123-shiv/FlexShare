@@ -89,41 +89,22 @@ jobs:
 
             # ── Wait and verify processes are online ─────────────────────────
             echo "Waiting for processes to stabilize..."
-            sleep 5
+            sleep 8
 
-            API_STATUS=$(pm2 jlist | python3 -c "
-            import sys, json
-            procs = json.load(sys.stdin)
-            for p in procs:
-              if p['name'] == 'flexshare-backend':
-                print(p['pm2_env']['status'])
-            " 2>/dev/null || echo "unknown")
-
-            WORKER_STATUS=$(pm2 jlist | python3 -c "
-            import sys, json
-            procs = json.load(sys.stdin)
-            for p in procs:
-              if p['name'] == 'flexshare-worker':
-                print(p['pm2_env']['status'])
-            " 2>/dev/null || echo "unknown")
-
-            echo ""
-            echo "┌─────────────────────────────────────┐"
-            echo "│  flexshare-backend  → $API_STATUS"
-            echo "│  flexshare-worker   → $WORKER_STATUS"
-            echo "└─────────────────────────────────────┘"
-
-            if [ "$API_STATUS" != "online" ]; then
+            # Simple status check using pm2 show exit code
+            if ! pm2 describe flexshare-backend | grep -q "online"; then
               echo "ERROR: flexshare-backend is not online"
               pm2 logs flexshare-backend --lines 30 --nostream
               exit 1
             fi
 
-            if [ "$WORKER_STATUS" != "online" ]; then
+            if ! pm2 describe flexshare-worker | grep -q "online"; then
               echo "ERROR: flexshare-worker is not online"
               pm2 logs flexshare-worker --lines 30 --nostream
               exit 1
             fi
 
+            echo ""
+            pm2 list
             echo ""
             echo "Deploy successful ✓"
