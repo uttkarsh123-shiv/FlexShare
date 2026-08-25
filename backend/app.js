@@ -10,16 +10,24 @@ const { apiLimiter } = require('./middleware/rateLimiter');
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
 
+// Trust the first proxy (Nginx) — required when running behind a reverse proxy
+// so express-rate-limit and req.ip work correctly with X-Forwarded-For
+app.set('trust proxy', 1);
+
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   'https://flex-share.vercel.app',
   'https://flexshare-frontend.vercel.app',
 ].filter(Boolean);
 
-app.use(compression()); 
+app.use(compression());
 
 app.use(morgan(':method :url :status :response-time ms', {
-  skip: (req) => req.method === 'OPTIONS'
+  skip: (req) => {
+    // suppress noisy bot requests for common files
+    const boring = ['/robots.txt', '/favicon.ico', '/favicon', '/security.txt', '/.well-known/robots.txt'];
+    return req.method === 'OPTIONS' || boring.includes(req.path);
+  }
 }));
 
 app.use(cors({
@@ -38,6 +46,11 @@ app.get('/', (req, res) => {
       file: '/api/file/:code'
     }
   });
+});
+
+// Silence common bot/browser probes
+app.get(['/robots.txt', '/favicon.ico', '/favicon', '/security.txt', '/.well-known/robots.txt'], (req, res) => {
+  res.status(204).end();
 });
 
 app.get('/api/health', (req, res) => {
