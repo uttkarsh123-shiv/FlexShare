@@ -14,21 +14,44 @@ export default function FileActions({ onDownload, isDownloading = false, disable
 
   return (
     <div className="file-actions">
-      <button onClick={!isDisabled ? onDownload : undefined} disabled={isDisabled} className="download-button">
+      {/* Orange — the one accent on this page */}
+      <button
+        onClick={!isDisabled ? onDownload : undefined}
+        disabled={isDisabled}
+        className="download-button"
+      >
         <Download size={15} />
         {label}
       </button>
 
-      <button onClick={handleShare} style={{
-        display: 'flex', alignItems: 'center', gap: '6px',
-        padding: '0.75rem 1rem', borderRadius: '8px',
-        border: '1px solid #e5e7eb',
-        background: 'transparent', color: '#6b7280',
-        cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem',
-        whiteSpace: 'nowrap',
-      }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = '#374151'; e.currentTarget.style.color = '#111827'; }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = '#6b7280'; }}
+      <button
+        onClick={handleShare}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '0.75rem 1rem',
+          borderRadius: 'var(--radius-md)',
+          border: '1px solid var(--bg-border)',
+          background: 'transparent',
+          color: 'var(--text-muted)',
+          cursor: 'pointer',
+          fontWeight: 600,
+          fontSize: '0.875rem',
+          fontFamily: 'var(--font-sans)',
+          whiteSpace: 'nowrap',
+          transition: 'all 0.15s',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.borderColor = '#9ca3af';
+          e.currentTarget.style.color = 'var(--text-primary)';
+          e.currentTarget.style.background = 'var(--bg-muted)';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.borderColor = 'var(--bg-border)';
+          e.currentTarget.style.color = 'var(--text-muted)';
+          e.currentTarget.style.background = 'transparent';
+        }}
       >
         <Share2 size={14} /> Share
       </button>

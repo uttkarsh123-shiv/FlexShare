@@ -1,16 +1,26 @@
 import { CalendarDays, Timer } from 'lucide-react';
 
-const fmt = (d) => d
-  ? new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-  : 'N/A';
+const fmt = (iso) => {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('en-US', {
+    month: 'short', day: 'numeric',
+    hour: 'numeric', minute: '2-digit',
+  });
+};
 
 export default function FileInfo({ createdAt, expiry }) {
   return (
-    <div className="file-info">
-      <div className="file-info-content">
-        <span className="info-item"><CalendarDays size={11} />Created {fmt(createdAt)}</span>
-        <span className="info-item"><Timer size={11} />Expires {fmt(expiry)}</span>
+    <div className="file-info-row">
+      <div className="file-info-item">
+        <CalendarDays size={13} color="var(--text-subtle)" />
+        <span>Created <strong>{fmt(createdAt)}</strong></span>
       </div>
+      {expiry && (
+        <div className="file-info-item">
+          <Timer size={13} color="var(--text-subtle)" />
+          <span>Expires <strong>{fmt(expiry)}</strong></span>
+        </div>
+      )}
     </div>
   );
 }

@@ -12,9 +12,9 @@ const getTimeRemaining = (expiryDate) => {
   return `${m}m`;
 };
 
-const Stat = ({ value, label, icon: Icon, className }) => (
+const Stat = ({ value, label, icon: Icon }) => (
   <div className="stat-item">
-    <span className={`stat-value ${className}`}>{value}</span>
+    <span className="stat-value">{value}</span>
     <div className="stat-label"><Icon size={10} />{label}</div>
   </div>
 );
@@ -24,19 +24,23 @@ export default function FileStats({ conversionType, expiry, downloadCount, maxDo
     <div className="file-stats">
       <Stat
         value={conversionType?.replace('->', ' → ') || 'none'}
-        label="Conversion" icon={ArrowRightLeft} className="conversion"
+        label="Conversion"
+        icon={ArrowRightLeft}
       />
       <Stat
         value={getTimeRemaining(expiry)}
-        label="Expires in" icon={Clock} className="time"
+        label="Expires in"
+        icon={Clock}
       />
       <Stat
         value={`${downloadCount || 0}${maxDownloads ? `/${maxDownloads}` : ''}`}
-        label="Downloads" icon={Download} className="downloads"
+        label="Downloads"
+        icon={Download}
       />
       <Stat
-        value={hasPassword ? <ShieldCheck size={16} /> : 'Open'}
-        label="Access" icon={ShieldCheck} className="protected"
+        value={hasPassword ? <ShieldCheck size={15} /> : 'Open'}
+        label="Access"
+        icon={ShieldCheck}
       />
     </div>
   );
