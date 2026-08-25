@@ -142,3 +142,9 @@ const fileModelProxy = {
 };
 
 module.exports = fileModelProxy;
+
+// Register the named mongoose model so mongoose.models.File is available
+// for internal utilities (s3Cleanup cron) once DB is connected
+if (process.env.MONGO_URI !== 'skip') {
+  try { mongoose.model('File', fileSchema); } catch { /* already registered */ }
+}

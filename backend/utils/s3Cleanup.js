@@ -4,14 +4,19 @@ const logger = require('./logger');
 
 /**
  * Finds all expired documents, deletes their S3 files, then removes the documents.
- * This runs before MongoDB's TTL index fires so S3 files are never orphaned.
+ * Runs before MongoDB TTL index fires so S3 files are never orphaned.
  */
 async function cleanupExpiredFiles() {
   if (mongoose.connection.readyState !== 1) return;
 
-  const File = mongoose.model('File');
-  const now = new Date();
+  // Get the already-registered model — safe because connectDB() is called before this
+  const File = mongoose.models.File || require('../model/file.model')._getMongooseModel?.();
+  if (!File || typeof File.find !== 'function') {
+    logger.error('[Cleanup] Could not resolve File model — skipping');
+    return;
+  }
 
+  const now = new Date();
   const expired = await File.find(
     { expiry: { $lte: now }, fileUrl: { $ne: '' } },
     { _id: 1, fileUrl: 1, code: 1 }
@@ -22,18 +27,14 @@ async function cleanupExpiredFiles() {
   logger.log(`[Cleanup] Found ${expired.length} expired file(s) to clean up`);
 
   let deleted = 0;
-  let failed = 0;
+  let failed  = 0;
 
   for (const doc of expired) {
     try {
-      // Delete from S3 first
-      if (doc.fileUrl) {
-        await deleteFromS3(doc.fileUrl);
-      }
-      // Then delete the MongoDB document
+      if (doc.fileUrl) await deleteFromS3(doc.fileUrl);
       await File.deleteOne({ _id: doc._id });
       deleted++;
-      logger.log(`[Cleanup] Deleted file ${doc.code} (${doc.fileUrl})`);
+      logger.log(`[Cleanup] Deleted file ${doc.code}`);
     } catch (err) {
       failed++;
       logger.error(`[Cleanup] Failed to delete file ${doc.code}: ${err.message}`);
@@ -47,14 +48,12 @@ async function cleanupExpiredFiles() {
  * Starts the cleanup cron — runs immediately on startup, then every hour.
  */
 function startCleanupCron() {
-  const INTERVAL_MS = 60 * 60 * 1000; // 1 hour
+  const INTERVAL_MS = 60 * 60 * 1000;
 
-  // Run once on startup
   cleanupExpiredFiles().catch((err) =>
     logger.error(`[Cleanup] Startup run failed: ${err.message}`)
   );
 
-  // Then run every hour
   setInterval(() => {
     cleanupExpiredFiles().catch((err) =>
       logger.error(`[Cleanup] Scheduled run failed: ${err.message}`)

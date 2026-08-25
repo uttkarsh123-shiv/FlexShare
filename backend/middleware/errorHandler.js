@@ -2,6 +2,11 @@ const multer = require('multer');
 const logger = require('../utils/logger');
 
 const errorHandler = (err, req, res, next) => {
+  // Malformed JSON body — return 400 instead of crashing
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ success: false, message: 'Invalid JSON in request body' });
+  }
+
   logger.error('Error:', err);
 
   if (err instanceof multer.MulterError) {
