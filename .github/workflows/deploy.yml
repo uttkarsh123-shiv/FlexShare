@@ -59,16 +59,16 @@ jobs:
             echo "[4/4] Restarting PM2 processes..."
 
             # API server
-            if pm2 describe flexshare-api > /dev/null 2>&1; then
-              pm2 restart flexshare-api --update-env
+            if pm2 describe flexshare-backend > /dev/null 2>&1; then
+              pm2 restart flexshare-backend --update-env
             else
               NODE_ENV=production pm2 start index.js \
-                --name flexshare-api \
+                --name flexshare-backend \
                 --instances 1 \
                 --max-memory-restart 512M \
                 --exp-backoff-restart-delay=100 \
                 --merge-logs \
-                --log ~/.pm2/logs/flexshare-api.log
+                --log ~/.pm2/logs/flexshare-backend.log
             fi
 
             # BullMQ worker
@@ -95,7 +95,7 @@ jobs:
             import sys, json
             procs = json.load(sys.stdin)
             for p in procs:
-              if p['name'] == 'flexshare-api':
+              if p['name'] == 'flexshare-backend':
                 print(p['pm2_env']['status'])
             " 2>/dev/null || echo "unknown")
 
@@ -108,14 +108,14 @@ jobs:
             " 2>/dev/null || echo "unknown")
 
             echo ""
-            echo "┌─────────────────────────────────┐"
-            echo "│  flexshare-api     → $API_STATUS"
-            echo "│  flexshare-worker  → $WORKER_STATUS"
-            echo "└─────────────────────────────────┘"
+            echo "┌─────────────────────────────────────┐"
+            echo "│  flexshare-backend  → $API_STATUS"
+            echo "│  flexshare-worker   → $WORKER_STATUS"
+            echo "└─────────────────────────────────────┘"
 
             if [ "$API_STATUS" != "online" ]; then
-              echo "ERROR: flexshare-api is not online"
-              pm2 logs flexshare-api --lines 30 --nostream
+              echo "ERROR: flexshare-backend is not online"
+              pm2 logs flexshare-backend --lines 30 --nostream
               exit 1
             fi
 
