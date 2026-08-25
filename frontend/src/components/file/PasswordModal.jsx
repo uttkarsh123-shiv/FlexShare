@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Lock } from 'lucide-react';
 
 export default function PasswordModal({ isOpen, onSubmit, onCancel, isLoading }) {
-  const [password, setPassword] = useState('');
+  const [password, setPassword]         = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   if (!isOpen) return null;
@@ -18,78 +18,129 @@ export default function PasswordModal({ isOpen, onSubmit, onCancel, isLoading })
   return (
     <div style={{
       position: 'fixed', inset: 0,
-      background: 'rgba(28,25,23,0.35)',
+      background: 'rgba(0,0,0,0.7)',
+      backdropFilter: 'blur(4px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '1rem', zIndex: 9998,
     }}>
       <div style={{
-        background: '#fffffe',
-        border: '1px solid #e7e5e4',
-        borderRadius: '14px',
-        padding: '1.75rem',
-        width: '100%', maxWidth: '380px',
-        boxShadow: '0 8px 32px rgba(28,25,23,0.1)',
-        fontFamily: "'Inter', sans-serif",
+        background: 'var(--bg-soft)',
+        border: '1px solid var(--bg-border)',
+        borderRadius: 'var(--radius-xl)',
+        padding: '2.25rem',
+        width: '100%', maxWidth: '400px',
+        boxShadow: 'var(--shadow-lg)',
+        fontFamily: 'var(--font-sans)',
+        animation: 'fadeUp 0.18s ease',
       }}>
-        <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#1c1917', margin: '0 0 4px 0', letterSpacing: '-0.01em' }}>
+        {/* Icon */}
+        <div style={{
+          width: '48px', height: '48px',
+          background: 'var(--bg-muted)',
+          border: '1px solid var(--bg-border)',
+          borderRadius: 'var(--radius-lg)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          marginBottom: '1.25rem',
+        }}>
+          <Lock size={20} color="var(--text-body)" />
+        </div>
+
+        <h2 style={{
+          fontSize: '1.2rem', fontWeight: 700,
+          color: 'var(--text-primary)',
+          margin: '0 0 5px', letterSpacing: '-0.025em',
+        }}>
           Password Required
         </h2>
-        <p style={{ color: '#78716c', fontSize: '0.8rem', margin: '0 0 1.25rem 0' }}>
-          This file is password protected
+        <p style={{
+          color: 'var(--text-muted)', fontSize: '0.9rem',
+          margin: '0 0 1.75rem', lineHeight: 1.6,
+        }}>
+          This file is password protected.
         </p>
 
         <form onSubmit={handleSubmit}>
-          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#1c1917', marginBottom: '6px' }}>
+          <label style={{
+            display: 'block', fontSize: '0.8rem',
+            fontWeight: 600, color: 'var(--text-body)',
+            marginBottom: '7px', letterSpacing: '0.01em',
+          }}>
             Password
           </label>
-          <div style={{ position: 'relative', marginBottom: '1.25rem' }}>
+
+          <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
             <input
               type={showPassword ? 'text' : 'password'}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={e => setPassword(e.target.value)}
               placeholder="Enter password"
               autoFocus
               minLength={4}
               style={{
-                width: '100%', padding: '9px 38px 9px 12px',
-                background: '#fafaf9', border: '1px solid #e7e5e4',
-                borderRadius: '8px', color: '#1c1917', fontSize: '0.85rem',
+                width: '100%', padding: '11px 42px 11px 14px',
+                background: 'var(--bg-muted)',
+                border: '1px solid var(--bg-border)',
+                borderRadius: 'var(--radius-md)',
+                color: 'var(--text-primary)', fontSize: '0.9rem',
                 outline: 'none', boxSizing: 'border-box',
-                fontFamily: "'Inter', sans-serif",
+                fontFamily: 'var(--font-sans)',
+                transition: 'border-color 0.15s, box-shadow 0.15s',
               }}
-              onFocus={(e) => { e.target.style.borderColor = '#9333ea'; e.target.style.boxShadow = '0 0 0 3px #f3e8ff'; }}
-              onBlur={(e) => { e.target.style.borderColor = '#e7e5e4'; e.target.style.boxShadow = 'none'; }}
+              onFocus={e => {
+                e.target.style.borderColor = '#555';
+                e.target.style.boxShadow = '0 0 0 3px rgba(255,255,255,0.05)';
+                e.target.style.background = 'var(--bg-elevated)';
+              }}
+              onBlur={e => {
+                e.target.style.borderColor = 'var(--bg-border)';
+                e.target.style.boxShadow = 'none';
+                e.target.style.background = 'var(--bg-muted)';
+              }}
             />
             <button type="button" onClick={() => setShowPassword(p => !p)} tabIndex={-1} style={{
-              position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
-              color: '#a8a29e', background: 'none', border: 'none', cursor: 'pointer', display: 'flex',
-            }}>
-              {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+              position: 'absolute', right: '12px', top: '50%',
+              transform: 'translateY(-50%)',
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--text-subtle)', display: 'flex', padding: 0,
+            }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--text-muted)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-subtle)'}
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '9px' }}>
             <button type="button" onClick={onCancel} style={{
-              flex: 1, padding: '9px', borderRadius: '8px',
-              border: '1px solid #e7e5e4', background: 'transparent',
-              color: '#78716c', fontSize: '0.825rem', fontWeight: 600, cursor: 'pointer',
-              fontFamily: "'Inter', sans-serif",
-            }}>
+              flex: 1, padding: '11px',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--bg-border)',
+              background: 'transparent',
+              color: 'var(--text-muted)', fontSize: '0.9rem',
+              fontWeight: 500, cursor: 'pointer',
+              fontFamily: 'var(--font-sans)', transition: 'all 0.15s',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-muted)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+            >
               Cancel
             </button>
             <button type="submit" disabled={disabled} style={{
-              flex: 1, padding: '9px', borderRadius: '8px', border: 'none',
-              background: disabled ? '#f5f5f4' : '#9333ea',
-              color: disabled ? '#a8a29e' : 'white',
-              fontSize: '0.825rem', fontWeight: 600,
+              flex: 1, padding: '11px',
+              borderRadius: 'var(--radius-md)', border: 'none',
+              background: disabled ? 'var(--bg-elevated)' : 'var(--btn-bg)',
+              color: disabled ? 'var(--text-subtle)' : 'var(--btn-fg)',
+              fontSize: '0.9rem', fontWeight: 600,
               cursor: disabled ? 'not-allowed' : 'pointer',
-              fontFamily: "'Inter', sans-serif",
+              fontFamily: 'var(--font-sans)', transition: 'background 0.15s',
+              letterSpacing: '-0.01em',
             }}>
               {isLoading ? 'Verifying...' : 'Download'}
             </button>
           </div>
         </form>
       </div>
+      <style>{`@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }`}</style>
     </div>
   );
 }

@@ -1,7 +1,9 @@
-import { useState, useCallback, useEffect, useRef } from "react";
-import { Github, Upload, Search, X, CheckCircle2, Loader2, Copy,
+import { useState, useCallback, useEffect } from "react";
+import {
+  Github, Upload, Search, X, CheckCircle2, Loader2, Copy,
   FileText, Image as ImageIcon, File, Clock, Shield, Download, Settings,
-  FileImage, FileType2, FileSpreadsheet, Eye } from "lucide-react";
+  FileImage, FileType2, FileSpreadsheet, Eye
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import OtpInput from "react-otp-input";
@@ -12,6 +14,7 @@ import "../styles/navbar.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+/* ── Helpers ──────────────────────────────────────────────────────────────── */
 const formatFileSize = (bytes) => {
   if (!bytes) return "0 Bytes";
   const k = 1024;
@@ -34,76 +37,80 @@ const getAvailableConversions = (file) => {
   const t = file.type;
   const n = file.name.toLowerCase();
   const list = [
-    { label: "No Conversion (Share Original)", value: "none", icon: File, color: "#94a3b8", category: "Original" },
+    { label: "No Conversion (Share Original)", value: "none", icon: File, category: "Original" },
   ];
   if (t.startsWith("image/")) {
     list.push(
-      { label: "Image → PNG",  value: "image->png",  icon: FileImage, color: "#fb923c", category: "Image" },
-      { label: "Image → JPG",  value: "image->jpg",  icon: FileImage, color: "#fb923c", category: "Image" },
-      { label: "Image → JPEG", value: "image->jpeg", icon: FileImage, color: "#fb923c", category: "Image" },
-      { label: "Image → WebP", value: "image->webp", icon: FileImage, color: "#fb923c", category: "Image" },
-      { label: "Image → GIF",  value: "image->gif",  icon: FileImage, color: "#fb923c", category: "Image" },
-      { label: "Image → BMP",  value: "image->bmp",  icon: FileImage, color: "#fb923c", category: "Image" },
-      { label: "Image → AVIF", value: "image->avif", icon: FileImage, color: "#fb923c", category: "Image" },
-      { label: "Image → PDF",  value: "image->pdf",  icon: FileText,  color: "#f87171", category: "Document" }
+      { label: "Image → PNG",  value: "image->png",  icon: FileImage, category: "Image" },
+      { label: "Image → JPG",  value: "image->jpg",  icon: FileImage, category: "Image" },
+      { label: "Image → JPEG", value: "image->jpeg", icon: FileImage, category: "Image" },
+      { label: "Image → WebP", value: "image->webp", icon: FileImage, category: "Image" },
+      { label: "Image → GIF",  value: "image->gif",  icon: FileImage, category: "Image" },
+      { label: "Image → BMP",  value: "image->bmp",  icon: FileImage, category: "Image" },
+      { label: "Image → AVIF", value: "image->avif", icon: FileImage, category: "Image" },
+      { label: "Image → PDF",  value: "image->pdf",  icon: FileText,  category: "Document" }
     );
   }
   if (t === "application/pdf" || n.endsWith(".pdf")) {
     list.push(
-      { label: "PDF → Word", value: "pdf->word", icon: FileType2, color: "#60a5fa", category: "Document" },
-      { label: "PDF → Text", value: "pdf->txt",  icon: FileText,  color: "#94a3b8", category: "Document" }
+      { label: "PDF → Word", value: "pdf->word", icon: FileType2, category: "Document" },
+      { label: "PDF → Text", value: "pdf->txt",  icon: FileText,  category: "Document" }
     );
   }
   if (t.includes("word") || t.includes("wordprocessingml") || n.endsWith(".doc") || n.endsWith(".docx")) {
     list.push(
-      { label: "Word → PDF",  value: "word->pdf", icon: FileText, color: "#f87171", category: "Document" },
-      { label: "Word → Text", value: "word->txt", icon: FileText, color: "#94a3b8", category: "Document" }
+      { label: "Word → PDF",  value: "word->pdf", icon: FileText, category: "Document" },
+      { label: "Word → Text", value: "word->txt", icon: FileText, category: "Document" }
     );
   }
   if (t.includes("sheet") || t.includes("excel") || n.endsWith(".xls") || n.endsWith(".xlsx")) {
     list.push(
-      { label: "Excel → PDF", value: "excel->pdf", icon: FileSpreadsheet, color: "#34d399", category: "Spreadsheet" },
-      { label: "Excel → CSV", value: "excel->csv", icon: FileSpreadsheet, color: "#34d399", category: "Spreadsheet" }
+      { label: "Excel → PDF", value: "excel->pdf", icon: FileSpreadsheet, category: "Spreadsheet" },
+      { label: "Excel → CSV", value: "excel->csv", icon: FileSpreadsheet, category: "Spreadsheet" }
     );
   }
   if (t.includes("presentation") || t.includes("powerpoint") || n.endsWith(".ppt") || n.endsWith(".pptx")) {
     list.push(
-      { label: "PowerPoint → PDF", value: "ppt->pdf", icon: FileText, color: "#a78bfa", category: "Presentation" }
+      { label: "PowerPoint → PDF", value: "ppt->pdf", icon: FileText, category: "Presentation" }
     );
   }
   return list;
 };
 
 const getFileIcon = (file) => {
-  if (!file) return <Upload size={32} color="#a8a29e" />;
-  if (file.type.startsWith("image/"))    return <ImageIcon size={32} color="#f97316" />;
-  if (file.type === "application/pdf")   return <FileText  size={32} color="#ef4444" />;
-  if (file.type.includes("word"))        return <FileText  size={32} color="#3b82f6" />;
-  if (file.type.includes("sheet") || file.type.includes("excel")) return <File size={32} color="#22c55e" />;
-  if (file.type.includes("presentation")) return <File size={32} color="#a855f7" />;
-  return <File size={32} color="#3b82f6" />;
+  if (!file) return <Upload size={28} color="var(--text-subtle)" />;
+  if (file.type.startsWith("image/"))     return <ImageIcon    size={28} color="var(--text-body)" />;
+  if (file.type === "application/pdf")    return <FileText     size={28} color="var(--text-body)" />;
+  if (file.type.includes("word"))         return <FileText     size={28} color="var(--text-body)" />;
+  if (file.type.includes("sheet") || file.type.includes("excel")) return <File size={28} color="var(--text-body)" />;
+  if (file.type.includes("presentation")) return <File        size={28} color="var(--text-body)" />;
+  return <File size={28} color="var(--text-body)" />;
 };
 
+/* ══════════════════════════════════════════════════════════════════════════════
+   UPLOAD MODAL
+══════════════════════════════════════════════════════════════════════════════ */
 function UploadModal({ onClose }) {
   const { showToast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
   }, []);
-  const [file, setFile] = useState(null);
-  const [step, setStep] = useState(1);
+
+  const [file, setFile]                   = useState(null);
+  const [step, setStep]                   = useState(1);
   const [conversionType, setConversionType] = useState("");
-  const [code, setCode] = useState("");
-  const [isUploading, setIsUploading] = useState(false);
+  const [code, setCode]                   = useState("");
+  const [isUploading, setIsUploading]     = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [description, setDescription] = useState("");
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [password, setPassword] = useState("");
-  const [expiryHours, setExpiryHours] = useState(1);
-  const [maxDownloads, setMaxDownloads] = useState("");
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [description, setDescription]     = useState("");
+  const [showAdvanced, setShowAdvanced]   = useState(false);
+  const [password, setPassword]           = useState("");
+  const [expiryHours, setExpiryHours]     = useState(1);
+  const [maxDownloads, setMaxDownloads]   = useState("");
+  const [showDropdown, setShowDropdown]   = useState(false);
 
   const resetAll = () => {
     setFile(null); setStep(1); setConversionType(""); setCode("");
@@ -139,7 +146,10 @@ function UploadModal({ onClose }) {
     [code, showToast]
   );
   const handleCopyLink = useCallback(
-    throttle(() => { navigator.clipboard.writeText(`${window.location.origin}/file/${code}`); showToast("Link copied!", "success"); }, 1000),
+    throttle(() => {
+      navigator.clipboard.writeText(`${window.location.origin}/file/${code}`);
+      showToast("Link copied!", "success");
+    }, 1000),
     [code, showToast]
   );
 
@@ -238,7 +248,7 @@ function UploadModal({ onClose }) {
           </div>
           <StepIndicators />
 
-          {/* ── Step 1: Upload ── */}
+          {/* Step 1: Upload */}
           {step === 1 && (
             <>
               {file ? (
@@ -255,7 +265,7 @@ function UploadModal({ onClose }) {
               ) : (
                 <div {...getRootProps()} className={`modal-dropzone${isDragActive ? " active" : ""}`}>
                   <input {...getInputProps()} />
-                  <Upload size={32} className="modal-dropzone-icon" />
+                  <Upload size={30} className="modal-dropzone-icon" />
                   <p><strong>{isDragActive ? "Drop your file here" : "Click to browse or drag & drop"}</strong></p>
                   <p>Supports Images, PDF, Word, Excel, PowerPoint</p>
                   <small>Max 10MB per file</small>
@@ -269,18 +279,20 @@ function UploadModal({ onClose }) {
             </>
           )}
 
-          {/* ── Step 2: Configure ── */}
+          {/* Step 2: Configure */}
           {step === 2 && (
             <>
               <div className="modal-field">
-                <label className="modal-label"><FileText size={14} /> Description (Optional)</label>
+                <label className="modal-label"><FileText size={13} /> Description (Optional)</label>
                 <textarea className="modal-textarea" value={description} rows={3} maxLength={500}
                   placeholder="Describe your file or add notes..."
                   onChange={(e) => setDescription(e.target.value)} />
                 <p className="modal-hint">{description.length}/500 characters</p>
               </div>
               <button className="modal-advanced-toggle" onClick={() => setShowAdvanced(!showAdvanced)}>
-                <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Settings size={14} /> Advanced Settings</span>
+                <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <Settings size={13} /> Advanced Settings
+                </span>
                 <svg className={showAdvanced ? "open" : ""} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                 </svg>
@@ -288,12 +300,13 @@ function UploadModal({ onClose }) {
               {showAdvanced && (
                 <div className="modal-advanced-content">
                   <div className="modal-field" style={{ marginBottom: 0 }}>
-                    <label className="modal-label"><Shield size={14} /> Password Protection</label>
-                    <input className="modal-input" type="password" value={password} placeholder="Min 4 characters (leave empty for none)"
+                    <label className="modal-label"><Shield size={13} /> Password Protection</label>
+                    <input className="modal-input" type="password" value={password}
+                      placeholder="Min 4 characters (leave empty for none)"
                       onChange={(e) => setPassword(e.target.value)} />
                   </div>
                   <div className="modal-field" style={{ marginBottom: 0 }}>
-                    <label className="modal-label"><Clock size={14} /> Expiry Time</label>
+                    <label className="modal-label"><Clock size={13} /> Expiry Time</label>
                     <select className="modal-select" value={expiryHours} onChange={(e) => setExpiryHours(Number(e.target.value))}>
                       <option value={1}>1 Hour</option>
                       <option value={6}>6 Hours</option>
@@ -304,9 +317,10 @@ function UploadModal({ onClose }) {
                     </select>
                   </div>
                   <div className="modal-field" style={{ marginBottom: 0 }}>
-                    <label className="modal-label"><Download size={14} /> Download Limit</label>
-                    <input className="modal-input" type="number" value={maxDownloads} placeholder="Unlimited (1–100)"
-                      min="1" max="100" onChange={(e) => setMaxDownloads(e.target.value)} />
+                    <label className="modal-label"><Download size={13} /> Download Limit</label>
+                    <input className="modal-input" type="number" value={maxDownloads}
+                      placeholder="Unlimited (1–100)" min="1" max="100"
+                      onChange={(e) => setMaxDownloads(e.target.value)} />
                   </div>
                 </div>
               )}
@@ -317,7 +331,7 @@ function UploadModal({ onClose }) {
             </>
           )}
 
-          {/* ── Step 3: Convert ── */}
+          {/* Step 3: Convert */}
           {step === 3 && (
             <>
               {!code && (
@@ -325,11 +339,8 @@ function UploadModal({ onClose }) {
                   <div className="modal-field">
                     <label className="modal-label">Conversion Type</label>
                     <div className="modal-conversion-wrap">
-                      <button
-                        className="modal-conversion-btn"
-                        id="conv-btn"
-                        onClick={() => setShowDropdown(!showDropdown)}
-                      >
+                      <button className="modal-conversion-btn" id="conv-btn"
+                        onClick={() => setShowDropdown(!showDropdown)}>
                         <span>
                           {conversionType
                             ? availableConversions.find((o) => o.value === conversionType)?.label
@@ -347,11 +358,8 @@ function UploadModal({ onClose }) {
                           <>
                             <div style={{ position: "fixed", inset: 0, zIndex: 9998 }} onClick={() => setShowDropdown(false)} />
                             <div className="modal-conversion-menu" style={{
-                              position: "fixed",
-                              top: rect.bottom + 6,
-                              left: rect.left,
-                              width: rect.width,
-                              zIndex: 9999,
+                              position: "fixed", top: rect.bottom + 6,
+                              left: rect.left, width: rect.width, zIndex: 9999,
                             }}>
                               {Object.entries(groupedOptions).map(([cat, opts]) => (
                                 <div key={cat}>
@@ -360,7 +368,7 @@ function UploadModal({ onClose }) {
                                     <div key={opt.value}
                                       className={`modal-conv-option${conversionType === opt.value ? " selected" : ""}`}
                                       onClick={() => { setConversionType(opt.value); setShowDropdown(false); }}>
-                                      <opt.icon size={14} color={opt.color} />
+                                      <opt.icon size={14} color="var(--text-muted)" />
                                       <span>{opt.label}</span>
                                     </div>
                                   ))}
@@ -385,7 +393,9 @@ function UploadModal({ onClose }) {
                         <div className="modal-progress-fill" style={{ width: `${uploadProgress}%` }} />
                       </div>
                       <p className="modal-progress-status">
-                        {uploadProgress < 100 ? `Uploading... ${uploadProgress}%` : `Converting ${conversionType?.replace("->", " to ")} format...`}
+                        {uploadProgress < 100
+                          ? `Uploading... ${uploadProgress}%`
+                          : `Converting ${conversionType?.replace("->", " to ")} format...`}
                       </p>
                     </div>
                   )}
@@ -425,7 +435,8 @@ function UploadModal({ onClose }) {
                       <Copy size={14} /> Copy Link
                     </button>
                   </div>
-                  <button className="modal-btn-back" style={{ marginTop: "1rem", width: "100%", textAlign: "center" }}
+                  <button className="modal-btn-back"
+                    style={{ marginTop: "1rem", width: "100%", textAlign: "center" }}
                     onClick={resetAll}>
                     Upload Another File
                   </button>
@@ -439,25 +450,28 @@ function UploadModal({ onClose }) {
   );
 }
 
+/* ══════════════════════════════════════════════════════════════════════════════
+   ACCESS MODAL
+══════════════════════════════════════════════════════════════════════════════ */
 function AccessModal({ onClose }) {
   const { showToast } = useToast();
-  const [code, setCode] = useState("");
+  const [code, setCode]           = useState("");
+  const [fileInfo, setFileInfo]   = useState(null);
+  const [password, setPassword]   = useState("");
+  const [loading, setLoading]     = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [error, setError]         = useState(null);
 
   useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
   }, []);
-  const [fileInfo, setFileInfo] = useState(null);
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [downloading, setDownloading] = useState(false);
-  const [error, setError] = useState(null);
 
   const errorMessages = {
-    410: { title: "File Expired", msg: "This file has expired and is no longer available." },
+    410: { title: "File Expired",           msg: "This file has expired and is no longer available." },
     403: { title: "Download Limit Reached", msg: "This file has reached its maximum download count." },
-    404: { title: "File Not Found", msg: "No file was found for that code. Check the code and try again." },
-    401: { title: "Invalid Password", msg: "The password you entered is incorrect." },
+    404: { title: "File Not Found",         msg: "No file was found for that code. Check and try again." },
+    401: { title: "Invalid Password",       msg: "The password you entered is incorrect." },
   };
 
   const handleLookup = async () => {
@@ -468,8 +482,7 @@ function AccessModal({ onClose }) {
       setFileInfo(res.data);
     } catch (err) {
       const status = err.response?.status;
-      const known = errorMessages[status];
-      setError(known || { title: "Error", msg: err.response?.data?.message || "Could not load file info." });
+      setError(errorMessages[status] || { title: "Error", msg: err.response?.data?.message || "Could not load file info." });
     } finally {
       setLoading(false);
     }
@@ -492,8 +505,7 @@ function AccessModal({ onClose }) {
       onClose();
     } catch (err) {
       const status = err.response?.status;
-      const known = errorMessages[status];
-      setError(known || { title: "Download Failed", msg: err.response?.data?.message || "Could not download file." });
+      setError(errorMessages[status] || { title: "Download Failed", msg: err.response?.data?.message || "Could not download file." });
     } finally {
       setDownloading(false);
     }
@@ -508,78 +520,84 @@ function AccessModal({ onClose }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480 }}>
         <button className="modal-close-btn" onClick={onClose}><X size={14} /></button>
-        <div className="access-modal-inner">
-          <div className="access-modal-header">
-            <h2 className="access-modal-title">Access a File</h2>
-            <p className="access-modal-subtitle">Enter the 6-digit code to access a shared file.</p>
+        <div className="upload-modal-inner">
+          <div className="upload-modal-header">
+            <h2 className="upload-modal-title">Access a File</h2>
+            <p className="upload-modal-subtitle">Enter the 6-digit code to access a shared file.</p>
           </div>
 
-          <div className="access-otp-section">
+          {/* OTP input */}
+          <div className="access-otp-wrap">
             <OtpInput
               value={code}
               onChange={(v) => { setCode(v); setError(null); setFileInfo(null); setPassword(""); }}
               numInputs={6}
-              renderInput={(props) => <input {...props} className="access-otp-input" />}
-              containerStyle={{ gap: "8px" }}
+              renderInput={(props) => <input {...props} />}
+              containerStyle={{ gap: "8px", justifyContent: "center" }}
             />
           </div>
 
+          {/* Error */}
           {error && (
             <div className="access-error-card">
-              <p className="access-error-title">{error.title}</p>
-              <p className="access-error-msg">{error.msg}</p>
+              <p><strong>{error.title}</strong></p>
+              <span>{error.msg}</span>
             </div>
           )}
 
+          {/* File info card */}
           {fileInfo && !error && (
-            <div className="file-info-card">
-              <div className="file-info-row">
-                <span className="file-info-label">File Name</span>
-                <span className="file-info-value">{fileInfo.originalFileName || "—"}</span>
+            <div className="access-file-card">
+              <div className="access-file-row">
+                <div className="access-file-icon">
+                  <File size={18} color="var(--text-muted)" />
+                </div>
+                <div>
+                  <p className="access-file-name">{fileInfo.originalFileName || "File"}</p>
+                  <p className="access-file-meta">
+                    {fileInfo.fileSize ? formatFileSize(fileInfo.fileSize) : ""}
+                    {fileInfo.conversionType && fileInfo.conversionType !== "none"
+                      ? " · " + fileInfo.conversionType.replace("->", " → ")
+                      : ""}
+                  </p>
+                </div>
               </div>
-              <div className="file-info-row">
-                <span className="file-info-label">Size</span>
-                <span className="file-info-value">{fileInfo.fileSize ? formatFileSize(fileInfo.fileSize) : "—"}</span>
-              </div>
-              <div className="file-info-row">
-                <span className="file-info-label">Type</span>
-                <span className="file-info-value">{fileInfo.conversionType?.replace('->', ' → ') || "—"}</span>
-              </div>
-              <div className="file-info-row">
-                <span className="file-info-label">Expires</span>
-                <span className="file-info-value" style={{ fontSize: "0.78rem" }}>{formatExpiry(fileInfo.expiry)}</span>
-              </div>
-              {fileInfo.maxDownloads && (
-                <div className="file-info-row">
-                  <span className="file-info-label">Downloads Left</span>
-                  <span className="file-info-value">
-                    <span className="file-info-badge orange">
-                      {fileInfo.maxDownloads - (fileInfo.downloadCount || 0)} / {fileInfo.maxDownloads}
-                    </span>
+              <div className="access-badges">
+                {fileInfo.expiry && (
+                  <span className="access-badge">
+                    <Clock size={10} /> Expires {formatExpiry(fileInfo.expiry)}
                   </span>
-                </div>
-              )}
-              {fileInfo.hasPassword && (
-                <div className="file-info-row">
-                  <span className="file-info-label">Protected</span>
-                  <span className="file-info-value"><span className="file-info-badge red">Password Required</span></span>
-                </div>
-              )}
+                )}
+                {fileInfo.maxDownloads && (
+                  <span className="access-badge">
+                    <Download size={10} />
+                    {fileInfo.maxDownloads - (fileInfo.downloadCount || 0)}/{fileInfo.maxDownloads} left
+                  </span>
+                )}
+                {fileInfo.hasPassword && (
+                  <span className="access-badge">
+                    <Shield size={10} /> Password protected
+                  </span>
+                )}
+              </div>
             </div>
           )}
 
+          {/* Password field */}
           {fileInfo?.hasPassword && !error && (
             <div className="modal-field">
-              <label className="modal-label"><Shield size={14} /> Password</label>
+              <label className="modal-label"><Shield size={13} /> Password</label>
               <input className="modal-input" type="password" value={password}
                 placeholder="Enter file password"
                 onChange={(e) => setPassword(e.target.value)} />
             </div>
           )}
 
+          {/* Actions */}
           <div className="modal-nav-row">
             {!fileInfo && (
               <button className="modal-btn-primary"
+                style={{ width: "100%" }}
                 disabled={code.length !== 6 || loading}
                 onClick={handleLookup}>
                 {loading
@@ -589,7 +607,8 @@ function AccessModal({ onClose }) {
             )}
             {fileInfo && !error && (
               <>
-                <button className="modal-btn-back" onClick={() => { setFileInfo(null); setPassword(""); setError(null); }}>
+                <button className="modal-btn-back"
+                  onClick={() => { setFileInfo(null); setPassword(""); setError(null); }}>
                   ← Back
                 </button>
                 <button className="modal-btn-primary"
@@ -601,6 +620,12 @@ function AccessModal({ onClose }) {
                 </button>
               </>
             )}
+            {error && (
+              <button className="modal-btn-back" style={{ width: "100%" }}
+                onClick={() => { setError(null); setFileInfo(null); setCode(""); }}>
+                Try Again
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -608,12 +633,14 @@ function AccessModal({ onClose }) {
   );
 }
 
+/* ══════════════════════════════════════════════════════════════════════════════
+   NAVBAR
+══════════════════════════════════════════════════════════════════════════════ */
 const Navbar = () => {
   const navigate = useNavigate();
   const [showUpload, setShowUpload] = useState(false);
   const [showAccess, setShowAccess] = useState(false);
 
-  // Listen for events dispatched by Hero page CTA buttons
   useEffect(() => {
     const openUpload = () => { setShowUpload(true); setShowAccess(false); };
     const openAccess = () => { setShowAccess(true); setShowUpload(false); };
@@ -629,36 +656,20 @@ const Navbar = () => {
     <>
       <nav className="navbar">
         <div className="navbar-inner">
-          {/* Logo */}
           <div className="navbar-logo-group" onClick={() => navigate("/")}>
-            <div className="navbar-logo-icon">F</div>
+            {/* <div className="navbar-logo-icon">F</div> */}
             <span className="navbar-brand">FlexShare</span>
           </div>
-
-          {/* Icon buttons */}
           <div className="navbar-icon-group">
-            <a
-              href="https://github.com/uttkarsh123-shiv"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="navbar-icon-btn"
-              aria-label="GitHub"
-            >
-              <Github size={16} />
+            <a href="https://github.com/uttkarsh123-shiv" target="_blank" rel="noopener noreferrer"
+              className="navbar-text-btn" aria-label="GitHub">
+              GitHub
             </a>
-            <button
-              className="navbar-icon-btn"
-              aria-label="Upload file"
-              onClick={() => { setShowUpload(true); setShowAccess(false); }}
-            >
-              <Upload size={16} />
+            <button className="navbar-text-btn" onClick={() => { setShowUpload(true); setShowAccess(false); }}>
+              Upload
             </button>
-            <button
-              className="navbar-icon-btn"
-              aria-label="Access file"
-              onClick={() => { setShowAccess(true); setShowUpload(false); }}
-            >
-              <Search size={16} />
+            <button className="navbar-text-btn navbar-text-btn--primary" onClick={() => { setShowAccess(true); setShowUpload(false); }}>
+              Access File
             </button>
           </div>
         </div>
