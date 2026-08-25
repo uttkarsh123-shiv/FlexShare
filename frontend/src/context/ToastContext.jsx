@@ -21,7 +21,7 @@ export const ToastProvider = ({ children }) => {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div style={{ position: 'fixed', top: '72px', right: '1rem', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ position: 'fixed', bottom: '1.75rem', right: '1.5rem', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {toasts.map(toast => (
           <Toast key={toast.id} message={toast.message} type={toast.type} duration={toast.duration} onClose={() => removeToast(toast.id)} />
         ))}

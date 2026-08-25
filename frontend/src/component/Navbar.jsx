@@ -435,11 +435,6 @@ function UploadModal({ onClose }) {
                       <Copy size={14} /> Copy Link
                     </button>
                   </div>
-                  <button className="modal-btn-back"
-                    style={{ marginTop: "1rem", width: "100%", textAlign: "center" }}
-                    onClick={resetAll}>
-                    Upload Another File
-                  </button>
                 </div>
               )}
             </>
