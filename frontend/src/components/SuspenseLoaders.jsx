@@ -1,9 +1,9 @@
 export const PageLoader = ({ message = "Loading..." }) => (
-  <div style={{ minHeight: 'calc(100vh - 58px)', background: '#fafaf9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', sans-serif" }}>
+  <div style={{ minHeight: 'calc(100vh - 72px)', background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', sans-serif" }}>
     <div style={{ textAlign: 'center' }}>
-      <div style={{ width: '28px', height: '28px', border: '3px solid #e9d5ff', borderTopColor: '#9333ea', borderRadius: '50%', animation: 'spin 0.7s linear infinite', margin: '0 auto 0.75rem' }} />
-      <p style={{ color: '#a8a29e', fontSize: '0.825rem' }}>{message}</p>
+      <div style={{ width: '32px', height: '4px', background: '#000000', margin: '0 auto 1rem', animation: 'pulse 1s ease-in-out infinite' }} />
+      <p style={{ color: '#888888', fontSize: '0.78rem', margin: 0, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>{message}</p>
     </div>
-    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    <style>{`@keyframes pulse { 0%,100%{opacity:1;transform:scaleX(1)} 50%{opacity:0.4;transform:scaleX(0.6)} }`}</style>
   </div>
 );

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const upload = require('../middleware/upload');
-const { uploadAndConvertFile, uploadBatchFiles } = require('../controller/upload.controller');
+const { uploadAndConvertFile } = require('../controller/upload.controller');
 const { validateUpload } = require('../middleware/validation');
 const { uploadLimiter } = require('../middleware/rateLimiter');
 const logger = require('../utils/logger');
@@ -12,13 +12,6 @@ router.post('/uploads',
   upload.single('file'),
   validateUpload,
   uploadAndConvertFile
-);
-
-router.post('/uploads/batch',
-  uploadLimiter,
-  upload.array('files', 10),
-  validateUpload,
-  uploadBatchFiles
 );
 
 router.get('/uploads/status/:code', async (req, res) => {

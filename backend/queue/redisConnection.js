@@ -9,9 +9,10 @@ const getRedisConnection = () => {
       maxRetriesPerRequest: null, 
       enableReadyCheck: false,  
     });
-
     redisInstance.on('connect', () => logger.log('Redis connected'));
-    redisInstance.on('error', (err) => logger.error('Redis error:', err.message));
+    redisInstance.on('ready', () => logger.log('Redis ready'));
+    redisInstance.on('reconnecting', () => logger.warn('Redis reconnecting...'));
+    redisInstance.on('error', (err) => logger.error('Redis error:', err.message));;
   }
   return redisInstance;
 };

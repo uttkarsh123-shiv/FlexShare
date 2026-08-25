@@ -18,7 +18,6 @@ const allowedOrigins = [
 
 app.use(compression()); 
 
-morgan.token('short-status', (req, res) => res.statusCode);
 app.use(morgan(':method :url :status :response-time ms', {
   skip: (req) => req.method === 'OPTIONS'
 }));
@@ -61,13 +60,6 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/api', (req, res, next) => {
   if (req.path === '/health' || req.path=== '/api/health') return next();
   apiLimiter(req, res, next);
-});
-
-app.use('/api/file', (req, res, next) => {
-  if (req.method === 'GET' && req.path.includes('/info')) {
-    res.set('Cache-Control', 'public, max-age=300'); 
-  }
-  next();
 });
 
 app.use('/api', useRoutes);
