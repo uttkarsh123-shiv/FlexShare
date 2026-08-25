@@ -1,0 +1,129 @@
+name: Deploy Backend to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy.yml'
+
+jobs:
+  deploy:
+    name: SSH Deploy to EC2
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # ── 1. Checkout (needed so git metadata is available) ─────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── 2. SSH into EC2 and deploy ─────────────────────────────────────────
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host:     ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key:      ${{ secrets.EC2_SSH_KEY }}
+          port:     22
+          script_stop: true      # abort on first error
+          script: |
+
+            echo ""
+            echo "=============================="
+            echo "  FlexShare Backend Deploy"
+            echo "=============================="
+
+            # ── Go to project root ──────────────────────────────────────────
+            cd ~/FlexShare
+
+            # ── Pull latest code ────────────────────────────────────────────
+            echo "[1/4] Pulling latest code..."
+            git fetch origin main
+            git reset --hard origin/main
+
+            # ── Install production dependencies ─────────────────────────────
+            echo "[2/4] Installing dependencies..."
+            cd backend
+            npm ci --omit=dev --prefer-offline
+
+            # ── Health-check env file exists ────────────────────────────────
+            echo "[3/4] Checking environment..."
+            if [ ! -f .env.production ]; then
+              echo "ERROR: .env.production not found in backend/"
+              exit 1
+            fi
+
+            # ── Restart PM2 processes ────────────────────────────────────────
+            echo "[4/4] Restarting PM2 processes..."
+
+            # API server
+            if pm2 describe flexshare-api > /dev/null 2>&1; then
+              pm2 restart flexshare-api --update-env
+            else
+              NODE_ENV=production pm2 start index.js \
+                --name flexshare-api \
+                --instances 1 \
+                --max-memory-restart 512M \
+                --exp-backoff-restart-delay=100 \
+                --merge-logs \
+                --log ~/.pm2/logs/flexshare-api.log
+            fi
+
+            # BullMQ worker
+            if pm2 describe flexshare-worker > /dev/null 2>&1; then
+              pm2 restart flexshare-worker --update-env
+            else
+              NODE_ENV=production pm2 start worker.js \
+                --name flexshare-worker \
+                --instances 1 \
+                --max-memory-restart 256M \
+                --exp-backoff-restart-delay=100 \
+                --merge-logs \
+                --log ~/.pm2/logs/flexshare-worker.log
+            fi
+
+            # Save PM2 process list (survives reboots)
+            pm2 save
+
+            # ── Wait and verify processes are online ─────────────────────────
+            echo "Waiting for processes to stabilize..."
+            sleep 5
+
+            API_STATUS=$(pm2 jlist | python3 -c "
+            import sys, json
+            procs = json.load(sys.stdin)
+            for p in procs:
+              if p['name'] == 'flexshare-api':
+                print(p['pm2_env']['status'])
+            " 2>/dev/null || echo "unknown")
+
+            WORKER_STATUS=$(pm2 jlist | python3 -c "
+            import sys, json
+            procs = json.load(sys.stdin)
+            for p in procs:
+              if p['name'] == 'flexshare-worker':
+                print(p['pm2_env']['status'])
+            " 2>/dev/null || echo "unknown")
+
+            echo ""
+            echo "┌─────────────────────────────────┐"
+            echo "│  flexshare-api     → $API_STATUS"
+            echo "│  flexshare-worker  → $WORKER_STATUS"
+            echo "└─────────────────────────────────┘"
+
+            if [ "$API_STATUS" != "online" ]; then
+              echo "ERROR: flexshare-api is not online"
+              pm2 logs flexshare-api --lines 30 --nostream
+              exit 1
+            fi
+
+            if [ "$WORKER_STATUS" != "online" ]; then
+              echo "ERROR: flexshare-worker is not online"
+              pm2 logs flexshare-worker --lines 30 --nostream
+              exit 1
+            fi
+
+            echo ""
+            echo "Deploy successful ✓"
