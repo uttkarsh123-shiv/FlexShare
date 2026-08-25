@@ -1,5 +1,4 @@
-import { FileText, Image as ImageIcon, File, FileSpreadsheet, Copy, Check } from 'lucide-react';
-import { useState } from 'react';
+import { FileText, Image as ImageIcon, File, FileSpreadsheet } from 'lucide-react';
 
 const iconMap = {
   image:   { icon: ImageIcon,       color: 'var(--text-body)' },
@@ -26,14 +25,6 @@ const getIconConfig = (conversionType, fileUrl) => {
 
 export default function FilePreview({ fileUrl, filename, conversionType, description, isImage, hasPassword, code }) {
   const { icon: Icon, color } = getIconConfig(conversionType, fileUrl);
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   const showConversion = conversionType && conversionType !== 'none';
 
   return (
@@ -53,23 +44,11 @@ export default function FilePreview({ fileUrl, filename, conversionType, descrip
         <p className="file-description">{description}</p>
       )}
 
-      <div className="file-meta-row">
-        {showConversion && (
+      {showConversion && (
+        <div className="file-meta-row">
           <span className="file-conversion">{conversionType.replace('->', ' → ')}</span>
-        )}
-        {code && (
-          <div className="file-code-chip">
-            <span className="file-code-value">{code}</span>
-            <button
-              onClick={handleCopy}
-              className={`file-code-copy ${copied ? 'copied' : ''}`}
-              title="Copy code"
-            >
-              {copied ? <Check size={12} /> : <Copy size={12} />}
-            </button>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
