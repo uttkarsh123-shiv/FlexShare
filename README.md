@@ -165,6 +165,8 @@ FlexShare/
 │   ├── model/                # Mongoose file schema
 │   ├── queue/                # BullMQ queue, worker, Redis connection
 │   ├── route/                # API routes
+│   ├── storage/              # In-memory fallback store (used when MongoDB unavailable)
+│   ├── tests/                # Jest + Supertest integration tests
 │   ├── utils/                # S3 helper, LibreOffice converter, cleanup cron, logger
 │   ├── app.js
 │   ├── index.js              # API server entry
@@ -177,6 +179,30 @@ FlexShare/
         ├── pages/            # Hero, UploadPage, FilePage, Notfound
         └── styles/           # CSS per-component
 ```
+
+---
+
+## Testing
+
+The backend uses **Jest** + **Supertest** for integration tests. Tests run against the Express app directly — no running server needed.
+
+```bash
+cd backend
+npm test
+```
+
+### Test files
+
+| File | What it covers |
+|---|---|
+| `tests/upload.test.js` | Upload validation — missing file, invalid conversion type, short password, out-of-range download limit |
+| `tests/getFile.test.js` | File retrieval — short/invalid codes (400), non-existent codes (404) |
+
+### Notes
+
+- Tests run without a real MongoDB or Redis connection. If MongoDB is unavailable, the app falls back to an in-memory store automatically.
+- Each test file closes its own Redis and Mongoose connections via `afterAll` so Jest exits cleanly.
+- To add a new test file, follow the same pattern and include the `afterAll` teardown block.
 
 ---
 
