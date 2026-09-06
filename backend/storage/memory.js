@@ -17,23 +17,31 @@ const memoryStorage = {
   findOne: (query) => {
     const code = query.code;
     const file = files.get(code);
+
+    let result = null;
     if (file) {
       if (new Date() > new Date(file.expiry)) {
         files.delete(code);
-        return Promise.resolve(null);
+      } else {
+        result = {
+          ...file,
+          save: function() {
+            files.set(code, this);
+            return Promise.resolve(this);
+          }
+        };
       }
-      
-      const mockDoc = {
-        ...file,
-        save: function() {
-          files.set(code, this);
-          return Promise.resolve(this);
-        }
-      };
-      
-      return Promise.resolve(mockDoc);
     }
-    return Promise.resolve(null);
+
+    // Return a thenable that also supports .select() and .lean() chaining
+    const chainable = {
+      select: () => chainable,
+      lean:   () => chainable,
+      then:   (resolve, reject) => Promise.resolve(result).then(resolve, reject),
+      catch:  (reject) => Promise.resolve(result).catch(reject),
+    };
+
+    return chainable;
   },
   
   updateOne: (query, update) => {
