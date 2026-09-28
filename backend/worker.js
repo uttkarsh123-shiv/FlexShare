@@ -1,6 +1,7 @@
 const path = require('path');
+// On Render, env vars are injected directly — dotenv is only needed locally
 const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
-require('dotenv').config({ path: path.join(__dirname, envFile) });
+require('dotenv').config({ path: path.join(__dirname, envFile) }); // no-op if file missing
 
 const { connectDB } = require('./config/db.js');
 const logger = require('./utils/logger');

@@ -95,7 +95,7 @@ const worker = new Worker(
       );
     }
   },
-  // concurrency: 2 — safe for t2.micro (1GB RAM, LibreOffice ~300MB each)
+  // concurrency: 2 — CloudConvert handles processing remotely, safe to run multiple jobs
   { connection: getRedisConnection(), concurrency: 2 }
 );
 

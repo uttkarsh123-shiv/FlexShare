@@ -10,7 +10,7 @@ const execFileAsync = promisify(execFile);
 class LibreOfficeConverter {
   constructor() {
     this.timeout = 120000;
-    this.maxConcurrent = 2; // matches worker concurrency
+    this.maxConcurrent = 2;
     this.activeConversions = 0;
     this.libreOfficeCmd = null;
   }
@@ -40,13 +40,13 @@ class LibreOfficeConverter {
 
   getTargetFormat(conversionType) {
     const map = {
-      'pdf->word': 'docx',
-      'pdf->txt':  'txt',
-      'word->pdf': 'pdf',
-      'word->txt': 'txt',
+      'pdf->word':  'docx',
+      'pdf->txt':   'txt',
+      'word->pdf':  'pdf',
+      'word->txt':  'txt',
       'excel->pdf': 'pdf',
       'excel->csv': 'csv',
-      'ppt->pdf':  'pdf',
+      'ppt->pdf':   'pdf',
     };
     return map[conversionType];
   }
