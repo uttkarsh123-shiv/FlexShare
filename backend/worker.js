@@ -1,7 +1,8 @@
 const path = require('path');
-// On Render, env vars are injected directly — dotenv is only needed locally
-const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
-require('dotenv').config({ path: path.join(__dirname, envFile) }); // no-op if file missing
+// On Render env vars are injected directly — skip dotenv if no file exists
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config({ path: path.join(__dirname, '.env.development') });
+}
 
 const { connectDB } = require('./config/db.js');
 const logger = require('./utils/logger');
@@ -17,6 +18,13 @@ async function start() {
 
   const worker = require('./queue/conversionWorker');
   logger.log('[Worker] BullMQ worker listening on queue: file-conversion');
+
+  // Render requires an open port even for worker services on web service plan
+  const http = require('http');
+  const PORT = process.env.PORT || 3001;
+  http.createServer((req, res) => res.end('worker ok')).listen(PORT, () => {
+    logger.log(`[Worker] Health port listening on ${PORT}`);
+  });
 
   const shutdown = async (signal) => {
     logger.log(`[Worker] ${signal} received — draining in-flight jobs...`);
