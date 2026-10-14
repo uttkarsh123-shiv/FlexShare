@@ -22,6 +22,13 @@ services:
         sync: false
       - key: FRONTEND_URL
         value: https://flex-share.vercel.app
+      - key: RENDER_EXTERNAL_URL
+        fromService:
+          type: web
+          name: flexshare-api
+          property: host
+      - key: KEEP_ALIVE
+        value: false  # set to true in dashboard + redeploy to keep server warm
 
   - type: web
     name: flexshare-worker

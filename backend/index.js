@@ -7,6 +7,7 @@ const app = require('./app');
 const { connectDB } = require('./config/db.js');
 const logger = require('./utils/logger');
 const { startCleanupCron } = require('./utils/s3Cleanup');
+const { startKeepAlive } = require('./utils/keepAlive');
 
 const PORT = process.env.PORT || 3000;
 
@@ -27,6 +28,7 @@ connectDB()
       logger.log(`[Server] API running on port ${PORT}`);
     });
     startCleanupCron();
+    startKeepAlive();
   })
   .catch((err) => {
     logger.error('[Server] Failed to connect to database', err);

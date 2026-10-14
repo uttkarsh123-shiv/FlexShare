@@ -10,7 +10,7 @@ const { apiLimiter } = require('./middleware/rateLimiter');
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
 
-// Trust the first proxy (Nginx) — required when running behind a reverse proxy
+// Trust the first proxy (Render's load balancer) — required when running behind a reverse proxy
 // so express-rate-limit and req.ip work correctly with X-Forwarded-For
 app.set('trust proxy', 1);
 

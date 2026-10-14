@@ -3,7 +3,7 @@
 A file conversion and sharing platform. Upload files, convert between formats, and share via a 6-digit code — with optional password protection, expiry, and download limits. No sign-up required.
 
 **Live:** [flex-share.vercel.app](https://flex-share.vercel.app)  
-**API:** [flexshare-api.duckdns.org](https://flexshare-api.duckdns.org/api/health)
+**API:** [flexshare-api.onrender.com](https://flexshare-api.onrender.com/api/health)
 
 ---
 
@@ -17,7 +17,7 @@ A file conversion and sharing platform. Upload files, convert between formats, a
 - Configurable expiry (1h → 7d) and per-file download limits
 - 6-digit shareable codes — no long URLs
 - Rate limiting, Helmet security headers, CORS whitelist
-- Auto-deployment via GitHub Actions → EC2
+- Auto-deployment via Render (push to `main` → deploy)
 
 ---
 
@@ -28,17 +28,17 @@ Browser (React + Vite)          Vercel (CDN)
         │
         │ HTTPS
         ▼
-Nginx (SSL · Let's Encrypt)     EC2 Ubuntu 22.04
+Render (SSL · managed TLS)
         │
         ▼
-Express API (Node 20 · PM2)
+Express API (Node 20)
         │            │            │
         ▼            ▼            ▼
    MongoDB        Redis         AWS S3
   (metadata)   (job queue)  (file storage)
         │
         ▼
-  BullMQ Worker (PM2)
+  BullMQ Worker (Docker on Render)
 ```
 
 **Upload flow (with conversion):**
@@ -70,8 +70,8 @@ Express API (Node 20 · PM2)
 | Database | MongoDB Atlas |
 | File Processing | Sharp, LibreOffice, pdf-lib, pdf-parse, mammoth |
 | Security | bcryptjs, Helmet, CORS, Joi, express-rate-limit |
-| Deployment | EC2 (Ubuntu 22.04) + Nginx + PM2 + Certbot, Vercel |
-| CI/CD | GitHub Actions |
+| Deployment | Render (Web Service + Docker Worker), Vercel |
+| CI/CD | Render auto-deploy on push to `main` |
 
 ---
 
@@ -155,9 +155,7 @@ brew install --cask libreoffice
 
 ```
 FlexShare/
-├── .github/
-│   └── workflows/
-│       └── deploy.yml        # Auto-deploy backend to EC2 on push
+├── render.yaml                   # Render service definitions
 ├── backend/
 │   ├── config/               # DB + S3 client
 │   ├── controller/           # Upload + file access logic
@@ -168,6 +166,7 @@ FlexShare/
 │   ├── storage/              # In-memory fallback store (used when MongoDB unavailable)
 │   ├── tests/                # Jest + Supertest integration tests
 │   ├── utils/                # S3 helper, LibreOffice converter, cleanup cron, logger
+│   ├── Dockerfile            # Worker image (Node 20 + LibreOffice)
 │   ├── app.js
 │   ├── index.js              # API server entry
 │   └── worker.js             # BullMQ worker entry
@@ -263,33 +262,23 @@ GET /api/health
 
 ## Deployment
 
-### Backend — EC2 + Nginx + PM2
+### Backend — Render
 
-```bash
-# On EC2 (Ubuntu 22.04)
-git clone https://github.com/uttkarsh123-shiv/FlexShare.git ~/FlexShare
-cd ~/FlexShare/backend
-npm ci --omit=dev
+The backend is defined in `render.yaml` at the repo root. Render auto-deploys on every push to `main`.
 
-# Create production env
-nano .env.production
+Two services are deployed:
 
-# Start with PM2
-NODE_ENV=production pm2 start index.js  --name flexshare-backend
-NODE_ENV=production pm2 start worker.js --name flexshare-worker
-pm2 save && pm2 startup
+| Service | Type | Entry point |
+|---|---|---|
+| `flexshare-api` | Web Service (Node 20) | `node index.js` |
+| `flexshare-worker` | Web Service (Docker) | `node worker.js` via Dockerfile |
 
-# SSL
-sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d your-domain.duckdns.org
-```
-
-Required `.env.production` keys:
+Required environment variables (set in Render dashboard or `render.yaml`):
 
 ```env
 NODE_ENV=production
 PORT=3000
-FRONTEND_URL=https://your-app.vercel.app
+FRONTEND_URL=https://flex-share.vercel.app
 MONGO_URI=
 REDIS_URL=
 AWS_ACCESS_KEY_ID=
@@ -298,19 +287,13 @@ AWS_REGION=
 AWS_S3_BUCKET=
 ```
 
-### CI/CD — GitHub Actions
-
-Push to `main` with any `backend/` change → workflow SSHs into EC2 → pulls code → `npm ci` → restarts PM2 → verifies both processes online.
-
-Required GitHub secrets: `EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY`.
-
 ### Frontend — Vercel
 
 ```
 Root directory:   frontend
 Build command:    npm run build
 Output directory: dist
-Env variable:     VITE_API_URL=https://your-backend-domain
+Env variable:     VITE_API_URL=https://flexshare-api.onrender.com
 ```
 
 ---
