@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import {
   Github, Upload, Search, X, CheckCircle2, Loader2, Copy,
   FileText, Image as ImageIcon, File, Clock, Shield, Download, Settings,
-  FileImage, FileType2, FileSpreadsheet, Eye
+  FileImage, FileType2, FileSpreadsheet, Eye, History
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
@@ -10,6 +10,7 @@ import OtpInput from "react-otp-input";
 import axios from "axios";
 import { throttle } from "lodash";
 import { useToast } from "../context/ToastContext";
+import { addToHistory } from "../hooks/useFileHistory";
 import "../styles/navbar.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -209,6 +210,12 @@ function UploadModal({ onClose }) {
         setCode(res.data.code);
         setShowDropdown(false);
         showToast("File ready!", "success");
+        addToHistory({
+          code: res.data.code,
+          fileName: file.name,
+          conversionType: conversionType || 'none',
+          expiryHours,
+        });
         sessionStorage.setItem("uploadSuccess", "true");
         sessionStorage.setItem("uploadCode", res.data.code);
       } catch (err) {
@@ -660,6 +667,9 @@ const Navbar = () => {
               className="navbar-text-btn" aria-label="GitHub">
               GitHub
             </a>
+            <button className="navbar-text-btn" onClick={() => navigate('/history')}>
+              History
+            </button>
             <button className="navbar-text-btn" onClick={() => { setShowUpload(true); setShowAccess(false); }}>
               Upload
             </button>

@@ -9,3 +9,4 @@ export const LazyFileInfo       = lazy(() => import('./file/FileInfo'));
 export const LazyFilePage       = lazy(() => import('../pages/FilePage'));
 export const LazyUploadPage     = lazy(() => import('../pages/UploadPage'));
 export const LazyHomePage       = lazy(() => import('../pages/Hero'));
+export const LazyHistoryPage    = lazy(() => import('../pages/HistoryPage'));
