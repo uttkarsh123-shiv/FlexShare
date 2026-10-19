@@ -5,7 +5,7 @@ import { throttle } from "lodash";
 import {
   X, Upload, FileText, Image as ImageIcon, File, CheckCircle2, Loader2,
   Clock, Shield, Download, Settings, Copy,
-  FileImage, FileType2, FileSpreadsheet, Presentation, ArrowRightLeft
+  FileImage, FileType2, FileSpreadsheet, ArrowRightLeft
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../context/ToastContext";
