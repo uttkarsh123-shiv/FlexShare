@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../context/ToastContext";
+import { addToHistory } from "../hooks/useFileHistory";
 import "../styles/upload-page.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -280,7 +281,12 @@ export default function UploadPage() {
       setCode(res.data.code);
       setShowDropdown(false);
       showToast("File ready!", "success");
-
+      addToHistory({
+        code: res.data.code,
+        fileName: file.name,
+        conversionType: conversionType || 'none',
+        expiryHours,
+      });
       sessionStorage.setItem('uploadSuccess', 'true');
       sessionStorage.setItem('uploadCode', res.data.code);
 
@@ -333,7 +339,7 @@ export default function UploadPage() {
                       : "step-indicator-inactive"
                   }`}
                 >
-                  {step > s.num ? <CheckCircle2 className="step-indicator-check" /> : s.num}
+                  {step > s.num || (step === s.num && s.num === 3 && code) ? <CheckCircle2 className="step-indicator-check" /> : s.num}
                 </div>
                 <span className="step-indicator-label">{s.label}</span>
               </div>
