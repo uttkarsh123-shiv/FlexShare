@@ -34,7 +34,7 @@
 }
 
 .hero-title {
-  font-size: clamp(3rem, 6vw, 5.75rem);
+  font-size: clamp(var(--text-3xl), 6vw, var(--text-4xl));
   font-weight: 700;
   color: #ffffff;
   line-height: 1.0;
@@ -46,7 +46,7 @@
 .hero-title-accent { color: var(--accent); }
 
 .hero-subtitle {
-  font-size: 1.4rem;
+  font-size: var(--text-lg);
   color: rgba(255,255,255,0.65);
   line-height: 1.65;
   margin: 0;
@@ -216,15 +216,15 @@
 }
 
 .feature-title {
-  font-size: 1.1rem;
+  font-size: var(--text-md);
   font-weight: 700;
   color: var(--text-primary);
-  margin: 0 0 0.6rem;
+  margin: 0 0 var(--space-2);
   letter-spacing: -0.02em;
 }
 
 .feature-desc {
-  font-size: 0.9rem;
+  font-size: var(--text-base);
   color: var(--text-muted);
   line-height: 1.7;
   margin: 0;
@@ -299,7 +299,7 @@
 }
 
 .how-step h3 {
-  font-size: 1.15rem;
+  font-size: var(--text-md);
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
@@ -307,7 +307,7 @@
 }
 
 .how-step p {
-  font-size: 0.9rem;
+  font-size: var(--text-base);
   color: var(--text-muted);
   line-height: 1.7;
   margin: 0;
@@ -365,12 +365,12 @@
 .format-pill {
   display: inline-flex;
   align-items: center;
-  font-size: 0.84rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   color: var(--text-body);
   background: var(--bg-muted);
   border: 1px solid var(--bg-border);
-  padding: 6px 16px;
+  padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-md);
   transition: all 0.15s;
   letter-spacing: -0.005em;
