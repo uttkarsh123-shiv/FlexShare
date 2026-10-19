@@ -128,7 +128,7 @@ export default function HistoryPage() {
 
         {/* History list */}
         {history.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {history.map((entry) => {
               const expired = isExpired(entry.expiresAt);
               return (
@@ -137,16 +137,19 @@ export default function HistoryPage() {
                   style={{
                     background: 'var(--bg-elevated)',
                     border: '1px solid var(--border-subtle)',
-                    borderRadius: 'var(--radius-lg)',
-                    padding: '1rem 1.25rem',
+                    borderRadius: '16px',
+                    padding: '1.25rem 1.5rem',
                     opacity: expired ? 0.5 : 1,
-                    transition: 'border-color 0.15s',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                    transition: 'box-shadow 0.15s, border-color 0.15s',
                   }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.28)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.18)'; }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     {/* Icon */}
                     <div style={{
-                      width: 38, height: 38, borderRadius: 'var(--radius-md)',
+                      width: 46, height: 46, borderRadius: '12px',
                       background: 'var(--bg-base)', display: 'flex', alignItems: 'center',
                       justifyContent: 'center', color: 'var(--text-muted)', flexShrink: 0,
                     }}>
@@ -155,38 +158,36 @@ export default function HistoryPage() {
 
                     {/* Info */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                         <span style={{
-                          fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)',
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '280px',
+                          fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px',
                         }} title={entry.fileName}>
                           {entry.fileName}
                         </span>
                         {expired && (
                           <span style={{
-                            fontSize: '0.7rem', fontWeight: 600, padding: '2px 7px',
+                            fontSize: '0.7rem', fontWeight: 700, padding: '3px 9px',
                             background: 'rgba(239,68,68,0.1)', color: '#ef4444',
-                            borderRadius: '999px',
+                            borderRadius: '999px', letterSpacing: '0.04em',
                           }}>
                             EXPIRED
                           </span>
                         )}
                       </div>
-                      <div style={{ display: 'flex', gap: '12px', marginTop: '4px', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <span style={{
-                            fontFamily: 'var(--font-mono, monospace)', fontWeight: 700,
-                            color: 'var(--text-body)', letterSpacing: '0.05em',
-                          }}>{entry.code}</span>
-                        </span>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      <div style={{ display: 'flex', gap: '14px', marginTop: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                        <span style={{
+                          fontFamily: 'var(--font-mono, monospace)', fontWeight: 700,
+                          fontSize: '0.85rem', color: 'var(--text-body)', letterSpacing: '0.06em',
+                        }}>{entry.code}</span>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                           {conversionLabel(entry.conversionType)}
                         </span>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 3 }}>
-                          <Clock size={11} /> {formatDate(entry.uploadedAt)}
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <Clock size={12} /> {formatDate(entry.uploadedAt)}
                         </span>
                         {entry.expiresAt && (
-                          <span style={{ fontSize: '0.8rem', color: expired ? '#ef4444' : 'var(--text-muted)' }}>
+                          <span style={{ fontSize: '0.85rem', color: expired ? '#ef4444' : 'var(--text-muted)' }}>
                             {expired ? 'Expired' : 'Expires'} {formatDate(entry.expiresAt)}
                           </span>
                         )}
@@ -194,7 +195,7 @@ export default function HistoryPage() {
                     </div>
 
                     {/* Actions */}
-                    <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                    <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                       {!expired && (
                         <button
                           onClick={() => navigate(`/file/${entry.code}`)}
@@ -203,7 +204,7 @@ export default function HistoryPage() {
                           onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-base)'}
                           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                         >
-                          <ExternalLink size={14} />
+                          <ExternalLink size={16} />
                         </button>
                       )}
                       <button
@@ -213,7 +214,7 @@ export default function HistoryPage() {
                         onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-base)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                       >
-                        <Copy size={14} />
+                        <Copy size={16} />
                       </button>
                       <button
                         onClick={() => handleRemove(entry.code)}
@@ -222,7 +223,7 @@ export default function HistoryPage() {
                         onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.color = '#ef4444'; }}
                         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </div>
@@ -237,8 +238,8 @@ export default function HistoryPage() {
 }
 
 const iconBtnStyle = {
-  width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
-  background: 'transparent', border: 'none', borderRadius: 'var(--radius-md)',
+  width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
+  background: 'transparent', border: 'none', borderRadius: '10px',
   color: 'var(--text-muted)', cursor: 'pointer', transition: 'all 0.15s',
   fontFamily: 'var(--font-sans)',
 };
