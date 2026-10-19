@@ -1,8 +1,8 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
-  Github, Upload, Search, X, CheckCircle2, Loader2, Copy,
+  Upload, X, CheckCircle2, Loader2, Copy,
   FileText, Image as ImageIcon, File, Clock, Shield, Download, Settings,
-  FileImage, FileType2, FileSpreadsheet, Eye, History
+  FileImage, FileType2, FileSpreadsheet, Eye, AlertCircle, ChevronDown
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
@@ -10,7 +10,7 @@ import OtpInput from "react-otp-input";
 import axios from "axios";
 import { throttle } from "lodash";
 import { useToast } from "../context/ToastContext";
-import { addToHistory } from "../hooks/useFileHistory";
+import { useUploadQueue } from "../context/UploadQueueContext";
 import "../styles/navbar.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -93,6 +93,7 @@ const getFileIcon = (file) => {
 ══════════════════════════════════════════════════════════════════════════════ */
 function UploadModal({ onClose }) {
   const { showToast } = useToast();
+  const { enqueue } = useUploadQueue();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -103,9 +104,6 @@ function UploadModal({ onClose }) {
   const [file, setFile]                   = useState(null);
   const [step, setStep]                   = useState(1);
   const [conversionType, setConversionType] = useState("");
-  const [code, setCode]                   = useState("");
-  const [isUploading, setIsUploading]     = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [description, setDescription]     = useState("");
   const [showAdvanced, setShowAdvanced]   = useState(false);
   const [password, setPassword]           = useState("");
@@ -114,17 +112,16 @@ function UploadModal({ onClose }) {
   const [showDropdown, setShowDropdown]   = useState(false);
 
   const resetAll = () => {
-    setFile(null); setStep(1); setConversionType(""); setCode("");
-    setIsUploading(false); setUploadProgress(0); setDescription("");
-    setShowAdvanced(false); setPassword(""); setExpiryHours(1);
-    setMaxDownloads(""); setShowDropdown(false);
+    setFile(null); setStep(1); setConversionType("");
+    setDescription(""); setShowAdvanced(false); setPassword("");
+    setExpiryHours(1); setMaxDownloads(""); setShowDropdown(false);
   };
 
   const onDrop = useCallback((acceptedFiles) => {
     const f = acceptedFiles[0];
     if (!f) return;
     if (f.size > 10 * 1024 * 1024) { showToast("File size exceeds 10MB limit", "error"); return; }
-    setFile(f); setCode(""); setUploadProgress(0); setConversionType("");
+    setFile(f); setConversionType("");
   }, [showToast]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -142,18 +139,6 @@ function UploadModal({ onClose }) {
     maxFiles: 1,
   });
 
-  const handleCopyCode = useCallback(
-    throttle(() => { navigator.clipboard.writeText(code); showToast("Code copied!", "success"); }, 1000),
-    [code, showToast]
-  );
-  const handleCopyLink = useCallback(
-    throttle(() => {
-      navigator.clipboard.writeText(`${window.location.origin}/file/${code}`);
-      showToast("Link copied!", "success");
-    }, 1000),
-    [code, showToast]
-  );
-
   const availableConversions = getAvailableConversions(file);
   const groupedOptions = availableConversions.reduce((acc, opt) => {
     if (!acc[opt.category]) acc[opt.category] = [];
@@ -162,8 +147,7 @@ function UploadModal({ onClose }) {
   }, {});
 
   const handlePublish = useCallback(
-    throttle(async () => {
-      if (isUploading) return;
+    throttle(() => {
       if (!file) { showToast("Please select a file", "warning"); return; }
       if (availableConversions.length > 0 && !conversionType) {
         showToast("Please select a conversion type or 'No Conversion'", "warning"); return;
@@ -177,55 +161,11 @@ function UploadModal({ onClose }) {
           showToast("Download limit must be between 1 and 100", "error"); return;
         }
       }
-      setIsUploading(true); setUploadProgress(0);
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("conversionType", conversionType || "none");
-      formData.append("description", description || "");
-      formData.append("expiryHours", expiryHours.toString());
-      if (password.trim() && password.trim().length >= 4) formData.append("password", password.trim());
-      if (maxDownloads && maxDownloads.trim()) {
-        const dl = parseInt(maxDownloads.trim(), 10);
-        if (!isNaN(dl) && dl >= 1 && dl <= 100) formData.append("maxDownloads", dl.toString());
-      }
-      try {
-        const res = await axios.post(`${API_URL}/api/uploads`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-          onUploadProgress: (e) => setUploadProgress(Math.round((e.loaded * 100) / e.total)),
-          timeout: 300000,
-        });
-        if (res.data.status === "pending") {
-          const pollCode = res.data.code;
-          showToast("File uploaded! Converting...", "success");
-          await new Promise((resolve, reject) => {
-            const iv = setInterval(async () => {
-              try {
-                const sr = await axios.get(`${API_URL}/api/uploads/status/${pollCode}`);
-                if (sr.data.status === "done") { clearInterval(iv); resolve(); }
-                else if (sr.data.status === "failed") { clearInterval(iv); reject(new Error("Conversion failed")); }
-              } catch (e) { clearInterval(iv); reject(e); }
-            }, 2000);
-          });
-        }
-        setCode(res.data.code);
-        setShowDropdown(false);
-        showToast("File ready!", "success");
-        addToHistory({
-          code: res.data.code,
-          fileName: file.name,
-          conversionType: conversionType || 'none',
-          expiryHours,
-        });
-        sessionStorage.setItem("uploadSuccess", "true");
-        sessionStorage.setItem("uploadCode", res.data.code);
-      } catch (err) {
-        const msg = err.response?.data?.message || err.response?.data?.errors || err.message || "Upload failed";
-        showToast(msg, "error");
-      } finally {
-        setIsUploading(false);
-      }
-    }, 3000),
-    [isUploading, conversionType, file, password, maxDownloads, expiryHours, description, showToast, availableConversions]
+      enqueue({ file, conversionType, description, expiryHours, password, maxDownloads });
+      showToast("Upload queued!", "success");
+      onClose();
+    }, 1000),
+    [file, conversionType, description, expiryHours, password, maxDownloads, showToast, enqueue, onClose, availableConversions]
   );
 
   const StepIndicators = () => (
@@ -341,109 +281,58 @@ function UploadModal({ onClose }) {
           {/* Step 3: Convert */}
           {step === 3 && (
             <>
-              {!code && (
-                <>
-                  <div className="modal-field">
-                    <label className="modal-label">Conversion Type</label>
-                    <div className="modal-conversion-wrap">
-                      <button className="modal-conversion-btn" id="conv-btn"
-                        onClick={() => setShowDropdown(!showDropdown)}>
-                        <span>
-                          {conversionType
-                            ? availableConversions.find((o) => o.value === conversionType)?.label
-                            : "Select conversion or 'No Conversion'"}
-                        </span>
-                        <svg style={{ width: 14, height: 14, transition: "transform 0.2s", transform: showDropdown ? "rotate(180deg)" : "none" }}
-                          fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                      {showDropdown && (() => {
-                        const btn = document.getElementById("conv-btn");
-                        const rect = btn ? btn.getBoundingClientRect() : { bottom: 0, left: 0, width: 500 };
-                        return (
-                          <>
-                            <div style={{ position: "fixed", inset: 0, zIndex: 9998 }} onClick={() => setShowDropdown(false)} />
-                            <div className="modal-conversion-menu" style={{
-                              position: "fixed", top: rect.bottom + 6,
-                              left: rect.left, width: rect.width, zIndex: 9999,
-                            }}>
-                              {Object.entries(groupedOptions).map(([cat, opts]) => (
-                                <div key={cat}>
-                                  <div className="modal-conv-category">{cat}</div>
-                                  {opts.map((opt) => (
-                                    <div key={opt.value}
-                                      className={`modal-conv-option${conversionType === opt.value ? " selected" : ""}`}
-                                      onClick={() => { setConversionType(opt.value); setShowDropdown(false); }}>
-                                      <opt.icon size={14} color="var(--text-muted)" />
-                                      <span>{opt.label}</span>
-                                    </div>
-                                  ))}
+              <div className="modal-field">
+                <label className="modal-label">Conversion Type</label>
+                <div className="modal-conversion-wrap">
+                  <button className="modal-conversion-btn" id="conv-btn"
+                    onClick={() => setShowDropdown(!showDropdown)}>
+                    <span>
+                      {conversionType
+                        ? availableConversions.find((o) => o.value === conversionType)?.label
+                        : "Select conversion or 'No Conversion'"}
+                    </span>
+                    <svg style={{ width: 14, height: 14, transition: "transform 0.2s", transform: showDropdown ? "rotate(180deg)" : "none" }}
+                      fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {showDropdown && (() => {
+                    const btn = document.getElementById("conv-btn");
+                    const rect = btn ? btn.getBoundingClientRect() : { bottom: 0, left: 0, width: 500 };
+                    return (
+                      <>
+                        <div style={{ position: "fixed", inset: 0, zIndex: 9998 }} onClick={() => setShowDropdown(false)} />
+                        <div className="modal-conversion-menu" style={{
+                          position: "fixed", top: rect.bottom + 6,
+                          left: rect.left, width: rect.width, zIndex: 9999,
+                        }}>
+                          {Object.entries(groupedOptions).map(([cat, opts]) => (
+                            <div key={cat}>
+                              <div className="modal-conv-category">{cat}</div>
+                              {opts.map((opt) => (
+                                <div key={opt.value}
+                                  className={`modal-conv-option${conversionType === opt.value ? " selected" : ""}`}
+                                  onClick={() => { setConversionType(opt.value); setShowDropdown(false); }}>
+                                  <opt.icon size={14} color="var(--text-muted)" />
+                                  <span>{opt.label}</span>
                                 </div>
                               ))}
                             </div>
-                          </>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                  {isUploading && (
-                    <div className="modal-progress-wrap">
-                      <div className="modal-progress-header">
-                        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />
-                          Processing...
-                        </span>
-                        <span>{uploadProgress}%</span>
-                      </div>
-                      <div className="modal-progress-bar">
-                        <div className="modal-progress-fill" style={{ width: `${uploadProgress}%` }} />
-                      </div>
-                      <p className="modal-progress-status">
-                        {uploadProgress < 100
-                          ? `Uploading... ${uploadProgress}%`
-                          : `Converting ${conversionType?.replace("->", " to ")} format...`}
-                      </p>
-                    </div>
-                  )}
-                  <div className="modal-nav-row">
-                    <button className="modal-btn-back" onClick={() => setStep(2)}>← Back</button>
-                    <button className="modal-btn-primary"
-                      disabled={isUploading || (availableConversions.length > 0 && !conversionType)}
-                      onClick={handlePublish}>
-                      {isUploading
-                        ? <><Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> Processing...</>
-                        : <><Upload size={14} /> {availableConversions.length > 0 ? "Convert & Share" : "Upload & Share"}</>}
-                    </button>
-                  </div>
-                </>
-              )}
-
-              {/* Success */}
-              {code && (
-                <div className="modal-success">
-                  <CheckCircle2 className="modal-success-icon" />
-                  <p className="modal-success-title">File Ready!</p>
-                  <p className="modal-success-subtitle">Share this code with anyone who needs the file.</p>
-                  <div className="modal-code-boxes">
-                    {code.split("").map((ch, i) => (
-                      <div key={i} className="modal-code-box">{ch}</div>
-                    ))}
-                  </div>
-                  <div className="modal-success-actions">
-                    <button className="modal-btn-primary" style={{ flex: "0 0 auto" }}
-                      onClick={() => { navigate(`/file/${code}`); onClose(); }}>
-                      <Eye size={14} /> View File
-                    </button>
-                    <button className="modal-btn-secondary" style={{ flex: "0 0 auto" }} onClick={handleCopyCode}>
-                      <Copy size={14} /> Copy Code
-                    </button>
-                    <button className="modal-btn-secondary" style={{ flex: "0 0 auto" }} onClick={handleCopyLink}>
-                      <Copy size={14} /> Copy Link
-                    </button>
-                  </div>
+                          ))}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
-              )}
+              </div>
+              <div className="modal-nav-row">
+                <button className="modal-btn-back" onClick={() => setStep(2)}>← Back</button>
+                <button className="modal-btn-primary"
+                  disabled={availableConversions.length > 0 && !conversionType}
+                  onClick={handlePublish}>
+                  <Upload size={14} /> {availableConversions.length > 0 ? "Convert & Share" : "Upload & Share"}
+                </button>
+              </div>
             </>
           )}
         </div>
@@ -636,12 +525,141 @@ function AccessModal({ onClose }) {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
+   UPLOAD QUEUE TRAY
+══════════════════════════════════════════════════════════════════════════════ */
+function UploadQueueTray({ onClose }) {
+  const { jobs, removeJob, clearDone } = useUploadQueue();
+  const navigate = useNavigate();
+  const { showToast } = useToast();
+
+  const copyCode = (code) => {
+    navigator.clipboard.writeText(code);
+    showToast("Code copied!", "success");
+  };
+
+  const convLabel = (t) => (!t || t === 'none' ? 'No conversion' : t.replace('->', ' → '));
+
+  return (
+    <div style={{
+      position: 'fixed', top: 72, right: 16, width: 380, zIndex: 10000,
+      background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)',
+      borderRadius: '20px', boxShadow: '0 12px 32px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.2)',
+      fontFamily: 'var(--font-sans)', overflow: 'hidden',
+    }}>
+      {/* Header */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '16px 20px', borderBottom: '1px solid var(--border-subtle)',
+      }}>
+        <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+          Uploads
+        </span>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {jobs.some(j => j.status === 'done' || j.status === 'failed') && (
+            <button onClick={clearDone} style={trayBtnStyle}>Clear done</button>
+          )}
+          <button onClick={onClose} style={{ ...trayBtnStyle, padding: '2px 4px' }}><X size={13} /></button>
+        </div>
+      </div>
+
+      {/* Jobs list */}
+      <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+        {jobs.length === 0 && (
+          <p style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
+            No uploads yet
+          </p>
+        )}
+        {jobs.map(job => (
+          <div key={job.id} style={{
+            padding: '14px 20px', borderBottom: '1px solid var(--border-subtle)',
+            display: 'flex', gap: 14, alignItems: 'flex-start',
+          }}>
+            {/* Status icon */}
+            <div style={{ paddingTop: 2, flexShrink: 0 }}>
+              {job.status === 'uploading' && <Loader2 size={15} style={{ animation: 'spin 1s linear infinite', color: '#60a5fa' }} />}
+              {job.status === 'converting' && <Loader2 size={15} style={{ animation: 'spin 1s linear infinite', color: '#a78bfa' }} />}
+              {job.status === 'done' && <CheckCircle2 size={15} style={{ color: '#34d399' }} />}
+              {job.status === 'failed' && <AlertCircle size={15} style={{ color: '#f87171' }} />}
+            </div>
+
+            {/* Info */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{
+                margin: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }} title={job.fileName}>{job.fileName}</p>
+              <p style={{ margin: '3px 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                {convLabel(job.conversionType)}
+                {job.status === 'uploading' && ` · ${job.progress}%`}
+                {job.status === 'converting' && ' · Converting...'}
+                {job.status === 'failed' && ` · ${job.error}`}
+              </p>
+
+              {/* Progress bar */}
+              {(job.status === 'uploading') && (
+                <div style={{ marginTop: 5, height: 3, background: 'var(--bg-base)', borderRadius: 2 }}>
+                  <div style={{ height: '100%', width: `${job.progress}%`, background: '#60a5fa', borderRadius: 2, transition: 'width 0.2s' }} />
+                </div>
+              )}
+
+              {/* Done actions */}
+              {job.status === 'done' && job.code && (
+                <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                  <button
+                    onClick={() => { navigate(`/file/${job.code}`); onClose(); }}
+                    style={trayActionBtnStyle}
+                  >
+                    <Eye size={11} /> View
+                  </button>
+                  <button onClick={() => copyCode(job.code)} style={trayActionBtnStyle}>
+                    <Copy size={11} /> {job.code}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Remove */}
+            {(job.status === 'done' || job.status === 'failed') && (
+              <button onClick={() => removeJob(job.id)} style={{ ...trayBtnStyle, padding: '2px 4px', flexShrink: 0 }}>
+                <X size={12} />
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const trayBtnStyle = {
+  background: 'transparent', border: 'none', color: 'var(--text-muted)',
+  cursor: 'pointer', fontSize: '0.82rem', fontFamily: 'var(--font-sans)',
+  padding: '3px 10px', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: 4,
+};
+
+const trayActionBtnStyle = {
+  display: 'inline-flex', alignItems: 'center', gap: 5,
+  padding: '5px 12px', background: 'var(--bg-base)', border: '1px solid var(--border-subtle)',
+  borderRadius: 'var(--radius-md)', fontSize: '0.8rem', fontWeight: 500,
+  color: 'var(--text-body)', cursor: 'pointer', fontFamily: 'var(--font-sans)',
+};
+
+/* ══════════════════════════════════════════════════════════════════════════════
    NAVBAR
 ══════════════════════════════════════════════════════════════════════════════ */
 const Navbar = () => {
   const navigate = useNavigate();
   const [showUpload, setShowUpload] = useState(false);
   const [showAccess, setShowAccess] = useState(false);
+  const [showTray, setShowTray] = useState(false);
+  const { jobs, activeCount } = useUploadQueue();
+  const prevActiveCount = useRef(0);
+
+  // auto-open tray when a new upload starts
+  useEffect(() => {
+    if (activeCount > prevActiveCount.current) setShowTray(true);
+    prevActiveCount.current = activeCount;
+  }, [activeCount]);
 
   useEffect(() => {
     const openUpload = () => { setShowUpload(true); setShowAccess(false); };
@@ -654,12 +672,14 @@ const Navbar = () => {
     };
   }, []);
 
+  const doneCount = jobs.filter(j => j.status === 'done').length;
+  const failedCount = jobs.filter(j => j.status === 'failed').length;
+
   return (
     <>
       <nav className="navbar">
         <div className="navbar-inner">
           <div className="navbar-logo-group" onClick={() => navigate("/")}>
-            {/* <div className="navbar-logo-icon">F</div> */}
             <span className="navbar-brand">FlexShare</span>
           </div>
           <div className="navbar-icon-group">
@@ -670,6 +690,40 @@ const Navbar = () => {
             <button className="navbar-text-btn" onClick={() => navigate('/history')}>
               History
             </button>
+
+            {/* Queue indicator — only visible when there are jobs */}
+            {jobs.length > 0 && (
+              <button
+                onClick={() => setShowTray(t => !t)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '9px 18px',
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '999px',
+                  color: 'var(--text-body)',
+                  fontSize: '0.88rem', fontWeight: 500, cursor: 'pointer',
+                  fontFamily: 'var(--font-sans)',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.28)',
+                  transition: 'box-shadow 0.15s, border-color 0.15s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.38)'; e.currentTarget.style.borderColor = 'var(--text-muted)'; }}
+                onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.28)'; e.currentTarget.style.borderColor = 'var(--border-subtle)'; }}
+              >
+                {activeCount > 0
+                  ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite', color: 'var(--text-muted)' }} />
+                  : failedCount > 0
+                  ? <AlertCircle size={15} style={{ color: 'var(--text-muted)' }} />
+                  : <CheckCircle2 size={15} style={{ color: 'var(--text-muted)' }} />}
+                {activeCount > 0
+                  ? `${activeCount} uploading`
+                  : failedCount > 0
+                  ? `${failedCount} failed`
+                  : `${doneCount} done`}
+                <ChevronDown size={13} style={{ color: 'var(--text-muted)', transform: showTray ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+              </button>
+            )}
+
             <button className="navbar-text-btn" onClick={() => { setShowUpload(true); setShowAccess(false); }}>
               Upload
             </button>
@@ -680,6 +734,7 @@ const Navbar = () => {
         </div>
       </nav>
 
+      {showTray && <UploadQueueTray onClose={() => setShowTray(false)} />}
       {showUpload && <UploadModal onClose={() => setShowUpload(false)} />}
       {showAccess && <AccessModal onClose={() => setShowAccess(false)} />}
     </>
