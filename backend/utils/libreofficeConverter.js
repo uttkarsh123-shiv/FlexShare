@@ -3,7 +3,6 @@ const { promisify } = require('util');
 const fs = require('fs');
 const path = require('path');
 const logger = require('./logger');
-const { Document, Packer, Paragraph, TextRun } = require('docx');
 
 const execFileAsync = promisify(execFile);
 
@@ -41,7 +40,7 @@ class LibreOfficeConverter {
   getTargetFormat(conversionType) {
     const map = {
       'pdf->word':  'docx',
-      'pdf->txt':   'txt',
+      'pdf->txt':   'docx', // convert to docx first, then extract text
       'word->pdf':  'pdf',
       'word->txt':  'txt',
       'excel->pdf': 'pdf',
@@ -71,7 +70,9 @@ class LibreOfficeConverter {
     this.activeConversions++;
     try {
       const args = ['--headless', '--convert-to', targetFormat, '--outdir', outputDir];
-      if (conversionType === 'pdf->word') args.push('--infilter=writer_pdf_import');
+      if (conversionType === 'pdf->word' || conversionType === 'pdf->txt') {
+        args.push('--infilter=writer_pdf_import');
+      }
       args.push(inputPath);
 
       await execFileAsync(this.libreOfficeCmd, args, {
@@ -106,38 +107,19 @@ class LibreOfficeConverter {
   }
 
   async convertWithFallback(inputPath, outputDir, conversionType) {
-    try {
-      return await this.convert(inputPath, outputDir, conversionType);
-    } catch (err) {
-      logger.warn(`LibreOffice failed for ${conversionType}: ${err.message}`);
-      if (conversionType.startsWith('pdf->')) {
-        return await this.fallbackPdfConversion(inputPath, outputDir, conversionType);
-      }
-      throw err;
+    if (conversionType === 'pdf->txt') {
+      // LibreOffice can't export txt on Windows — convert to docx first, extract text with mammoth
+      const docxPath = await this.convert(inputPath, outputDir, 'pdf->word');
+      const mammoth = require('mammoth');
+      const result = await mammoth.extractRawText({ path: docxPath });
+      const baseName = path.basename(inputPath, path.extname(inputPath));
+      const txtPath = path.join(outputDir, `${baseName}.txt`);
+      fs.writeFileSync(txtPath, result.value);
+      // clean up intermediate docx
+      fs.unlink(docxPath, () => {});
+      return txtPath;
     }
-  }
-
-  async fallbackPdfConversion(inputPath, outputDir, conversionType) {
-    const pdfParse = require('pdf-parse');
-    const dataBuffer = fs.readFileSync(inputPath);
-    const result = await pdfParse(dataBuffer);
-    const content = result.text || '';
-    const baseName = path.basename(inputPath, path.extname(inputPath));
-
-    if (conversionType === 'pdf->word') {
-      const outputPath = path.join(outputDir, `${baseName}.docx`);
-      const paragraphs = content.split('\n').map(line =>
-        new Paragraph({ children: [new TextRun(line || ' ')] })
-      );
-      const doc = new Document({ sections: [{ properties: {}, children: paragraphs }] });
-      const buffer = await Packer.toBuffer(doc);
-      fs.writeFileSync(outputPath, buffer);
-      return outputPath;
-    }
-
-    const outputPath = path.join(outputDir, `${baseName}.txt`);
-    fs.writeFileSync(outputPath, content);
-    return outputPath;
+    return await this.convert(inputPath, outputDir, conversionType);
   }
 }
 
