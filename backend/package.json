@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "set NODE_ENV=development && nodemon index.js",
-    "dev:worker": "set NODE_ENV=development && nodemon worker.js",
+    "dev:worker": "set NODE_ENV=development && nodemon --ignore uploads/ worker.js",
     "start": "NODE_ENV=production node index.js",
     "start:worker": "NODE_ENV=production node worker.js",
     "start:dev": "NODE_ENV=development node index.js",

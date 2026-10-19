@@ -1,7 +1,7 @@
 const path = require('path');
 // On Render env vars are injected directly — skip dotenv if no file exists
 if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config({ path: path.join(__dirname, '.env.development') });
+  require('dotenv').config({ path: path.join(__dirname, '.env') });
 }
 
 const { connectDB } = require('./config/db.js');
