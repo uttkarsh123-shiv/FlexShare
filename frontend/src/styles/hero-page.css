@@ -1,14 +1,13 @@
-/* ── Hero Page — Clean Light, Google-style ───────────────────────────────── */
+/* ── Hero Page — single bg, no alternating sections ─────────────────────── */
 
 .hero-section {
   position: relative;
   width: 100%;
-  background: var(--bg-base);
+  background: var(--bg-soft);
   min-height: 520px;
   display: flex;
   align-items: center;
   overflow: hidden;
-  border-bottom: 1px solid var(--bg-border);
 }
 
 .hero-inner {
@@ -34,7 +33,7 @@
 
 .hero-title {
   font-size: clamp(2.25rem, 5vw, 3.25rem);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
   line-height: 1.15;
   letter-spacing: -0.02em;
@@ -118,7 +117,7 @@
   padding: 4px 12px;
   border-radius: 999px;
   white-space: nowrap;
-  background: var(--bg-soft);
+  background: var(--bg-base);
 }
 
 .hero-pill-check {
@@ -135,11 +134,10 @@
   flex-shrink: 0;
 }
 
-/* ── Features Section ─────────────────────────────────────────────────────── */
+/* ── Features Section — same bg ───────────────────────────────────────────── */
 .features-section {
   background: var(--bg-soft);
-  border-bottom: 1px solid var(--bg-border);
-  padding: 7rem 2.5rem;
+  padding: 5rem 2.5rem;
 }
 
 .features-section .section-header {
@@ -193,11 +191,10 @@
   margin: 0;
 }
 
-/* ── How It Works ─────────────────────────────────────────────────────────── */
+/* ── How It Works — same bg ───────────────────────────────────────────────── */
 .how-section {
-  background: var(--bg-base);
-  padding: 7rem 2.5rem;
-  border-bottom: 1px solid var(--bg-border);
+  background: var(--bg-soft);
+  padding: 5rem 2.5rem;
 }
 
 .how-section .section-header {
@@ -218,7 +215,7 @@
 }
 
 .how-step {
-  background: var(--bg-soft);
+  background: var(--bg-base);
   border: 1px solid var(--bg-border);
   border-radius: var(--radius-xl);
   padding: 2.5rem 2rem;
@@ -247,7 +244,7 @@
   width: 48px;
   height: 48px;
   border-radius: var(--radius-lg);
-  background: var(--bg-muted);
+  background: var(--bg-soft);
   border: 1px solid var(--bg-border);
   display: flex;
   align-items: center;
@@ -277,11 +274,10 @@
   flex-shrink: 0;
 }
 
-/* ── Formats Section ──────────────────────────────────────────────────────── */
+/* ── Formats Section — same bg ────────────────────────────────────────────── */
 .formats-section {
   background: var(--bg-soft);
-  border-bottom: 1px solid var(--bg-border);
-  padding: 7rem 2.5rem;
+  padding: 5rem 2.5rem;
 }
 
 .formats-section .section-header {
@@ -319,7 +315,7 @@
   color: var(--text-body);
   background: var(--bg-base);
   border: 1px solid var(--bg-border);
-  padding: 5px var(--space-3);
+  padding: 7px var(--space-3);
   border-radius: var(--radius-md);
   transition: all 0.15s;
 }
@@ -327,6 +323,14 @@
   border-color: var(--accent);
   background: var(--accent-light);
   color: var(--accent);
+}
+
+/* ── Dividers between sections ────────────────────────────────────────────── */
+.section-divider {
+  height: 1px;
+  background: var(--bg-border);
+  max-width: 1180px;
+  margin: 0 auto;
 }
 
 /* ── Responsive ───────────────────────────────────────────────────────────── */
@@ -337,7 +341,7 @@
 @media (max-width: 900px) {
   .how-steps      { grid-template-columns: 1fr; gap: 1rem; }
   .how-connector  { display: none; }
-  .hero-inner     { flex-direction: column; align-items: flex-start; gap: 2rem; padding: 3.5rem 1.5rem; }
+  .hero-inner     { flex-direction: column; align-items: flex-start; gap: 2rem; padding: 4rem 1.5rem; }
 }
 
 @media (max-width: 768px) {
