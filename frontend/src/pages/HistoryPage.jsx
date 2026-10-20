@@ -37,9 +37,7 @@ export default function HistoryPage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
 
-  useEffect(() => {
-    setHistory(getHistory());
-  }, []);
+  useEffect(() => { setHistory(getHistory()); }, []);
 
   const handleRemove = (code) => {
     setHistory(removeFromHistory(code));
@@ -64,20 +62,20 @@ export default function HistoryPage() {
 
   return (
     <div style={{
-      minHeight: 'calc(100vh - 62px)',
-      background: 'var(--bg-base)',
+      minHeight: 'calc(100vh - 64px)',
+      background: 'var(--bg-soft)',
       padding: '2.5rem 1.5rem',
       fontFamily: 'var(--font-sans)',
     }}>
-      <div style={{ maxWidth: '720px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '680px', margin: '0 auto' }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2rem' }}>
           <div>
-            <h1 style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.03em' }}>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px', letterSpacing: '-0.01em' }}>
               File History
             </h1>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', margin: '0.3rem 0 0' }}>
+            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', margin: 0 }}>
               Files you've shared from this browser — no account needed.
             </p>
           </div>
@@ -87,14 +85,15 @@ export default function HistoryPage() {
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 padding: '8px 14px', background: 'transparent',
-                color: 'var(--text-muted)', border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-md)', fontSize: '0.85rem', fontWeight: 500,
+                color: 'var(--text-muted)', border: '1px solid var(--bg-border)',
+                borderRadius: '999px', fontSize: '0.82rem', fontWeight: 500,
                 cursor: 'pointer', fontFamily: 'var(--font-sans)', transition: 'all 0.15s',
+                marginTop: '2px',
               }}
-              onMouseEnter={e => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = '#ef4444'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border-subtle)'; }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--error)'; e.currentTarget.style.borderColor = 'var(--error)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--bg-border)'; }}
             >
-              <Trash size={13} /> Clear All
+              <Trash size={13} /> Clear all
             </button>
           )}
         </div>
@@ -102,92 +101,91 @@ export default function HistoryPage() {
         {/* Empty state */}
         {history.length === 0 && (
           <div style={{
-            textAlign: 'center', padding: '5rem 2rem',
-            background: 'var(--bg-elevated)', borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-subtle)',
+            textAlign: 'center', padding: '4rem 2rem',
+            background: 'var(--bg-base)', borderRadius: 'var(--radius-xl)',
+            border: '1px solid var(--bg-border)',
           }}>
-            <Clock size={40} style={{ color: 'var(--text-muted)', marginBottom: '1rem' }} />
-            <p style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 0.5rem' }}>
+            <Clock size={36} style={{ color: 'var(--text-subtle)', marginBottom: '1rem' }} />
+            <p style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 0.4rem' }}>
               No history yet
             </p>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', margin: '0 0 1.5rem' }}>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', margin: '0 0 1.5rem' }}>
               Files you upload will appear here so you can access them again.
             </p>
             <button
               onClick={() => window.dispatchEvent(new Event('flexshare:open-upload'))}
               style={{
-                padding: '10px 22px', background: 'var(--btn-bg)', color: 'var(--btn-fg)',
-                border: 'none', borderRadius: 'var(--radius-md)', fontSize: '0.9rem',
-                fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-sans)',
+                padding: '10px 22px', background: 'var(--accent)', color: '#ffffff',
+                border: 'none', borderRadius: '999px', fontSize: '0.875rem',
+                fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--font-sans)',
               }}
             >
-              Upload a File
+              Upload a file
             </button>
           </div>
         )}
 
         {/* History list */}
         {history.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {history.map((entry) => {
               const expired = isExpired(entry.expiresAt);
               return (
                 <div
                   key={entry.code}
                   style={{
-                    background: 'var(--bg-elevated)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: '16px',
-                    padding: '1.25rem 1.5rem',
-                    opacity: expired ? 0.5 : 1,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-                    transition: 'box-shadow 0.15s, border-color 0.15s',
+                    background: 'var(--bg-base)',
+                    border: '1px solid var(--bg-border)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: '1rem 1.25rem',
+                    opacity: expired ? 0.55 : 1,
+                    transition: 'box-shadow 0.15s',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.28)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.18)'; }}
+                  onMouseEnter={e => { if (!expired) e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                     {/* Icon */}
                     <div style={{
-                      width: 46, height: 46, borderRadius: '12px',
-                      background: 'var(--bg-base)', display: 'flex', alignItems: 'center',
-                      justifyContent: 'center', color: 'var(--text-muted)', flexShrink: 0,
+                      width: 40, height: 40, borderRadius: 'var(--radius-md)',
+                      background: 'var(--accent-light)', display: 'flex', alignItems: 'center',
+                      justifyContent: 'center', color: 'var(--accent)', flexShrink: 0,
                     }}>
                       {getFileIcon(entry.conversionType, entry.fileName)}
                     </div>
 
                     {/* Info */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                         <span style={{
-                          fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)',
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px',
+                          fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-primary)',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '280px',
                         }} title={entry.fileName}>
                           {entry.fileName}
                         </span>
                         {expired && (
                           <span style={{
-                            fontSize: '0.7rem', fontWeight: 700, padding: '3px 9px',
-                            background: 'rgba(239,68,68,0.1)', color: '#ef4444',
+                            fontSize: '0.68rem', fontWeight: 600, padding: '2px 8px',
+                            background: '#fce8e6', color: 'var(--error)',
                             borderRadius: '999px', letterSpacing: '0.04em',
                           }}>
                             EXPIRED
                           </span>
                         )}
                       </div>
-                      <div style={{ display: 'flex', gap: '14px', marginTop: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '12px', marginTop: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
                         <span style={{
-                          fontFamily: 'var(--font-mono, monospace)', fontWeight: 700,
-                          fontSize: '0.85rem', color: 'var(--text-body)', letterSpacing: '0.06em',
+                          fontFamily: 'var(--font-mono)', fontWeight: 600,
+                          fontSize: '0.8rem', color: 'var(--text-body)', letterSpacing: '0.06em',
                         }}>{entry.code}</span>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                           {conversionLabel(entry.conversionType)}
                         </span>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <Clock size={12} /> {formatDate(entry.uploadedAt)}
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-subtle)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <Clock size={11} /> {formatDate(entry.uploadedAt)}
                         </span>
                         {entry.expiresAt && (
-                          <span style={{ fontSize: '0.85rem', color: expired ? '#ef4444' : 'var(--text-muted)' }}>
+                          <span style={{ fontSize: '0.78rem', color: expired ? 'var(--error)' : 'var(--text-subtle)' }}>
                             {expired ? 'Expired' : 'Expires'} {formatDate(entry.expiresAt)}
                           </span>
                         )}
@@ -195,35 +193,35 @@ export default function HistoryPage() {
                     </div>
 
                     {/* Actions */}
-                    <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                    <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
                       {!expired && (
                         <button
                           onClick={() => navigate(`/file/${entry.code}`)}
                           title="View file"
                           style={iconBtnStyle}
-                          onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-base)'}
+                          onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-muted)'}
                           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                         >
-                          <ExternalLink size={16} />
+                          <ExternalLink size={15} />
                         </button>
                       )}
                       <button
                         onClick={() => handleCopyCode(entry.code)}
                         title="Copy code"
                         style={iconBtnStyle}
-                        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-base)'}
+                        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-muted)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                       >
-                        <Copy size={16} />
+                        <Copy size={15} />
                       </button>
                       <button
                         onClick={() => handleRemove(entry.code)}
                         title="Remove from history"
-                        style={{ ...iconBtnStyle, color: 'var(--text-muted)' }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.color = '#ef4444'; }}
+                        style={{ ...iconBtnStyle }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#fce8e6'; e.currentTarget.style.color = 'var(--error)'; }}
                         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={15} />
                       </button>
                     </div>
                   </div>
@@ -238,8 +236,8 @@ export default function HistoryPage() {
 }
 
 const iconBtnStyle = {
-  width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
-  background: 'transparent', border: 'none', borderRadius: '10px',
+  width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+  background: 'transparent', border: 'none', borderRadius: '50%',
   color: 'var(--text-muted)', cursor: 'pointer', transition: 'all 0.15s',
   fontFamily: 'var(--font-sans)',
 };

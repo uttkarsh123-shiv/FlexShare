@@ -541,17 +541,17 @@ function UploadQueueTray({ onClose }) {
 
   return (
     <div style={{
-      position: 'fixed', top: 72, right: 16, width: 380, zIndex: 10000,
-      background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)',
-      borderRadius: '20px', boxShadow: '0 12px 32px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.2)',
+      position: 'fixed', top: 68, right: 16, width: 360, zIndex: 10000,
+      background: 'var(--bg-base)', border: '1px solid var(--bg-border)',
+      borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-lg)',
       fontFamily: 'var(--font-sans)', overflow: 'hidden',
     }}>
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '16px 20px', borderBottom: '1px solid var(--border-subtle)',
+        padding: '14px 18px', borderBottom: '1px solid var(--bg-border)',
       }}>
-        <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+        <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
           Uploads
         </span>
         <div style={{ display: 'flex', gap: 6 }}>
@@ -563,52 +563,49 @@ function UploadQueueTray({ onClose }) {
       </div>
 
       {/* Jobs list */}
-      <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+      <div style={{ maxHeight: 340, overflowY: 'auto' }}>
         {jobs.length === 0 && (
-          <p style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
+          <p style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0 }}>
             No uploads yet
           </p>
         )}
         {jobs.map(job => (
           <div key={job.id} style={{
-            padding: '14px 20px', borderBottom: '1px solid var(--border-subtle)',
-            display: 'flex', gap: 14, alignItems: 'flex-start',
+            padding: '12px 18px', borderBottom: '1px solid var(--bg-border)',
+            display: 'flex', gap: 12, alignItems: 'flex-start',
           }}>
             {/* Status icon */}
             <div style={{ paddingTop: 2, flexShrink: 0 }}>
-              {job.status === 'uploading' && <Loader2 size={15} style={{ animation: 'spin 1s linear infinite', color: '#60a5fa' }} />}
-              {job.status === 'converting' && <Loader2 size={15} style={{ animation: 'spin 1s linear infinite', color: '#a78bfa' }} />}
-              {job.status === 'done' && <CheckCircle2 size={15} style={{ color: '#34d399' }} />}
-              {job.status === 'failed' && <AlertCircle size={15} style={{ color: '#f87171' }} />}
+              {job.status === 'uploading'  && <Loader2     size={14} style={{ animation: 'spin 1s linear infinite', color: 'var(--accent)' }} />}
+              {job.status === 'converting' && <Loader2     size={14} style={{ animation: 'spin 1s linear infinite', color: '#8b5cf6' }} />}
+              {job.status === 'done'       && <CheckCircle2 size={14} style={{ color: 'var(--success)' }} />}
+              {job.status === 'failed'     && <AlertCircle  size={14} style={{ color: 'var(--error)' }} />}
             </div>
 
             {/* Info */}
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{
-                margin: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)',
+                margin: 0, fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }} title={job.fileName}>{job.fileName}</p>
-              <p style={{ margin: '3px 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+              <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                 {convLabel(job.conversionType)}
-                {job.status === 'uploading' && ` · ${job.progress}%`}
+                {job.status === 'uploading'  && ` · ${job.progress}%`}
                 {job.status === 'converting' && ' · Converting...'}
-                {job.status === 'failed' && ` · ${job.error}`}
+                {job.status === 'failed'     && ` · ${job.error}`}
               </p>
 
               {/* Progress bar */}
-              {(job.status === 'uploading') && (
-                <div style={{ marginTop: 5, height: 3, background: 'var(--bg-base)', borderRadius: 2 }}>
-                  <div style={{ height: '100%', width: `${job.progress}%`, background: '#60a5fa', borderRadius: 2, transition: 'width 0.2s' }} />
+              {job.status === 'uploading' && (
+                <div style={{ marginTop: 5, height: 3, background: 'var(--bg-muted)', borderRadius: 2 }}>
+                  <div style={{ height: '100%', width: `${job.progress}%`, background: 'var(--accent)', borderRadius: 2, transition: 'width 0.2s' }} />
                 </div>
               )}
 
               {/* Done actions */}
               {job.status === 'done' && job.code && (
                 <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-                  <button
-                    onClick={() => { navigate(`/file/${job.code}`); onClose(); }}
-                    style={trayActionBtnStyle}
-                  >
+                  <button onClick={() => { navigate(`/file/${job.code}`); onClose(); }} style={trayActionBtnStyle}>
                     <Eye size={11} /> View
                   </button>
                   <button onClick={() => copyCode(job.code)} style={trayActionBtnStyle}>
@@ -633,15 +630,17 @@ function UploadQueueTray({ onClose }) {
 
 const trayBtnStyle = {
   background: 'transparent', border: 'none', color: 'var(--text-muted)',
-  cursor: 'pointer', fontSize: '0.82rem', fontFamily: 'var(--font-sans)',
-  padding: '3px 10px', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: 4,
+  cursor: 'pointer', fontSize: '0.8rem', fontFamily: 'var(--font-sans)',
+  padding: '3px 10px', borderRadius: '999px', display: 'flex', alignItems: 'center', gap: 4,
+  transition: 'background 0.15s',
 };
 
 const trayActionBtnStyle = {
   display: 'inline-flex', alignItems: 'center', gap: 5,
-  padding: '5px 12px', background: 'var(--bg-base)', border: '1px solid var(--border-subtle)',
-  borderRadius: 'var(--radius-md)', fontSize: '0.8rem', fontWeight: 500,
+  padding: '4px 10px', background: 'var(--bg-soft)', border: '1px solid var(--bg-border)',
+  borderRadius: '999px', fontSize: '0.78rem', fontWeight: 500,
   color: 'var(--text-body)', cursor: 'pointer', fontFamily: 'var(--font-sans)',
+  transition: 'background 0.15s',
 };
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -697,18 +696,17 @@ const Navbar = () => {
                 onClick={() => setShowTray(t => !t)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '9px 18px',
-                  background: 'var(--bg-elevated)',
-                  border: '1px solid var(--border-subtle)',
+                  padding: '8px 16px',
+                  background: 'var(--bg-muted)',
+                  border: '1px solid var(--bg-border)',
                   borderRadius: '999px',
                   color: 'var(--text-body)',
-                  fontSize: '0.88rem', fontWeight: 500, cursor: 'pointer',
+                  fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer',
                   fontFamily: 'var(--font-sans)',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.28)',
-                  transition: 'box-shadow 0.15s, border-color 0.15s',
+                  transition: 'background 0.15s, border-color 0.15s',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.38)'; e.currentTarget.style.borderColor = 'var(--text-muted)'; }}
-                onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.28)'; e.currentTarget.style.borderColor = 'var(--border-subtle)'; }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; e.currentTarget.style.borderColor = 'var(--accent)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-muted)'; e.currentTarget.style.borderColor = 'var(--bg-border)'; }}
               >
                 {activeCount > 0
                   ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite', color: 'var(--text-muted)' }} />

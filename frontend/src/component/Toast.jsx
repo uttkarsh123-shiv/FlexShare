@@ -4,34 +4,34 @@ import { CheckCircle2, XCircle, AlertTriangle, Info, X } from 'lucide-react';
 const config = {
   success: {
     icon: CheckCircle2,
-    iconColor: '#ffffff',
-    accentColor: '#16a34a',
-    label: 'Success',
+    accentColor: '#1e8e3e',
+    bg: '#e6f4ea',
+    border: '#ceead6',
   },
   error: {
     icon: XCircle,
-    iconColor: '#ffffff',
-    accentColor: '#dc2626',
-    label: 'Error',
+    accentColor: '#d93025',
+    bg: '#fce8e6',
+    border: '#f5c6c2',
   },
   warning: {
     icon: AlertTriangle,
-    iconColor: '#ffffff',
-    accentColor: '#d97706',
-    label: 'Warning',
+    accentColor: '#e37400',
+    bg: '#fef3e2',
+    border: '#fde3b8',
   },
   info: {
     icon: Info,
-    iconColor: '#ffffff',
-    accentColor: '#f97316',
-    label: 'Info',
+    accentColor: '#1a73e8',
+    bg: '#e8f0fe',
+    border: '#c5d8fd',
   },
 };
 
 export default function Toast({ message, type = 'success', onClose, duration = 3500 }) {
   const [visible, setVisible]   = useState(false);
   const [leaving, setLeaving]   = useState(false);
-  const { icon: Icon, iconColor, accentColor } = config[type] || config.info;
+  const { icon: Icon, accentColor, bg, border } = config[type] || config.info;
 
   const dismiss = () => {
     setLeaving(true);
@@ -48,49 +48,37 @@ export default function Toast({ message, type = 'success', onClose, duration = 3
     <div style={{
       display: 'flex',
       alignItems: 'flex-start',
-      gap: '14px',
-      padding: '16px 18px',
-      borderRadius: '14px',
-      background: '#1a1a1a',
-      border: '1px solid #2e2e2e',
-      boxShadow: '0 8px 40px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.4)',
-      minWidth: '300px',
-      maxWidth: '420px',
+      gap: '12px',
+      padding: '14px 16px',
+      borderRadius: '12px',
+      background: bg,
+      border: `1px solid ${border}`,
+      boxShadow: '0 2px 8px rgba(60,64,67,0.15), 0 1px 3px rgba(60,64,67,0.08)',
+      minWidth: '280px',
+      maxWidth: '380px',
       position: 'relative',
       overflow: 'hidden',
-      fontFamily: "'Space Grotesk', 'Inter', sans-serif",
+      fontFamily: "'Google Sans', 'Inter', sans-serif",
       transform: visible && !leaving
         ? 'translateX(0) translateY(0) scale(1)'
-        : 'translateX(12px) translateY(-4px) scale(0.96)',
+        : 'translateX(8px) translateY(-4px) scale(0.97)',
       opacity: visible && !leaving ? 1 : 0,
-      transition: 'transform 0.28s cubic-bezier(0.16,1,0.3,1), opacity 0.28s ease',
-      backdropFilter: 'blur(12px)',
+      transition: 'transform 0.25s cubic-bezier(0.16,1,0.3,1), opacity 0.25s ease',
     }}>
 
-      {/* Icon container */}
-      <div style={{
-        width: '36px',
-        height: '36px',
-        borderRadius: '10px',
-        background: accentColor,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-        marginTop: '1px',
-      }}>
-        <Icon size={17} style={{ color: '#ffffff' }} />
+      {/* Icon */}
+      <div style={{ paddingTop: '1px', flexShrink: 0 }}>
+        <Icon size={16} style={{ color: accentColor }} />
       </div>
 
       {/* Text */}
-      <div style={{ flex: 1, minWidth: 0, paddingTop: '2px' }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{
-          color: '#f0f0f0',
-          fontSize: '0.9rem',
-          fontWeight: 600,
+          color: accentColor,
+          fontSize: '0.875rem',
+          fontWeight: 500,
           margin: 0,
-          lineHeight: 1.4,
-          letterSpacing: '-0.01em',
+          lineHeight: 1.5,
         }}>
           {message}
         </p>
@@ -103,37 +91,30 @@ export default function Toast({ message, type = 'success', onClose, duration = 3
           background: 'none',
           border: 'none',
           cursor: 'pointer',
-          color: '#555',
+          color: accentColor,
           display: 'flex',
           alignItems: 'center',
           padding: '2px',
           flexShrink: 0,
-          marginTop: '2px',
-          borderRadius: '6px',
-          transition: 'color 0.15s, background 0.15s',
+          borderRadius: '4px',
+          opacity: 0.6,
+          transition: 'opacity 0.15s',
         }}
-        onMouseEnter={e => { e.currentTarget.style.color = '#aaa'; e.currentTarget.style.background = '#2a2a2a'; }}
-        onMouseLeave={e => { e.currentTarget.style.color = '#555'; e.currentTarget.style.background = 'none'; }}
+        onMouseEnter={e => { e.currentTarget.style.opacity = '1'; }}
+        onMouseLeave={e => { e.currentTarget.style.opacity = '0.6'; }}
       >
-        <X size={14} />
+        <X size={13} />
       </button>
 
       {/* Progress bar at bottom */}
-      <div style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        height: '2px',
-        width: '100%',
-        background: '#2a2a2a',
-      }}>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, height: '2px', width: '100%', background: `${accentColor}22` }}>
         <div style={{
           height: '100%',
           background: accentColor,
           width: '100%',
           transformOrigin: 'left',
           animation: `toast-shrink ${duration}ms linear forwards`,
-          opacity: 0.7,
+          opacity: 0.5,
         }} />
       </div>
 
