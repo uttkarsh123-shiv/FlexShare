@@ -1,11 +1,11 @@
 /* ── File Page — Clean Light ──────────────────────────────────────────────── */
 .file-page {
-  min-height: calc(100vh - 64px);
+  min-height: calc(100vh - 72px);
   background: var(--bg-soft);
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 3rem 1rem;
+  padding: 3.5rem 1rem;
   font-family: var(--font-sans);
 }
 
@@ -25,7 +25,7 @@
 
 /* ── Preview area ─────────────────────────────────────────────────────────── */
 .file-preview {
-  padding: 2.25rem 2rem 1.75rem;
+  padding: 3rem 2.5rem 2.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -35,14 +35,14 @@
 }
 
 .file-icon-container {
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-lg);
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-xl);
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--accent-light);
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
   color: var(--accent);
 }
 
@@ -100,24 +100,24 @@
 
 /* ── Content area ─────────────────────────────────────────────────────────── */
 .file-content {
-  padding: 1.5rem 2rem 2rem;
+  padding: 2rem 2.5rem 2.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
 }
 
 /* ── Stats grid ───────────────────────────────────────────────────────────── */
 .file-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: 10px;
 }
 
 .stat-item {
-  padding: 0.875rem 0.5rem;
+  padding: 1.1rem 0.75rem;
   background: var(--bg-soft);
   border: 1px solid var(--bg-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   text-align: center;
 }
 
@@ -156,13 +156,13 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 20px;
+  padding: 15px 24px;
   background: var(--accent);
   color: #ffffff;
   border: none;
   border-radius: var(--radius-xl);
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
   font-family: var(--font-sans);
   transition: background 0.15s, box-shadow 0.15s;

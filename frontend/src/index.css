@@ -36,11 +36,11 @@
   --error:         #d93025;
   --warning:       #e37400;
 
-  /* Radii */
-  --radius-sm:     4px;
-  --radius-md:     8px;
-  --radius-lg:     12px;
-  --radius-xl:     16px;
+  /* Radii — puffy */
+  --radius-sm:     8px;
+  --radius-md:     14px;
+  --radius-lg:     20px;
+  --radius-xl:     28px;
 
   /* Shadows — very subtle */
   --shadow-xs:     0 1px 2px rgba(60,64,67,0.08);
@@ -63,17 +63,17 @@
   --text-3xl:   3rem;
   --text-4xl:   3.5rem;
 
-  /* Spacing */
+  /* Spacing — generous */
   --space-1:  4px;
   --space-2:  8px;
-  --space-3:  12px;
-  --space-4:  16px;
-  --space-5:  20px;
-  --space-6:  24px;
-  --space-8:  32px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-16: 64px;
+  --space-3:  14px;
+  --space-4:  20px;
+  --space-5:  26px;
+  --space-6:  32px;
+  --space-8:  44px;
+  --space-10: 56px;
+  --space-12: 68px;
+  --space-16: 88px;
 }
 
 html, body {
