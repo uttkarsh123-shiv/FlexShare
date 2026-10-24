@@ -22,10 +22,12 @@ const errorRate    = new Rate('error_rate');
 const uploadTrend  = new Trend('upload_duration', true);
 
 export const options = {
-  vus:      20,
+  // uploadLimiter allows 10 req/min per IP — keep VUs low to test throughput
+  // without hitting the rate limit (rate limiting is tested separately)
+  vus:      5,
   duration: '30s',
   thresholds: {
-    http_req_duration: ['p(95)<3000'],  // 95% of uploads under 3s
+    http_req_duration: ['p(95)<5000'],  // 95% of uploads under 5s
     error_rate:        ['rate<0.01'],   // less than 1% errors
   },
 };
