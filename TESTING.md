@@ -117,6 +117,20 @@ p(95) = 231ms   avg = 60ms   2692 requests   80 req/s   0 failures
 
 ---
 
+### `stress.js` — Breaking point / max concurrent users
+Ramps from 1 → 10 → 25 → 50 → 100 VUs over 2.5 minutes to find where the server starts degrading.
+
+**Results (local, rate limiting disabled):**
+```
+100 VUs  •  9093 requests  •  59 req/s  •  0 errors
+p(95) = 467ms   avg = 110ms   max = 3.14s
+✓ Server handled 100 concurrent users with 0% error rate
+```
+
+**Run:** `k6 run k6/stress.js`
+
+---
+
 ### `ratelimit.js` — Rate limiter verification
 Intentionally bursts 20 VUs to confirm the rate limiter returns 429s (not 500s) under traffic.
 
