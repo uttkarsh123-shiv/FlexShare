@@ -48,12 +48,11 @@ describe('POST /api/uploads', () => {
     expect(res.statusCode).toBe(400);
   });
 
-  it('returns 201 and a share code on a valid upload', async () => {
+  it('returns 200 and a share code on a valid upload', async () => {
     const res = await request(app)
       .post('/api/uploads')
       .attach('file', Buffer.from('hello world'), 'test.txt')
       .field('conversionType', 'none');
-
     expect(res.statusCode).toBe(200);
     expect(res.body.code).toBeDefined();
     expect(res.body.code).toHaveLength(6);
@@ -74,7 +73,6 @@ describe('GET /api/file/:code/info', () => {
   });
 
   it('returns file info for a code that was just uploaded', async () => {
-    // Upload first to get a real code
     const upload = await request(app)
       .post('/api/uploads')
       .attach('file', Buffer.from('test content'), 'hello.txt')
